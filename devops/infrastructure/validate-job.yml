@@ -1,0 +1,52 @@
+jobs:
+- job: validate_job
+  displayName: Code Validation
+  pool: $(AGENT_POOL)
+
+  workspace:
+    clean: all
+
+  steps:
+  - task: GoTool@0
+    displayName: 'Ensure Golang'
+    inputs:
+      version: '$(GO_VERSION)'
+
+  - template: tasks/lint-go.yml
+  - template: tasks/lint-tf.yml
+
+  - task: CopyFiles@2
+    displayName: Copy $(PIPELINE_ROOT_DIR)
+    inputs:
+      contents: $(PIPELINE_ROOT_DIR)/**/*
+      sourceFolder: $(Build.SourcesDirectory)
+      targetFolder: $(Build.ArtifactStagingDirectory)
+
+  - task: CopyFiles@2
+    displayName: Copy $(TF_ROOT_DIR)
+    inputs:
+      contents: $(TF_ROOT_DIR)/**/*
+      sourceFolder: $(Build.SourcesDirectory)
+      targetFolder: $(Build.ArtifactStagingDirectory)
+
+  - task: CopyFiles@2
+    displayName: Copy $(TEST_HARNESS_DIR)
+    inputs:
+      contents: $(TEST_HARNESS_DIR)/**/*
+      sourceFolder: $(Build.SourcesDirectory)
+      targetFolder: $(Build.ArtifactStagingDirectory)
+
+  - task: CopyFiles@2
+    displayName: Copy Go Files
+    inputs:
+      contents: go.*
+      sourceFolder: $(Build.SourcesDirectory)
+      targetFolder: $(Build.ArtifactStagingDirectory)
+
+  - task: PublishBuildArtifacts@1
+    displayName: Push Artifact
+    inputs:
+      parallel: true
+      parallelCount: 8
+      artifactName: '$(BUILD_ARTIFACT_NAME)'
+      pathToPublish: $(Build.ArtifactStagingDirectory)

@@ -1,0 +1,58 @@
+package test
+
+import (
+	"os"
+	"testing"
+
+	"github.com/gruntwork-io/terratest/modules/terraform"
+	cosmosIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/cosmosdb/tests/integration"
+	redisIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/redis-cache/tests/integration"
+	sbIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/service-bus/tests/integration"
+	storageIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/storage-account/tests/integration"
+	esIntegTestConfig "github.com/microsoft/cobalt/infra/modules/providers/elastic/elastic-cloud-enterprise/tests"
+	esIntegTests "github.com/microsoft/cobalt/infra/modules/providers/elastic/elastic-cloud-enterprise/tests/integration"
+	"github.com/microsoft/cobalt/test-harness/infratests"
+)
+
+var subscription = os.Getenv("ARM_SUBSCRIPTION_ID")
+var tfOptions = &terraform.Options{
+	TerraformDir: "../../",
+	BackendConfig: map[string]interface{}{
+		"storage_account_name": os.Getenv("TF_VAR_remote_state_account"),
+		"container_name":       os.Getenv("TF_VAR_remote_state_container"),
+	},
+}
+
+// Runs a suite of test assertions to validate that a provisioned set of app services
+// are fully funtional.
+func TestAppSvcPlanSingleRegion(t *testing.T) {
+	esIntegTestConfig.ESVersion = "6.8.3"
+	testFixture := infratests.IntegrationTestFixture{
+		GoTest:                t,
+		TfOptions:             tfOptions,
+		ExpectedTfOutputCount: 33,
+		TfOutputAssertions: []infratests.TerraformOutputValidation{
+			verifyAppServiceConfig,
+			/* Now that we configured the services to run as Java containers via linux_fx_version,
+			we'll have to temporarily comment out the call to verifyAppServiceEndpointStatusCode...
+			The service(s) will be unresponsive until our Azure Pipeline deploys a jar
+			to the target app service. We'll remove the comment once our service CI/CD pipelines are in place.
+			verifyAppServiceEndpointStatusCode,
+			*/
+			verifyServicePrincipalRoleAssignments,
+			esIntegTests.ValidateElasticKvSecretValues("keyvault_secret_attributes", "elastic_cluster_properties"),
+			esIntegTests.CheckClusterHealth("elastic_cluster_properties"),
+			esIntegTests.CheckClusterVersion("elastic_cluster_properties"),
+			esIntegTests.CheckClusterIndexing("elastic_cluster_properties"),
+			redisIntegTests.CheckRedisWriteOperations("redis_hostname", "redis_primary_access_key", "redis_port"),
+			redisIntegTests.InspectProvisionedCache("redis_name", "resource_group"),
+			storageIntegTests.InspectStorageAccount("storage_account", "storage_account_containers", "resource_group"),
+			sbIntegTests.VerifySubscriptionsList(subscription,
+				"resource_group",
+				"sb_namespace_name",
+				"sb_topics"),
+			cosmosIntegTests.InspectProvisionedCosmosDBAccount("resource_group", "cosmosdb_account_name", "cosmosdb_properties"),
+		},
+	}
+	infratests.RunIntegrationTests(&testFixture)
+}

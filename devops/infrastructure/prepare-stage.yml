@@ -1,0 +1,63 @@
+parameters:
+  environments: []
+  configurations: []
+  forceRun: false
+  aksAgentSshPublicKeyFilename: 'azure-aks-node-ssh-key.pub'
+  aksGitOpsSshPrivateKeyFilename: 'azure-aks-gitops-ssh-key'
+
+stages:
+
+- stage: PrepareStage
+  displayName: 'Prepare'
+  jobs:
+  - template: validate-job.yml
+
+- ${{ each environment in parameters.environments }}:
+
+  - stage: Environment_${{ environment.name }}
+    jobs:
+      # To avoid ADO rendering inconsistencies that seems to be caused by stages with empty jobs.
+      - job: Environment_${{ environment.name }}_Build
+
+  - ${{ each config in parameters.configurations }}:
+    - stage: ${{ config.jobName }}_${{ environment.name }}_Build
+      displayName: 'Build ${{ config.jobName }}-${{ environment.name }}'
+      dependsOn: Environment_${{ environment.name }}
+      jobs:
+      - job: TemplateChangeDetection_${{ config.jobName }}_Build
+        displayName: Analyze Changes
+        pool: $(AGENT_POOL)
+        steps:
+        - template: tasks/detect-cicd.yml
+          parameters:
+            terraformTemplatePath: ${{ config.terraformTemplatePath }}
+            jobName: ${{ config.jobName }}
+      - template: build-stage.yml
+        parameters:
+          environment: ${{ environment.name }}
+          enablePrIsolation: ${{ environment.enablePrIsolation }}
+          resourceNameIsolationLevel: ${{ environment.resourceNameIsolationLevel }}
+          configuration: ${{ config }}
+          aksAgentSshPublicKeyFilename: ${{ parameters.aksAgentSshPublicKeyFilename }}
+          aksGitOpsSshPrivateKeyFilename: ${{ parameters.aksGitOpsSshPrivateKeyFilename }}
+
+    - stage: ${{ config.jobName }}_${{ environment.name }}_Deploy
+      dependsOn: ${{ config.jobName }}_${{ environment.name }}_Build
+      displayName: 'Deploy ${{ config.jobName }}-${{ environment.name }}'
+      jobs:
+      - job: TemplateChangeDetection_${{ config.jobName }}_Deploy
+        displayName: Analyze Changes
+        pool: $(AGENT_POOL)
+        steps:
+        - template: tasks/detect-cicd.yml
+          parameters:
+            terraformTemplatePath: ${{ config.terraformTemplatePath }}
+            jobName: ${{ config.jobName }}
+      - template: deploy-stage.yml
+        parameters:
+          environment: ${{ environment.name }}
+          enablePrIsolation: ${{ environment.enablePrIsolation }}
+          resourceNameIsolationLevel: ${{ environment.resourceNameIsolationLevel }}
+          configuration: ${{ config }}
+          aksAgentSshPublicKeyFilename: ${{ parameters.aksAgentSshPublicKeyFilename }}
+          aksGitOpsSshPrivateKeyFilename: ${{ parameters.aksGitOpsSshPrivateKeyFilename }}

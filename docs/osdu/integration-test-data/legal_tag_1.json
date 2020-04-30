@@ -1,0 +1,21 @@
+{
+  "id": "2146312565",
+  "legalTag": {
+    "id": 2146312565,
+    "name": "$TENANT-dps-integration-test-1566474656479",
+    "description": "<my description>",
+    "properties": {
+      "countryOfOrigin": [
+        "US"
+      ],
+      "contractId": "A1234",
+      "expirationDate": 1570863500000,
+      "originator": "MyCompany",
+      "dataType": "Transferred Data",
+      "securityClassification": "Public",
+      "personalData": "No Personal Data",
+      "exportClassification": "EAR99"
+    },
+    "isValid": false
+  }
+}

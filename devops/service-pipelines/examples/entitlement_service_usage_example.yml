@@ -1,0 +1,30 @@
+variables:
+  - group: 'Azure Common Secrets'
+  - group: 'Azure - Common'
+
+  - name: serviceName
+    value: 'entitlements'
+
+resources:
+  repositories:
+    - repository: infrastructure-templates
+      type: git
+      name: open-data-ecosystem/infrastructure-templates
+
+stages:
+  - template: devops/service-pipelines/build-stage.yml@infrastructure-templates
+    parameters:
+      copyFileContents: |
+        pom.xml
+        maven/settings.xml
+        target/*.jar
+      copyFileContentsToFlatten: ''
+      mavenOptions: '--settings ./maven/settings.xml -DVSTS_FEED_TOKEN=$(VSTS_FEED_TOKEN)'
+      serviceBase: ${{ variables.serviceName }}
+      testingRootFolder: 'integration-tests'
+  - template: devops/service-pipelines/deploy-stages.yml@infrastructure-templates
+    parameters:
+      serviceName: ${{ variables.serviceName }}
+      providers:
+        -  name: Azure
+           environments: ['devint']

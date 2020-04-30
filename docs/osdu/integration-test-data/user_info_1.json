@@ -1,0 +1,38 @@
+{
+  "id": "$SERVICE_PRINCIPAL_ID",
+  "tenants": [
+    {
+      "name": "common",
+      "groups": [
+        "service.storage.admin",
+        "service.legal.admin",
+        "data.datalake.admin",
+        "data.datalake.viewer",
+        "data.default.viewer",
+        "data.default.owner",
+        "service.search.admin",
+        "service.search.user",
+        "data.default.viewers",
+        "data.default.owners",
+        "service.entitlements.admin"
+      ]
+    },
+    {
+      "name": "opendes",
+      "groups": [
+        "service.storage.admin",
+        "service.legal.admin",
+        "data.datalake.viewer",
+        "data.test1",
+        "data.datalake.viewer",
+        "data.default.viewer",
+        "data.default.owner",
+        "service.search.admin",
+        "service.search.user",
+        "data.default.viewers",
+        "data.default.owners",
+        "service.entitlements.admin"
+      ]
+    }
+  ]
+}

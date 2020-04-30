@@ -1,0 +1,21 @@
+{
+  "id": "-760142234",
+  "legalTag": {
+    "id": -760142234,
+    "name": "$TENANT-dps-integration-test-valid2-legal-tag",
+    "description": "A legaltag used for Integration Testing.",
+    "properties": {
+      "countryOfOrigin": [
+        "US"
+      ],
+      "contractId": "No Contract Related",
+      "expirationDate": 4070822400000,
+      "originator": "SLB",
+      "dataType": "Public Domain Data",
+      "securityClassification": "Public",
+      "personalData": "No Personal Data",
+      "exportClassification": "Not - Technical Data"
+    },
+    "isValid": true
+  }
+}

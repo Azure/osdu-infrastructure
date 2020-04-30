@@ -1,0 +1,18 @@
+{
+  "id": "opendes",
+  "complianceRuleSet": "shared",
+  "serviceprincipalAppId": "$SERVICE_PRINCIPAL_ID",
+  "groups": [
+    "service.storage.admin",
+    "service.legal.admin",
+    "data.datalake.viewer",
+    "data.test1",
+    "data.datalake.viewer",
+    "data.default.viewer",
+    "data.default.owner",
+    "service.search.admin",
+    "service.search.user",
+    "data.default.viewers",
+    "data.default.owners"
+  ]
+}

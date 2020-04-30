@@ -1,0 +1,68 @@
+{
+  "kind": "$TENANT:testschema11:well:2.0.0",
+  "extension": null,
+  "user": "$SERVICE_PRINCIPAL_ID",
+  "schemaItems": [
+    {
+      "path": "Field",
+      "kind": "string"
+    },
+    {
+      "path": "Location",
+      "kind": "core:dl:geopoint:1.0.0"
+    },
+    {
+      "path": "Basin",
+      "kind": "string"
+    },
+    {
+      "path": "County",
+      "kind": "string"
+    },
+    {
+      "path": "State",
+      "kind": "string"
+    },
+    {
+      "path": "Country",
+      "kind": "string"
+    },
+    {
+      "path": "WellStatus",
+      "kind": "string"
+    },
+    {
+      "path": "OriginalOperator",
+      "kind": "string"
+    },
+    {
+      "path": "WellName",
+      "kind": "string"
+    },
+    {
+      "path": "WellType",
+      "kind": "string"
+    },
+    {
+      "path": "EmptyAttribute",
+      "kind": "string"
+    },
+    {
+      "path": "Rank",
+      "kind": "int"
+    },
+    {
+      "path": "Score",
+      "kind": "int"
+    },
+    {
+      "path": "Established",
+      "kind": "datetime"
+    },
+    {
+      "path": "InvalidInteger",
+      "kind": "int"
+    }
+  ],
+  "id": "$TENANT:testschema11:well:2.0.0"
+}
