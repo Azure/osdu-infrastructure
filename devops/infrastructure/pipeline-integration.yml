@@ -72,19 +72,12 @@ stages:
 - template: prepare-stage.yml
   parameters:
     environments:
-    - name: 'devint'
+    - name: 'int'
       enablePrIsolation: false
       resourceNameIsolationLevel: 8
-    - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
-      - name: 'qa'
-        enablePrIsolation: false
-        resourceNameIsolationLevel: 8
-      - name: 'prod'
-        enablePrIsolation: false
-        resourceNameIsolationLevel: 8
 
     configurations:
-    - jobName: managed_svc
+    - jobName: osdu_r2
       terraformWorkspacePrefix: ADO
       terraformTemplatePath: infra/templates/osdu-r2-resources
       deploymentTimeoutInMinutes: 120  # Not supported as a Variable :-(
