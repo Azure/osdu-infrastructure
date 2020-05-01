@@ -2,22 +2,35 @@ resource "random_id" "entitlement_key" {
   byte_length = 18
 }
 
-module "keyvault" {
-  source              = "../../../../modules/providers/azure/keyvault"
-  keyvault_name       = local.kv_name
+resource "azurerm_key_vault" "keyvault" {
+  name                = local.kv_name
+  location            = var.resource_group_location
+  soft_delete_enabled = true
+  tenant_id           = data.azurerm_client_config.current.tenant_id
   resource_group_name = azurerm_resource_group.aks_rg.name
+  sku_name            = "standard"
 }
 
-module "aks_keyvault_ssl_cert_import" {
+module "deployment_service_principal_keyvault_access_policies" {
+  source                  = "../../../../modules/providers/azure/keyvault-policy"
+  vault_id                = azurerm_key_vault.keyvault.id
+  tenant_id               = data.azurerm_client_config.current.tenant_id
+  object_ids              = [data.azurerm_client_config.current.object_id]
+  key_permissions         = ["create", "delete", "get"]
+  secret_permissions      = ["set", "delete", "get", "list"]
+  certificate_permissions = ["create", "delete", "get", "list", "import"]
+}
+
+/* module "aks_keyvault_ssl_cert_import" {
   source                         = "../../../../modules/providers/azure/keyvault-cert"
   key_vault_cert_import_filepath = var.ssl_certificate_file
-  keyvault_id                    = module.keyvault.keyvault_id
+  keyvault_id                    = azurerm_key_vault.keyvault.id
   key_vault_cert_name            = "appgw-ssl-cert"
-}
+} */
 
 module "aks_msi_keyvault_access_policy" {
   source    = "../../../../modules/providers/azure/keyvault-policy"
-  vault_id  = module.keyvault.keyvault_id
+  vault_id  = azurerm_key_vault.keyvault.id
   tenant_id = local.tenant_id
   object_ids = [
     module.app_management_service_principal.service_principal_object_id
@@ -31,20 +44,10 @@ locals {
   secrets_map = {
     # AAD Application Secrets
     aad-client-id = module.ad_application.azuread_app_ids[0]
-    # App Insights Secrets
-    appinsights-key = module.app_insights.app_insights_instrumentation_key
-    # Service Bus Namespace Secrets
-    sb-connection = module.service_bus.service_bus_namespace_default_connection_string
-    # Elastic Search Cluster Secrets
-    elastic-endpoint = data.terraform_remote_state.data_sources.outputs.elastic_cluster_properties.elastic_search.endpoint
-    elastic-username = data.terraform_remote_state.data_sources.outputs.elastic_cluster_properties.elastic_search.username
-    elastic-password = data.terraform_remote_state.data_sources.outputs.elastic_cluster_properties.elastic_search.password
     # Cosmos Cluster Secrets
     cosmos-endpoint    = data.terraform_remote_state.data_sources.outputs.cosmosdb_properties.cosmosdb.endpoint
     cosmos-primary-key = data.terraform_remote_state.data_sources.outputs.cosmosdb_properties.cosmosdb.primary_master_key
     cosmos-connection  = data.terraform_remote_state.data_sources.outputs.cosmosdb_properties.cosmosdb.connection_strings[0]
-    # App Service Auth Related Secrets
-    entitlement-key = random_id.entitlement_key.hex
     # Service Principal Secrets
     app-dev-sp-username  = module.app_management_service_principal.service_principal_application_id
     app-dev-sp-password  = module.app_management_service_principal.service_principal_password
@@ -62,6 +65,6 @@ locals {
 
 module "keyvault_secrets" {
   source      = "../../../../modules/providers/azure/keyvault-secret"
-  keyvault_id = module.keyvault.keyvault_id
+  keyvault_id = azurerm_key_vault.keyvault.id
   secrets     = local.secrets_map
 }

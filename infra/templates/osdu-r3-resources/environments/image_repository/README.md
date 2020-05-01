@@ -27,7 +27,7 @@ Cloud administrators that's versed with Cobalt templating.
 
 ## Cost
 
-Azure environment cost ballpark [estimate](https://azure.com/e/92b05a7cd1e646368ab74772e3122500). This is subject to change and is driven from the resource pricing tiers configured when the template is deployed.
+Azure environment cost ballpark [estimate](https://azure.com/e/92b05a7cd1e646368ab74772e3122500). This is subject to change and is driven from the resource pricing tiers configured when the template is deployed. 
 
 ## Deployment Steps
 

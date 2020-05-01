@@ -3,11 +3,6 @@ variable "resource_group_name" {
   type        = string
 }
 
-variable "virtual_network_name" {
-  description = "Virtual Network name that the app gateway will be created in."
-  type        = string
-}
-
 variable "virtual_network_subnet_id" {
   description = "Subnet id that the app gateway will be created in."
   type        = string
@@ -18,18 +13,23 @@ variable "appgateway_name" {
   type        = string
 }
 
-variable "appgateway_ssl_private_pfx" {
-  description = "PFX certificate"
+variable "ssl_key_vault_secret_id" {
+  description = "Secret Id of (base-64 encoded unencrypted pfx) Secret or Certificate object stored in Azure KeyVault. You need to enable soft delete for keyvault."
   type        = string
 }
 
-variable "appgateway_ssl_public_cert" {
-  description = "The contents of the Authentication Certificate which should be used"
+variable "keyvault_id" {
+  description = "Key Vault resource ID holding the ssl certificate used for enabling tls termination."
   type        = string
 }
 
-variable "public_pip_id" {
-  description = "the public ip resource id of the frontend configuration"
+variable "user_identity_name" {
+  description = "The managed user identity name for the Appication Gateway to be created"
+  type        = string
+}
+
+variable "user_identity_rg" {
+  description = "The managed user identity resource group"
   type        = string
 }
 
@@ -42,19 +42,31 @@ variable "resource_tags" {
 variable "appgateway_frontend_port_name" {
   description = "The Frontend Port Name for the Appication Gateway to be created"
   type        = string
+  default     = "http-frontend-port"
+}
+
+variable "appgateway_frontend_https_port_name" {
+  description = "The Frontend Port Name for the Appication Gateway to be created"
+  type        = string
   default     = "https-frontend-port"
+}
+
+variable "appgateway_public_ip_name" {
+  description = "The Public IP Name for the Appication Gateway to be created"
+  type        = string
+  default     = "publicIp1"
 }
 
 variable "appgateway_sku_name" {
   description = "The SKU for the Appication Gateway to be created"
   type        = string
-  default     = "WAF_Medium"
+  default     = "WAF_v2"
 }
 
 variable "appgateway_tier" {
   description = "The tier of the application gateway. Small/Medium/Large. More details can be found at https://azure.microsoft.com/en-us/pricing/details/application-gateway/"
   type        = string
-  default     = "WAF"
+  default     = "WAF_v2"
 }
 
 variable "appgateway_capacity" {
@@ -70,6 +82,12 @@ variable "appgateway_ipconfig_name" {
 }
 
 variable "frontend_http_port" {
+  description = "The frontend port for the Appication Gateway to be created"
+  type        = number
+  default     = 80
+}
+
+variable "frontend_https_port" {
   description = "The frontend port for the Appication Gateway to be created"
   type        = number
   default     = 443
@@ -90,7 +108,19 @@ variable "appgateway_backend_address_pool_name" {
 variable "appgateway_backend_http_setting_name" {
   description = "The Backend Http Settings Name for the Appication Gateway to be created"
   type        = string
-  default     = "backend_settings"
+  default     = "http_backend_settings"
+}
+
+variable "appgateway_backend_https_setting_name" {
+  description = "The Backend Http Settings Name for the Appication Gateway to be created"
+  type        = string
+  default     = "https_backend_settings"
+}
+
+variable "appgateway_ssl_certificate_name" {
+  description = "The Name of the SSL certificate that is unique within this Application Gateway"
+  type        = string
+  default     = "ssl_cert"
 }
 
 variable "backend_http_cookie_based_affinity" {
@@ -102,25 +132,25 @@ variable "backend_http_cookie_based_affinity" {
 variable "backend_http_port" {
   description = "The backend port for the Appication Gateway to be created"
   type        = number
-  default     = 443
+  default     = 80
 }
 
 variable "backend_http_protocol" {
   description = "The backend protocol for the Appication Gateway to be created"
   type        = string
-  default     = "Https"
+  default     = "Http"
 }
 
 variable "http_listener_protocol" {
   description = "The Http Listener protocol for the Appication Gateway to be created"
   type        = string
-  default     = "Https"
+  default     = "Http"
 }
 
 variable "appgateway_listener_name" {
   description = "The Listener Name for the Appication Gateway to be created"
   type        = string
-  default     = "http_proxy_listener"
+  default     = "proxy_listener"
 }
 
 variable "appgateway_request_routing_rule_name" {

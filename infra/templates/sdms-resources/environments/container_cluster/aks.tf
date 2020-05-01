@@ -28,19 +28,3 @@ module "aks-gitops" {
   network_policy       = var.network_policy
   oms_agent_enabled    = var.oms_agent_enabled
 }
-
-module "app_insights" {
-  source                           = "../../../../modules/providers/azure/app-insights"
-  service_plan_resource_group_name = azurerm_resource_group.aks_rg.name
-  appinsights_name                 = local.ai_name
-  appinsights_application_type     = "other"
-}
-
-## Service Bus
-module "service_bus" {
-  source              = "../../../../modules/providers/azure/service-bus"
-  namespace_name      = local.sb_namespace
-  resource_group_name = azurerm_resource_group.aks_rg.name
-  sku                 = var.sb_sku
-  topics              = var.sb_topics
-}

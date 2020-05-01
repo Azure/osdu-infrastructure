@@ -1,19 +1,10 @@
 locals {
   rbac_contributor_scopes = concat(
-    # Keyvault
-    [module.keyvault.keyvault_id],
-
     # The cosmosdb resource id
     [data.terraform_remote_state.data_sources.outputs.cosmosdb_properties.cosmosdb.id],
 
     # The storage resource id
     [data.terraform_remote_state.data_sources.outputs.storage_account_id],
-
-    # The redis resource id
-    [data.terraform_remote_state.data_sources.outputs.redis_resource_id],
-
-    # The Container Registry Id
-    [data.terraform_remote_state.image_repository.outputs.container_registry_id]
   )
 
   app_dev_principals = [
@@ -47,20 +38,6 @@ module "ad_application" {
   resource_role_id = local.graph_role_id
 }
 
-resource "azurerm_role_assignment" "aks_vnet" {
-  count                = length(local.app_dev_principals)
-  role_definition_name = "Network Contributor"
-  principal_id         = local.app_dev_principals[count.index]
-  scope                = data.azurerm_virtual_network.aks_vnet.id
-}
-
-resource "azurerm_role_assignment" "aks_group" {
-  count                = length(local.app_dev_principals)
-  role_definition_name = "Contributor"
-  principal_id         = local.app_dev_principals[count.index]
-  scope                = azurerm_resource_group.aks_rg.id
-}
-
 resource "azurerm_role_assignment" "aks_acr_pull" {
   count                = length(local.app_dev_principals)
   role_definition_name = "AcrPull"
@@ -85,10 +62,4 @@ resource "azurerm_role_assignment" "app_gw_identity_appgw_rg_reader" {
   role_definition_name = "Reader"
   principal_id         = module.app_gateway.managed_identity_principal_id
   scope                = azurerm_resource_group.aks_rg.id
-}
-
-resource "azurerm_role_assignment" "app_gw_msi_operator" {
-  role_definition_name = "Managed Identity Operator"
-  principal_id         = module.app_management_service_principal.service_principal_object_id
-  scope                = module.app_gateway.managed_identity_resource_id
 }

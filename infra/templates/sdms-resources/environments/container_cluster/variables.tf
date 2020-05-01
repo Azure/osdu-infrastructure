@@ -25,16 +25,32 @@ variable "remote_state_container" {
   type        = string
 }
 
-
 variable "resource_group_location" {
   description = "(Required) The Azure region where all resources in this template should be created."
   type        = string
+}
+
+variable "ssl_certificate_keyvault_id" {
+  type        = string
+  description = "The keyvault certificate keyvault resource id used to setup ssl termination on the app gateway."
 }
 
 variable "randomization_level" {
   description = "Number of additional random characters to include in resource names to insulate against unexpected resource name collisions."
   type        = number
   default     = 8
+}
+
+variable "ssl_certificate_file" {
+  type        = string
+  description = "The x509-based SSL certificate used to setup ssl termination on the app gateway."
+  default     = ""
+}
+
+variable "ssl_keyvault_id" {
+  type        = string
+  description = "The keyvault resource id used for ssl termination on the app gateway."
+  default     = ""
 }
 
 ###
@@ -58,11 +74,6 @@ variable "gitops_ssh_key_file" {
 variable "ssh_public_key_file" {
   type        = string
   description = "(Required) The SSH public key used to setup log-in credentials on the nodes in the AKS cluster."
-}
-
-variable "ssl_certificate_file" {
-  type        = string
-  description = "(Required) The x509-based SSL certificate used to setup ssl termination on the app gateway."
 }
 
 variable "aks_agent_vm_count" {
@@ -174,84 +185,4 @@ variable "oms_agent_enabled" {
 }
 ###
 # End: AKS configuration
-###
-
-###
-# Begin: Service Bus configuration
-###
-
-variable "sb_sku" {
-  type        = string
-  default     = "Standard"
-  description = "The SKU of the namespace. The options are: `Basic`, `Standard`, `Premium`."
-}
-
-variable "sb_topics" {
-  type = list(object({
-    name                         = string
-    default_message_ttl          = string //ISO 8601 format
-    enable_partitioning          = bool
-    requires_duplicate_detection = bool
-    support_ordering             = bool
-    authorization_rules = list(object({
-      policy_name = string
-      claims      = object({ listen = bool, manage = bool, send = bool })
-
-    }))
-    subscriptions = list(object({
-      name                                 = string
-      max_delivery_count                   = number
-      lock_duration                        = string //ISO 8601 format
-      forward_to                           = string //set with the topic name that will be used for forwarding. Otherwise, set to ""
-      dead_lettering_on_message_expiration = bool
-      filter_type                          = string // SqlFilter is the only supported type now.
-      sql_filter                           = string //Required when filter_type is set to SqlFilter
-      action                               = string
-    }))
-  }))
-  default = [
-    {
-      name                         = "storage_topic"
-      default_message_ttl          = "PT30M" //ISO 8601 format
-      enable_partitioning          = true
-      requires_duplicate_detection = true
-      support_ordering             = true
-      authorization_rules = [
-        {
-          policy_name = "storage_policy"
-          claims = {
-            listen = true
-            send   = false
-            manage = false
-          }
-        }
-      ]
-      subscriptions = [
-        {
-          name                                 = "storage_sub_1"
-          max_delivery_count                   = 1
-          lock_duration                        = "PT5M" //ISO 8601 format
-          forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
-          dead_lettering_on_message_expiration = true
-          filter_type                          = "SqlFilter"     // SqlFilter is the only supported type now.
-          sql_filter                           = "color = 'red'" //Required when filter_type is set to SqlFilter
-          action                               = ""
-        },
-        {
-          name                                 = "storage_sub_2"
-          max_delivery_count                   = 1
-          lock_duration                        = "PT5M" //ISO 8601 format
-          forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
-          dead_lettering_on_message_expiration = true
-          filter_type                          = "SqlFilter"      // SqlFilter is the only supported type now.
-          sql_filter                           = "color = 'blue'" //Required when filter_type is set to SqlFilter
-          action                               = ""
-        }
-      ]
-    }
-  ]
-}
-
-###
-# End: Service Bus configuration
 ###

@@ -1,6 +1,6 @@
 # Azure Small Microservice Mesh on Elastic Cloud Enterprise - Data Sources Environment
 
-The `az-micro-svc-small-elastic-cloud` - `data_sources` environment template is intended to provision Azure resources like Cosmos, ADLS Gen 2 and Redis. We decided to split these configuration files out into a separate Terraform module to mitigate the risk of Terraform accidentally deleting stateful resources types and these resources are also used for the `container_cluster` environment.
+The `az-micro-svc-small-elastic-cloud` - `data_sources` environment template is intended to provision Azure resources like Cosmos, ADLS Gen 2 and Redis. We decided to split these configuration files out into a separate Terraform module to mitigate the risk of Terraform accidentally deleting stateful resources types and these resources are also used for the `container_cluster` environment. 
 
 > *Have you completed the quick start guide? Deploy your first infrastructure as code project with Cobalt by following the [quick-start guide](https://github.com/microsoft/cobalt/blob/master/docs/2_QUICK_START_GUIDE.md).*
 
@@ -27,7 +27,7 @@ Cloud administrators that's versed with Cobalt templating.
 
 ## Cost
 
-Azure environment cost ballpark [estimate](https://azure.com/e/92b05a7cd1e646368ab74772e3122500). This is subject to change and is driven from the resource pricing tiers configured when the template is deployed.
+Azure environment cost ballpark [estimate](https://azure.com/e/92b05a7cd1e646368ab74772e3122500). This is subject to change and is driven from the resource pricing tiers configured when the template is deployed. 
 
 ## Deployment Steps
 

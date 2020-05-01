@@ -1,10 +1,18 @@
-module "provider" {
-  source = "../../../../modules/providers/azure/provider"
-}
-
 provider "azurerm" {
   version = "~> 2.5.0"
   features {}
+}
+
+provider "null" {
+  version = "~>2.1.0"
+}
+
+provider "azuread" {
+  version = "~>0.7.0"
+}
+
+provider "external" {
+  version = "~> 1.0"
 }
 
 data "azurerm_client_config" "current" {}
@@ -46,9 +54,7 @@ locals {
   app_gw_name            = "${local.base_name_60}-appgw"
   aks_subnet_name        = "${local.aks_cluster_name}-aks-subnet"
   agw_subnet_name        = "${local.aks_cluster_name}-app-gw-subnet"
-  ai_name                = "${local.base_name}-ai" // app insights
   ad_app_management_name = "${local.base_name}-ad-app-management"
-  sb_namespace           = "${local.base_name_21}sb"              // service bus namespace name (max 50 chars)
   ad_app_name            = "${local.base_name}-ad-app"            // service principal
   graph_id               = "00000003-0000-0000-c000-000000000000" // ID for Microsoft Graph API
   graph_role_id          = "e1fe6dd8-ba31-4d61-89e7-88639da4683d" // ID for User.Read API

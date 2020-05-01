@@ -4,8 +4,6 @@ module "vnet" {
   vnet_name           = local.vnet_name
   address_space       = var.address_space
   resource_group_name = azurerm_resource_group.aks_rg.name
-  subnet_names        = [local.aks_subnet_name]
-  subnet_prefixes     = [var.subnet_prefix_aks]
 
   tags = {
     environment = "container_cluster"
@@ -27,11 +25,13 @@ resource "azurerm_subnet" "app_gw" {
 }
 
 module "app_gateway" {
-  source                    = "../../../../modules/providers/azure/app-gateway"
-  appgateway_name           = local.app_gw_name
-  resource_group_name       = azurerm_resource_group.aks_rg.name
-  ssl_key_vault_secret_id   = module.aks_keyvault_ssl_cert_import.secret_id
-  keyvault_id               = module.keyvault.keyvault_id
+  source              = "../../../../modules/providers/azure/app-gateway"
+  appgateway_name     = local.app_gw_name
+  resource_group_name = azurerm_resource_group.aks_rg.name
+  # ssl_key_vault_secret_id   = module.aks_keyvault_ssl_cert_import.secret_id
+  ssl_key_vault_secret_id = var.ssl_certificate_keyvault_id
+  # keyvault_id               = azurerm_key_vault.keyvault.id
+  keyvault_id               = var.ssl_keyvault_id
   virtual_network_subnet_id = azurerm_subnet.app_gw.id
   user_identity_name        = local.app_gw_identity_name
   user_identity_rg          = module.aks-gitops.node_resource_group

@@ -2,12 +2,44 @@ data "azurerm_resource_group" "appgateway" {
   name = var.resource_group_name
 }
 
+data "azurerm_resource_group" "identity_rg" {
+  name = var.user_identity_rg
+}
+
 data "azurerm_client_config" "current" {}
 
 locals {
   authentication_certificate_name = "gateway-public-key"
-  backend_probe_name              = "probe-1"
+  backend_probe_http              = "http_probe"
+  backend_probe_https             = "https_probe"
   ssl_certificate_name            = "gateway-certificate"
+}
+
+# Public Ip
+resource "azurerm_public_ip" "appgw_pip" {
+  name                = var.appgateway_public_ip_name
+  location            = data.azurerm_resource_group.appgateway.location
+  resource_group_name = data.azurerm_resource_group.appgateway.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_user_assigned_identity" "app_gw_user_identity" {
+  resource_group_name = var.user_identity_rg
+  location            = data.azurerm_resource_group.identity_rg.location
+  name                = var.user_identity_name
+}
+
+module "app_gw_keyvault_access_policy" {
+  source    = "../../../../modules/providers/azure/keyvault-policy"
+  vault_id  = var.keyvault_id
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_ids = [
+    azurerm_user_assigned_identity.app_gw_user_identity.principal_id
+  ]
+  key_permissions         = []
+  secret_permissions      = ["get"]
+  certificate_permissions = ["get"]
 }
 
 resource "azurerm_application_gateway" "appgateway" {
@@ -17,9 +49,12 @@ resource "azurerm_application_gateway" "appgateway" {
   tags                = var.resource_tags
 
   sku {
-    name     = var.appgateway_sku_name
-    tier     = var.appgateway_tier
-    capacity = var.appgateway_capacity
+    name = var.appgateway_sku_name
+    tier = var.appgateway_tier
+  }
+
+  autoscale_configuration {
+    min_capacity = 2
   }
 
   gateway_ip_configuration {
@@ -32,83 +67,89 @@ resource "azurerm_application_gateway" "appgateway" {
     port = var.frontend_http_port
   }
 
+  frontend_port {
+    name = var.appgateway_frontend_https_port_name
+    port = var.frontend_https_port
+  }
+
   frontend_ip_configuration {
     name                 = var.appgateway_frontend_ip_configuration_name
-    public_ip_address_id = var.public_pip_id
-  }
-
-  ssl_certificate {
-    name     = local.ssl_certificate_name
-    data     = var.appgateway_ssl_private_pfx
-    password = ""
-  }
-
-  authentication_certificate {
-    name = local.authentication_certificate_name
-    data = var.appgateway_ssl_public_cert
+    public_ip_address_id = azurerm_public_ip.appgw_pip.id
   }
 
   backend_address_pool {
-    name  = var.appgateway_backend_address_pool_name
-    fqdns = var.backendpool_fqdns
+    name = var.appgateway_backend_address_pool_name
   }
 
   backend_http_settings {
-    name                                = var.appgateway_backend_http_setting_name
-    cookie_based_affinity               = var.backend_http_cookie_based_affinity
-    port                                = var.backend_http_port
-    protocol                            = var.backend_http_protocol
-    probe_name                          = local.backend_probe_name
-    request_timeout                     = 1
-    pick_host_name_from_backend_address = true
+    name                  = var.appgateway_backend_http_setting_name
+    cookie_based_affinity = var.backend_http_cookie_based_affinity
+    port                  = var.backend_http_port
+    protocol              = var.backend_http_protocol
+    request_timeout       = 1
   }
 
-  # TODO This is locked into a single api endpoint... We'll need to eventually support multiple endpoints
-  # but the count property is only supported at the resource level.
-  probe {
-    name                                      = local.backend_probe_name
-    protocol                                  = var.backend_http_protocol
-    path                                      = "/"
-    interval                                  = 30
-    timeout                                   = 30
-    unhealthy_threshold                       = 3
-    pick_host_name_from_backend_http_settings = true
+  backend_http_settings {
+    name                  = var.appgateway_backend_https_setting_name
+    cookie_based_affinity = var.backend_http_cookie_based_affinity
+    port                  = var.frontend_https_port
+    protocol              = "Https"
+    request_timeout       = 1
   }
 
   http_listener {
-    name                           = var.appgateway_listener_name
+    name                           = "https-${var.appgateway_listener_name}"
+    frontend_ip_configuration_name = var.appgateway_frontend_ip_configuration_name
+    frontend_port_name             = var.appgateway_frontend_https_port_name
+    protocol                       = "Https"
+    ssl_certificate_name           = var.appgateway_ssl_certificate_name
+  }
+
+  http_listener {
+    name                           = "http-${var.appgateway_listener_name}"
     frontend_ip_configuration_name = var.appgateway_frontend_ip_configuration_name
     frontend_port_name             = var.appgateway_frontend_port_name
-    protocol                       = var.http_listener_protocol
-    ssl_certificate_name           = local.ssl_certificate_name
+    protocol                       = "Http"
   }
 
   waf_configuration {
     enabled          = true
     firewall_mode    = var.appgateway_waf_config_firewall_mode
     rule_set_type    = "OWASP"
-    rule_set_version = "3.0"
+    rule_set_version = "3.1"
   }
 
   request_routing_rule {
     name                       = var.appgateway_request_routing_rule_name
-    http_listener_name         = var.appgateway_listener_name
+    http_listener_name         = "http-${var.appgateway_listener_name}"
     rule_type                  = var.request_routing_rule_type
     backend_address_pool_name  = var.appgateway_backend_address_pool_name
     backend_http_settings_name = var.appgateway_backend_http_setting_name
   }
+
+  ssl_certificate {
+    name                = var.appgateway_ssl_certificate_name
+    key_vault_secret_id = var.ssl_key_vault_secret_id
+  }
+
+  identity {
+    identity_ids = [azurerm_user_assigned_identity.app_gw_user_identity.id]
+  }
+
+  depends_on = [module.app_gw_keyvault_access_policy]
+
+  lifecycle {
+    ignore_changes = [
+      ssl_certificate,
+      request_routing_rule,
+      http_listener,
+      backend_http_settings,
+      backend_address_pool,
+      probe,
+      tags,
+      frontend_port,
+      redirect_configuration,
+      url_path_map
+    ]
+  }
 }
-
-data "external" "app_gw_health" {
-  depends_on = [azurerm_application_gateway.appgateway]
-
-  program = [
-    "az", "network", "application-gateway", "show-backend-health",
-    "--subscription", data.azurerm_client_config.current.subscription_id,
-    "--resource-group", data.azurerm_resource_group.appgateway.name,
-    "--name", var.appgateway_name,
-    "--output", "json",
-    "--query", "backendAddressPools[0].backendHttpSettingsCollection[0].servers[0].{address:address,health:health}"
-  ]
-}
-

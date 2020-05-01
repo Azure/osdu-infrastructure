@@ -7,12 +7,6 @@ output "contributor_service_principal_id" {
   value       = module.app_management_service_principal.service_principal_application_id
 }
 
-output "elastic_cluster_properties" {
-  description = "Cluster properties of the provisioned Elasticsearch cluster"
-  value       = data.terraform_remote_state.data_sources.outputs.elastic_cluster_properties
-  sensitive   = true
-}
-
 output "contributor_service_principal_object_id" {
   description = "Object ID of the service principal with contributor access to provisioned resources"
   value       = module.app_management_service_principal.service_principal_object_id
@@ -20,7 +14,7 @@ output "contributor_service_principal_object_id" {
 
 output "keyvault_uri" {
   description = "The uri of the keyvault"
-  value       = module.keyvault.keyvault_uri
+  value       = azurerm_key_vault.keyvault.vault_uri
 }
 
 output "container_registry_id" {
@@ -33,16 +27,6 @@ output "storage_account_id" {
   value       = data.terraform_remote_state.data_sources.outputs.storage_account_id
 }
 
-output "redis_resource_id" {
-  description = "The resource id of the Redis cache instance"
-  value       = data.terraform_remote_state.data_sources.outputs.redis_resource_id
-}
-
-output "sb_namespace_id" {
-  description = "The resource id of the Service Bus instance"
-  value       = module.service_bus.namespace_id
-}
-
 output "vnet_id" {
   description = "The resource id for the vnet configured for AKS"
   value       = data.azurerm_virtual_network.aks_vnet.id
@@ -50,7 +34,7 @@ output "vnet_id" {
 
 output "keyvault_id" {
   description = "The resource id for Key Vault"
-  value       = module.keyvault.keyvault_id
+  value       = azurerm_key_vault.keyvault.id
 }
 
 output "cosmos_id" {
@@ -78,31 +62,7 @@ output "keyvault_secret_attributes" {
 
 output "keyvault_name" {
   description = "The name of the keyvault"
-  value       = module.keyvault.keyvault_name
-}
-
-## Service Bus output
-
-output "sb_namespace_name" {
-  description = "The service bus namespace name."
-  value       = module.service_bus.namespace_name
-}
-
-output "sb_namespace_default_connection_string" {
-  description = "The primary connection string for the Service Bus namespace authorization rule RootManageSharedAccessKey."
-  value       = module.service_bus.service_bus_namespace_default_connection_string
-  sensitive   = true
-}
-
-output "sb_topics" {
-  description = "The primary connection string for the Service Bus namespace authorization rule RootManageSharedAccessKey."
-  value       = module.service_bus.topics
-}
-
-output "app_insights_instrumentation_key" {
-  description = "App Insights Instrumentation Key"
-  value       = module.app_insights.app_insights_instrumentation_key
-  sensitive   = true
+  value       = azurerm_key_vault.keyvault.name
 }
 
 output "aks_msi_client_id" {
@@ -123,4 +83,14 @@ output "aks_resource_id" {
 output "aks_node_resource_group" {
   description = "The aks cluster vmss node resource group name"
   value       = module.aks-gitops.node_resource_group
+}
+
+output "app_gw_msi_object_id" {
+  description = "Application gateway's managed identity object id"
+  value       = module.app_gateway.managed_identity_principal_id
+}
+
+output "app_gw_resource_id" {
+  description = "Application gateway's resource id"
+  value       = module.app_gateway.appgateway_id
 }
