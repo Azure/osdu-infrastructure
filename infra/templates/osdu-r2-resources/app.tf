@@ -13,9 +13,7 @@ locals {
       format("https://%s", config.app_fqdn),
       format("https://%s/.auth/login/aad/callback", config.app_fqdn),
       format("https://%s", config.slot_fqdn),
-      format("https://%s/.auth/login/aad/callback", config.slot_fqdn),
-      format("http://localhost:8080"),
-      format("http://locahost:8080/auth/callback")
+      format("https://%s/.auth/login/aad/callback", config.slot_fqdn)
     ]
   ])
 }
