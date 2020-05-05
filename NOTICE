@@ -1,0 +1,29 @@
+Infrastucture as Code for Open Subsurface Data Universe Azure Cloud Provider
+
+Portions Copyright (c) Microsoft Corporation
+
+
+========================================================================
+Apache-2.0
+========================================================================
+The following software have components provided under the terms of this license:
+
+- Terratest (from https://github.com/gruntwork-io/terratest)
+
+
+========================================================================
+Mozilla Public License 2.0
+========================================================================
+The following software have components provided under the terms of this license:
+
+- terraform-provider-azurerm (from https://github.com/terraform-providers/terraform-provider-azurerm)
+- terraform-provider-azuread (from https://github.com/terraform-providers/terraform-provider-azuread)
+
+
+========================================================================
+MIT
+========================================================================
+The following software have components provided under the terms of this license:
+
+- Cobalt (from https://github.com/microsoft/cobalt)
+- Bedrock (from https://github.com/microsoft/bedrock)
