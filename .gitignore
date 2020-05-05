@@ -6,6 +6,8 @@
 .envrc*
 *.output
 
+output
+
 # Go files
 vendor/
 _vendor-*/

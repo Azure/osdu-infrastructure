@@ -143,7 +143,7 @@ TF_VAR_gitops_ssh_key_file=/home/erikschlegel/.ssh/gitops-ssh-key
 
 # Deployment Steps
 
-## Source your environment
+## Source your environment 
 
 Execute the following commands to set up your local environment variables:
 
@@ -501,7 +501,7 @@ Integration tests can be run using the following command:
 go test -v $(go list ./... | grep "integration")
 ```
 
-## Terraform Destroy
+## Terraform Destroy 
 
 Optionally execute the following command to teardown your deployment and delete your resources.
 
@@ -509,3 +509,18 @@ Optionally execute the following command to teardown your deployment and delete 
 # Destroy resources and tear down deployment. Only do this if you want to destroy your deployment.
 terraform destroy
 ```
+
+## License
+Copyright © Microsoft Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at 
+
+[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

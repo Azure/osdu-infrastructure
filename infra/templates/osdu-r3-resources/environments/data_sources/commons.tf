@@ -1,3 +1,17 @@
+//  Copyright © Microsoft Corporation
+//
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+
 module "provider" {
   source = "../../../../modules/providers/azure/provider"
 }
@@ -27,7 +41,7 @@ locals {
   cache_name          = "${local.resource_prefix}-redis"               // redis cache
   storage_name        = "${replace(local.resource_prefix, "-", "")}sa" // storage account
   elastic_search_name = "${local.resource_prefix}-es"                  // elastic search deployment
-  cosmosdb_name       = "${local.resource_prefix}-cosmosdb"            // cosmosdb account (max 44 chars )
+  cosmosdb_name       = "${local.resource_prefix}-cosmosdb"            // cosmosdb account (max 44 chars )  
   cosmos_database = {
     name       = var.cosmos_db_name
     throughput = local.throughput

@@ -158,8 +158,24 @@ OSDU has a concept of multi-tenancy that needs to be taken into account when we 
 2. How does the design extend to individual clusters for dev, test and prod?
 OSDU wants to follow a traditional approach separating dev, test and production environments.
 
-3. How can the version update in the Light Weight Flow be automated?
+3. How can the version update in the Light Weight Flow be automated? 
 
 4. How should we approach automated approval of auto-generated PRs to HLD and manifest repos?
 Will auto-approve meet the customer's requirements for quality control?
 Can we implement automated approval by creating PRs with auto-complete or via Service Hooks?
+
+
+## License
+Copyright © Microsoft Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at 
+
+[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

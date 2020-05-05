@@ -1,6 +1,6 @@
 # Azure Small Microservice Mesh on Elastic Cloud Enterprise - Image Registry Environment
 
-The `az-micro-svc-small-elastic-cloud` - `image_registry` environment template is intended to provision Azure the Azure Container Registry resource. We decided to split these configuration files out into a separate Terraform module to 1) mitigate the risk of Terraform accidentally deleting stateful resources types and 2) This ACR resource is referenced across all Azure environment resources provisioned through the `container_cluster` and `managed_service` environments.
+The `az-micro-svc-small-elastic-cloud` - `image_registry` environment template is intended to provision Azure the Azure Container Registry resource. We decided to split these configuration files out into a separate Terraform module to 1) mitigate the risk of Terraform accidentally deleting stateful resources types and 2) This ACR resource is referenced across all Azure environment resources provisioned through the `container_cluster` and `managed_service` environments. 
 
 > *Have you completed the quick start guide? Deploy your first infrastructure as code project with Cobalt by following the [quick-start guide](https://github.com/microsoft/cobalt/blob/master/docs/2_QUICK_START_GUIDE.md).*
 
@@ -85,3 +85,18 @@ terraform apply
 # Destroy resources and tear down deployment. Only do this if you want to destroy your deployment.
 terraform destroy
 ```
+
+## License
+Copyright © Microsoft Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at 
+
+[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

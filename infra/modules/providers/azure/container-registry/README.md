@@ -28,7 +28,7 @@ Please click the [link](https://www.terraform.io/docs/providers/azurerm/r/contai
 module "container_registry" {
   source                           = "github.com/Microsoft/cobalt/infra/modules/providers/azure/container-registry"
   container_registry_name          = "test-container_registry-name"
-  resource_group_name              = ${azurerm_resource_group.container_registry.name}
+  resource_group_name              = ${azurerm_resource_group.container_registry.name} 
   container_registry_sku           = "Basic" | "Standard" | "Premium"
   container_registry_admin_enabled = true | false
   container_registry_tags          = {test:test}
@@ -45,3 +45,19 @@ container_registry_id             = <container_egistryid>
 container_registry_login_server   = <containerregistryloginserver>
 container_registry_admin_username = <containerregistryadminusername>
 ```
+
+
+## License
+Copyright © Microsoft Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at 
+
+[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

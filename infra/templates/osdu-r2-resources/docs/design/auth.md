@@ -6,7 +6,7 @@ This document is intended to survey the existing code base to understand how ser
 
 **Out of Scope**
  - OSDU level entitlements and auth
- - Non MSI key rotation (i.e., rotating keys in KeyVault)
+ - Non MSI key rotation (i.e., rotating keys in KeyVault) 
 
 
 # What are the strategies used for authentication and authorization in the existing solution? What are the shortcomings, if any?
@@ -60,7 +60,7 @@ Unfortunately MI is not supported for Cosmos, Elastic Search and other services.
  - KeyVault keys can be changed without needing to redeploy application code or modify things like app settings.
 
 These credentials should be provisioned as part of the template being designed in https://dev.azure.com/slb-des-ext-collaboration/open-data-ecosystem/_workitems/edit/617
-
+ 
 
 
 # What should be the strategy for authentication and authorization between managed Azure services and Elastic Search?
@@ -106,7 +106,7 @@ tenant2.es-username --> my-fake-user-2
 tenant2.es-password --> my-fake-passwd-2
 ```
  - **Auth leveraging MI**: This can be easily configured in the infrastructure templates being designed in https://dev.azure.com/slb-des-ext-collaboration/open-data-ecosystem/_workitems/edit/617
-
+ 
 
 
 **Appendix**:
@@ -128,3 +128,18 @@ Impact of multi-tenancy in each of the core services:
 - Tenant has no bearing on Auth
 
 `os-storage`: The Record APIs check for a valid Tenant ID before allowing any modifications to Blob Storage or Cosmos.
+
+## License
+Copyright © Microsoft Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at 
+
+[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

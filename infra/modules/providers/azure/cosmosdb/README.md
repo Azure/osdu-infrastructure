@@ -16,7 +16,7 @@ Please click the [link](https://www.terraform.io/docs/providers/azurerm/r/cosmos
 module "cosmosdb" {
   source                      = "github.com/Microsoft/cobalt/infra/modules/providers/azure/cosmosdb"
   cosmosdb_name               = "test-name-cosmosdb"
-  resource_group_name         = ${azurerm_resource_group.cosmosdb.name}
+  resource_group_name         = ${azurerm_resource_group.cosmosdb.name} 
   cosmosdb_kind               = "test-kind-cosmosdb"
   cosmosdb_automatic_failover = true | false
   consistency_level           = "BoundedStaleness" | "Eventual" | "Session" | "Strong" | "ConsistentPrefix"
@@ -68,3 +68,20 @@ output "account_name" {
   type        = string
 }
 ```
+
+
+
+## License
+Copyright © Microsoft Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at 
+
+[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

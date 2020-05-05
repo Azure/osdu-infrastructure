@@ -1,7 +1,21 @@
+#  Copyright © Microsoft Corporation
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
 # NAME: init.sh
-# Notable exported functions:
+# Notable exported functions: 
 # 1. template_build_targets: compares the source and upstream branch to determines which terraform template directories were modified.
-# 2. check_required_env_variables: verifies that required environment variables are defined.
+# 2. check_required_env_variables: verifies that required environment variables are defined. 
 # USAGE: template_build_targets $BUILD_UPSTREAMBRANCH $BUILD_SOURCEBRANCHNAME
 #        check_required_env_variables
 
@@ -146,11 +160,11 @@ function template_build_targets() {
             continue
         fi
 
-        if [ ${folder_array[0]}=='test-harness' ]; then
+        if [ ${folder_array[0]}=='test-harness' ]; then 
             default_to_all_template_paths
-            break
+            break 
         fi
-
+        
         if [ ${#folder_array[@]} -lt 3 ]; then
             continue
         fi

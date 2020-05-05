@@ -8,7 +8,7 @@ The `az-micro-svc-small-elastic-cloud` template is intended to be a reference fo
 
 This particular template creates an Azure environment with a small set of fully managed microservices backed by Azure Application Services with [API Management](https://docs.microsoft.com/en-us/azure/api-management/api-management-key-concepts) acting as the single ingress control plane. Our customer use-case had spatial data search requirements so Elasticsearch was an obvious choice. We decided to use ECE with the intent to follow ElasticSearch cluster setup and security best practices.
 
-Servlerless Azure Functions are used for our data processing layer with [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) as our Pub/Sub Solution.
+Servlerless Azure Functions are used for our data processing layer with [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) as our Pub/Sub Solution.  
 
 ## Scenarios this template should avoid
 
@@ -35,7 +35,7 @@ Cloud administrators that's versed with Cobalt templating.
 
 ## Cost
 
-Azure environment cost ballpark [estimate](https://azure.com/e/92b05a7cd1e646368ab74772e3122500). This is subject to change and is driven from the resource pricing tiers configured when the template is deployed.
+Azure environment cost ballpark [estimate](https://azure.com/e/92b05a7cd1e646368ab74772e3122500). This is subject to change and is driven from the resource pricing tiers configured when the template is deployed. 
 
 ## Deployment Steps
 
@@ -113,7 +113,7 @@ terraform destroy
 
 ## Automated Testing
 
-### Unit Testing
+### Unit Testing 
 
 Navigate to the template folder `infra/templates/az-micro-svc-small-elastic-cloud`. Unit tests can be run using the following command:
 
@@ -130,3 +130,18 @@ Integration tests can be run using the following command:
 ```
 go test -v $(go list ./... | grep "integration")
 ```
+
+## License
+Copyright © Microsoft Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at 
+
+[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

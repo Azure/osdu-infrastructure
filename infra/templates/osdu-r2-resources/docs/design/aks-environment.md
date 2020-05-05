@@ -70,7 +70,7 @@ The graphic below outlines the topology of the terraform templates that will dep
 ```
 ### data_sources
 
-The [container_cluster](../../environments/container_cluster/variables.tf) environment relies on the resources from the [data_sources](../../environments/data_sources/variables.tf) environment as the data storage reference for blob storage, cosmos and REDIS.
+The [container_cluster](../../environments/container_cluster/variables.tf) environment relies on the resources from the [data_sources](../../environments/data_sources/variables.tf) environment as the data storage reference for blob storage, cosmos and REDIS. 
 
 ### image_registry
 
@@ -81,7 +81,7 @@ Supported arguments for the aks environment are available in [variables.tf](../.
 
 ### Credential Management
 
-The AKS cluster will be configured with a `SystemAssigned` identity to enable MSI integration with resources like Service Bus, ADLS Gen 2 and Keyvault.
+The AKS cluster will be configured with a `SystemAssigned` identity to enable MSI integration with resources like Service Bus, ADLS Gen 2 and Keyvault. 
 
 MSI is enabled through the [identity block](https://www.terraform.io/docs/providers/azurerm/r/kubernetes_cluster.html#type-2) of the `azurerm_kubernetes_cluster` Terraform provider.
 
@@ -89,9 +89,25 @@ The AKS MI integration feature is in Preview. You can reference the AKS MI [docs
 
 ## Security
 
-Managed Identity is integrated with AKS only in public preview mode.
+Managed Identity is integrated with AKS only in public preview mode. 
 
 Here is an overview of the security for the deployment strategy and templates discussed above:
 
 - **Role Assignments**: The service principal running the deployment will have to be an owner in the target subscription and granted admin consent to the `Application.ReadWrite.OwnedBy` role in Microsoft Graph. This template creates a new service principal that will be available for application developer team(s) to administer the provisioned Azure resources. The following role assignments will be made to that service principal:
   - Contributor access to AKS & App Insights in the first Resource Group
+
+
+## License
+Copyright © Microsoft Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at 
+
+[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
