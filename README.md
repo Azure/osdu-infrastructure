@@ -9,9 +9,9 @@ All patterns for this have been built and leverage to Microsoft Projects, for de
 1. [Project Cobalt](https://github.com/microsoft/cobalt)
 2. [Project Bedrock](https://github.com/microsoft/bedrock)
 
-## BootStrap Common Resources and ADO
+## BootStrap the Pipeline
 
-_Eventually a bootstrap process will be handled by terraform but for now this is a manual process._
+_Eventually a bootstrap process will be handled by an [ado terraform provider](https://github.com/microsoft/terraform-provider-azuredevops) but for now this is a manual process._
 
 __Prerequisites__
 
@@ -28,7 +28,7 @@ cd scripts
 ARM_SUBSCRIPTION_ID="<your_subscription>" ./install.sh
 ```
 
-### Installed Common Resources
+### Common Resources Installed
 
 1. Resource Group
 2. Storage Account
@@ -39,6 +39,7 @@ ARM_SUBSCRIPTION_ID="<your_subscription>" ./install.sh
 __Setup a Elevated Permissions Service Principal__
 
 The installed service principal `osdu-deploy-XXX` must now be given access to the following API's.
+> This requires AD Tenant Grant Admin Consent privileges.
 
     - Azure Active Directory Graph - Application.ReadWrite.OwnedBy
     - Microsoft Graph - Application.ReadWrite.OwnedBy
@@ -48,14 +49,13 @@ __Elastic Search Setup__
 Elastic Search Service is required by the Infrastructure and information must be stored in the Common KeyVault.
 
 ```bash
-# NOTE: UNIQUE is the 3 digit Random Number assigned
-VAULT="osdu-kv-${UNIQUE}"
+VAULT="osdu-kv-${UNIQUE}"     # NOTE: UNIQUE is the 3 digit Random Number assigned
 ENV="int"
 az keyvault secret set --vault-name $VAULT --name "elastic-endpoint-ado-${ENV}" --value <ed_endpoint>
 az keyvault secret set --vault-name $VAULT --name "elastic-username-ado-${ENV}" --value <es_username>
 az keyvault secret set --vault-name $VAULT --name "elastic-password-ado-${ENV}" --value <es_password>
 
-# Dump to Output all secrets
+# Dump all secrets to output
 for i in `az keyvault secret list --vault-name $VAULT | jq  --raw-output '.[]|(.id / "/")[4]'`
 do 
   az keyvault secret show --vault-name $VAULT --name $i 
