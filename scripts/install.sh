@@ -149,11 +149,10 @@ function CreateSSHKeys() {
     tput setaf 3;  echo "SSH Keys for User $1: "; tput sgr0
   else
     mkdir .ssh && cd .ssh
-    ssh-keygen -t rsa -b 2048 -C $1 -f id_rsa && cd ..
+    ssh-keygen -t rsa -b 2048 -C $1 -f azure-aks-gitops-ssh-key && cd ..
   fi
 
- #read -r _result < ./.ssh/id_rsa.pub
- _result=`cat ./.ssh/id_rsa.pub`
+ _result=`cat ./.ssh/azure-aks-gitops-ssh-key.pub`
  echo $_result
 }
 function CreateKeyVault() {
@@ -335,7 +334,7 @@ tput setaf 2; echo 'Creating AD Application...' ; tput sgr0
 CreateServicePrincipal "aad-entitlement-integration-test-app-client" $AZURE_VAULT
 CreateServicePrincipal "aad-no-data-access-tester-client" $AZURE_VAULT
 
-# tput setaf 2; echo 'Creating SSH Keys...' ; tput sgr0
-# AZURE_USER=$(az account show --query user.name -otsv)
-# LINUX_USER=(${AZURE_USER//@/ })
-# CreateSSHKeys $AZURE_USER
+tput setaf 2; echo 'Creating SSH Keys...' ; tput sgr0
+AZURE_USER=$(az account show --query user.name -otsv)
+LINUX_USER=(${AZURE_USER//@/ })
+CreateSSHKeys $AZURE_USER

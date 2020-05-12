@@ -9,7 +9,9 @@ All patterns for this have been built and leverage to Microsoft Projects, for de
 1. [Project Cobalt](https://github.com/microsoft/cobalt)
 2. [Project Bedrock](https://github.com/microsoft/bedrock)
 
-## Getting Started
+## BootStrap Common Resources and ADO
+
+_Eventually a bootstrap process will be handled by terraform but for now this is a manual process._
 
 __Prerequisites__
 
@@ -43,7 +45,7 @@ The installed service principal `osdu-deploy-XXX` must now be given access to th
 
 __Elastic Search Setup__
 
-Elastic Search Service is required by the Infrastructure and information must be stored in the KeyVault.
+Elastic Search Service is required by the Infrastructure and information must be stored in the Common KeyVault.
 
 ```bash
 # NOTE: UNIQUE is the 3 digit Random Number assigned
@@ -58,10 +60,36 @@ for i in `az keyvault secret list --vault-name $VAULT | jq  --raw-output '.[]|(.
 do 
   az keyvault secret show --vault-name $VAULT --name $i 
 done | jq --raw-output '[(.id / "/")[4], .value] | join("=")'
-
-az keyvault secret show --name "ExamplePassword" --vault-name "Contoso-Vault2"
 ```
 
+### Configure Azure DevOps
+
+1. Create a new ADO Project
+2. Configure an ARM Resources Service Connection (Manual) with the Service Principal `osdu-deploy-XXX`
+3. Setup and Configure the ADO Library `Infrastructure Pipeline Variables`
+    - AGENT_POOL = `Hosted Ubuntu 1604`
+    - BUILD_ARTIFACT_NAME = `infra-templates`
+    - SERVICE_CONNECTION_NAME = `osdu-deploy-XXX`
+    - TF_VAR_elasticsearch_secrets_keyvault_name = `osdu-kv-XXX`
+    - TF_VAR_elasticsearch_secrets_keyvault_resource_group = `osdu-common-XXX`
+    - TF_VAR_remote_state_account = `osdustateXXX`
+    - TF_VAR_remote_state_container = `remote-state-container`
+4. Setup and Configure the ADO Library `Infrastructure Pipeline Variables - <your_env_name>`
+    - ARM_SUBSCRIPTION_ID = `<your_subscription_id>`
+    - TF_VAR_cosmosdb_replica_location = `eastus2`
+    - TF_VAR_resource_group_location = `centralus`
+5. Setup and Configure the ADO Library `Infrastructure Pipeline Secrets - int`
+    > This should be linked Secrets from Azure Key Vault `osdu-kv-XXX`
+    - elastic-endpoint-ado-int = `*********`
+    - elastic-username-ado-int = `*********`
+    - elastic-password-ado-int = `*********`
+6. Setup 2 Secure Files
+    > This is for future AKS work but the keys will be located after running install.sh in the scripts/.ssh directory
+    - azure-aks-gitops-ssh-key
+    - azure-aks-node-ssh-key.pub
+6. User Azure Repo's import a Repo from the following URL `https://github.com/Azure/osdu-infrastructure.git`
+7. Create a New Azure Pipeline from the Azure Repo using the pipeline `/devops/infrastructure/pipeline-integration.yml`
+8. Run the Pipeline and the Infrastructure will deploy
 
 
 # Contributing
