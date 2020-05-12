@@ -9,6 +9,61 @@ All patterns for this have been built and leverage to Microsoft Projects, for de
 1. [Project Cobalt](https://github.com/microsoft/cobalt)
 2. [Project Bedrock](https://github.com/microsoft/bedrock)
 
+## Getting Started
+
+__Prerequisites__
+
+* [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) installed or alternately [Azure Cloud Shell](https://shell.azure.com/).
+
+  >Assumes CLI Version = azure-cli (2.0.75)
+
+__Execute Install Script__
+
+The script ./scripts/install.sh will conveniently setup the common things that are necessary to execute a pipeline.
+
+```bash
+cd scripts
+ARM_SUBSCRIPTION_ID="<your_subscription>" ./install.sh
+```
+
+### Installed Common Resources
+
+1. Resource Group
+2. Storage Account
+3. Key Vault
+4. Service Principal (Elevated)
+5. 2 Applications for Integration Testing
+
+__Setup a Elevated Permissions Service Principal__
+
+The installed service principal `osdu-deploy-XXX` must now be given access to the following API's.
+
+    - Azure Active Directory Graph - Application.ReadWrite.OwnedBy
+    - Microsoft Graph - Application.ReadWrite.OwnedBy
+
+__Elastic Search Setup__
+
+Elastic Search Service is required by the Infrastructure and information must be stored in the KeyVault.
+
+```bash
+# NOTE: UNIQUE is the 3 digit Random Number assigned
+VAULT="osdu-kv-${UNIQUE}"
+ENV="int"
+az keyvault secret set --vault-name $VAULT --name "elastic-endpoint-ado-${ENV}" --value <ed_endpoint>
+az keyvault secret set --vault-name $VAULT --name "elastic-username-ado-${ENV}" --value <es_username>
+az keyvault secret set --vault-name $VAULT --name "elastic-password-ado-${ENV}" --value <es_password>
+
+# Dump to Output all secrets
+for i in `az keyvault secret list --vault-name $VAULT | jq  --raw-output '.[]|(.id / "/")[4]'`
+do 
+  az keyvault secret show --vault-name $VAULT --name $i 
+done | jq --raw-output '[(.id / "/")[4], .value] | join("=")'
+
+az keyvault secret show --name "ExamplePassword" --vault-name "Contoso-Vault2"
+```
+
+
+
 # Contributing
 
 We do not claim to have all the answers and would greatly appreciate your ideas and pull requests.
@@ -29,7 +84,7 @@ For project level questions, please contact [Daniel Scholl](mailto:Daniel.Scholl
 
 
 ## License
-Copyright © Microsoft Corporation
+Copyright ï¿½ Microsoft Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
