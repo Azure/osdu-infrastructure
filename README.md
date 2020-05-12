@@ -9,7 +9,7 @@ All patterns for this have been built and leverage to Microsoft Projects, for de
 1. [Project Cobalt](https://github.com/microsoft/cobalt)
 2. [Project Bedrock](https://github.com/microsoft/bedrock)
 
-## BootStrap the Pipeline
+## BootStrap a Pipeline
 
 _Eventually a bootstrap process will be handled by an [ado terraform provider](https://github.com/microsoft/terraform-provider-azuredevops) but for now this is a manual process._
 
@@ -28,18 +28,18 @@ cd scripts
 ARM_SUBSCRIPTION_ID="<your_subscription>" ./install.sh
 ```
 
-### Common Resources Installed
+### Installed Common Resources 
 
 1. Resource Group
 2. Storage Account
 3. Key Vault
 4. Service Principal (Elevated)
-5. 2 Applications for Integration Testing
+5. Applications for Integration Testing (2)
 
-__Setup a Elevated Permissions Service Principal__
+__Setup an Elevated Permissions Service Principal__
 
 The installed service principal `osdu-deploy-XXX` must now be given access to the following API's.
-> This requires AD Tenant Grant Admin Consent privileges.
+> This task requires AD Tenant Grant Admin Consent privileges.
 
     - Azure Active Directory Graph - Application.ReadWrite.OwnedBy
     - Microsoft Graph - Application.ReadWrite.OwnedBy
@@ -64,6 +64,8 @@ done | jq --raw-output '[(.id / "/")[4], .value] | join("=")'
 
 ### Configure Azure DevOps
 
+_XXX refers to ${UNIQUE} and <your_env_name> without pipeline modification is `int`_
+
 1. Create a new ADO Project
 2. Configure an ARM Resources Service Connection (Manual) with the Service Principal `osdu-deploy-XXX`
 3. Setup and Configure the ADO Library `Infrastructure Pipeline Variables`
@@ -78,7 +80,7 @@ done | jq --raw-output '[(.id / "/")[4], .value] | join("=")'
     - ARM_SUBSCRIPTION_ID = `<your_subscription_id>`
     - TF_VAR_cosmosdb_replica_location = `eastus2`
     - TF_VAR_resource_group_location = `centralus`
-5. Setup and Configure the ADO Library `Infrastructure Pipeline Secrets - int`
+5. Setup and Configure the ADO Library `Infrastructure Pipeline Secrets - <your_env_name>`
     > This should be linked Secrets from Azure Key Vault `osdu-kv-XXX`
     - elastic-endpoint-ado-int = `*********`
     - elastic-username-ado-int = `*********`
