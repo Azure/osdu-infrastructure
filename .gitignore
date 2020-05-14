@@ -8,6 +8,8 @@
 
 output
 
+.ssh
+
 # Go files
 vendor/
 _vendor-*/
