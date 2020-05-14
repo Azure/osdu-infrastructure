@@ -23,9 +23,10 @@ __Execute Install Script__
 
 The script ./scripts/install.sh will conveniently setup the common things that are necessary to execute a pipeline.
 
+
 ```bash
 cd scripts
-ARM_SUBSCRIPTION_ID="<your_subscription>" ./install.sh
+./install.sh <your_subscription> <unique_alphanumeric>
 ```
 
 ### Installed Common Resources 
@@ -38,7 +39,7 @@ ARM_SUBSCRIPTION_ID="<your_subscription>" ./install.sh
 
 __Setup an Elevated Permissions Service Principal__
 
-The installed service principal `osdu-deploy-XXX` must now be given access to the following API's.
+The installed service principal must now be given access to the following API's.
 > This task requires AD Tenant Grant Admin Consent privileges.
 
     - Azure Active Directory Graph - Application.ReadWrite.OwnedBy
@@ -49,26 +50,28 @@ __Elastic Search Setup__
 Elastic Search Service is required by the Infrastructure and information must be stored in the Common KeyVault.
 
 ```bash
-VAULT="osdu-kv-${UNIQUE}"     # NOTE: UNIQUE is the 3 digit Random Number assigned
+VAULT="<your_keyvault>"
 ENV="int"
 az keyvault secret set --vault-name $VAULT --name "elastic-endpoint-ado-${ENV}" --value <ed_endpoint>
 az keyvault secret set --vault-name $VAULT --name "elastic-username-ado-${ENV}" --value <es_username>
 az keyvault secret set --vault-name $VAULT --name "elastic-password-ado-${ENV}" --value <es_password>
 
 # Dump all secrets to output
-for i in `az keyvault secret list --vault-name $VAULT | jq  --raw-output '.[]|(.id / "/")[4]'`
-do 
-  az keyvault secret show --vault-name $VAULT --name $i 
-done | jq --raw-output '[(.id / "/")[4], .value] | join("=")'
+for i in `az keyvault secret list --vault-name $VAULT --query [].id -otsv`
+do
+   echo "export ${i##*/}=\"$(az keyvault secret show --vault-name $VAULT --id $i --query value -otsv)\""
+done
 ```
 
 ### Configure Azure DevOps
 
 _XXX refers to ${UNIQUE} and <your_env_name> without pipeline modification is `int`_
 
-1. Create a new ADO Project
-2. Configure an ARM Resources Service Connection (Manual) with the Service Principal `osdu-deploy-XXX`
-3. Setup and Configure the ADO Library `Infrastructure Pipeline Variables`
+1. Create a new ADO Project in your organization called `osdu-r2`
+2. Import the osdu-infrastructure to the ADO Project Repo from this URL `https://github.com/Azure/osdu-infrastructure.git`
+3. Checkout the R2 Release Branch
+4. Configure an ARM Resources Service Connection (Manual) with the Service Principal `osdu-deploy-XXX`
+5. Setup and Configure the ADO Library `Infrastructure Pipeline Variables`
     - AGENT_POOL = `Hosted Ubuntu 1604`
     - BUILD_ARTIFACT_NAME = `infra-templates`
     - SERVICE_CONNECTION_NAME = `osdu-deploy-XXX`
@@ -76,22 +79,21 @@ _XXX refers to ${UNIQUE} and <your_env_name> without pipeline modification is `i
     - TF_VAR_elasticsearch_secrets_keyvault_resource_group = `osdu-common-XXX`
     - TF_VAR_remote_state_account = `osdustateXXX`
     - TF_VAR_remote_state_container = `remote-state-container`
-4. Setup and Configure the ADO Library `Infrastructure Pipeline Variables - <your_env_name>`
+6. Setup and Configure the ADO Library `Infrastructure Pipeline Variables - <your_env_name>`
     - ARM_SUBSCRIPTION_ID = `<your_subscription_id>`
     - TF_VAR_cosmosdb_replica_location = `eastus2`
     - TF_VAR_resource_group_location = `centralus`
-5. Setup and Configure the ADO Library `Infrastructure Pipeline Secrets - <your_env_name>`
+7. Setup and Configure the ADO Library `Infrastructure Pipeline Secrets - <your_env_name>`
     > This should be linked Secrets from Azure Key Vault `osdu-kv-XXX`
-    - elastic-endpoint-ado-int = `*********`
-    - elastic-username-ado-int = `*********`
-    - elastic-password-ado-int = `*********`
-6. Setup 2 Secure Files
+    - elastic-endpoint-ado-<your_env_name> = `*********`
+    - elastic-username-ado-<your_env_name> = `*********`
+    - elastic-password-ado-<your_env_name> = `*********`
+8. Setup 2 Secure Files
     > This is for future AKS work but the keys will be located after running install.sh in the scripts/.ssh directory
     - azure-aks-gitops-ssh-key
     - azure-aks-node-ssh-key.pub
-6. User Azure Repo's import a Repo from the following URL `https://github.com/Azure/osdu-infrastructure.git`
-7. Create a New Azure Pipeline from the Azure Repo using the pipeline `/devops/infrastructure/pipeline-integration.yml`
-8. Run the Pipeline and the Infrastructure will deploy
+9. Create a New Azure Pipeline from the Azure Repo using the pipeline `/devops/infrastructure/pipeline-integration.yml`
+10. Run the Pipeline and the Infrastructure will deploy
 
 
 # Contributing

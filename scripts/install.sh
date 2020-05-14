@@ -9,42 +9,43 @@
 ## ARGUMENT INPUT            ##
 ###############################
 
-usage() { echo "Usage: ARM_SUBSCRIPTION_ID=<subscriptionid> install.sh <resourcegroup> <storageaccount> <keyvault>" 1>&2; exit 1; }
+usage() { echo "Usage: install.sh <subscription_id> <unique>" 1>&2; exit 1; }
 
-if [ -z $UNIQUE ]; then
-  UNIQUE=$(cat /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^0*//' | head --bytes 3)
-  echo "export UNIQUE=${UNIQUE}" >> .envrc
-fi
-
+if [ ! -z $1 ]; then ARM_SUBSCRIPTION_ID=$1; fi
 if [ -z $ARM_SUBSCRIPTION_ID ]; then
   tput setaf 1; echo 'ERROR: ARM_SUBSCRIPTION_ID not provided' ; tput sgr0
   usage;
+fi
+
+if [ ! -z $2 ]; then UNIQUE=$2; fi
+if [ -z $UNIQUE ]; then
+  UNIQUE=$(cat /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^0*//' | head --bytes 3)
+  echo "export UNIQUE=${UNIQUE}" >> .envrc
 fi
 
 if [ -z $AZURE_LOCATION ]; then
   AZURE_LOCATION="centralus"
 fi
 
-if [ ! -z $1 ]; then AZURE_GROUP=$1; fi
 if [ -z $AZURE_GROUP ]; then
   AZURE_GROUP="osdu-common-${UNIQUE}"
 fi
 
-if [ ! -z $2 ]; then AZURE_STORAGE=$2; fi
 if [ -z $AZURE_STORAGE ]; then
-  AZURE_STORAGE="osdustate${UNIQUE}"
+  AZURE_STORAGE="osducommon${UNIQUE}"
 fi
 
-if [ ! -z $3 ]; then AZURE_VAULT=$3; fi
 if [ -z $AZURE_VAULT ]; then
-  AZURE_VAULT="osdu-kv-${UNIQUE}"
+  AZURE_VAULT="osducommon${UNIQUE}-kv"
 fi
 
-if [ ! -z $4 ]; then REMOTE_STATE_CONTAINER=$4; fi
 if [ -z $REMOTE_STATE_CONTAINER ]; then
   REMOTE_STATE_CONTAINER="remote-state-container"
 fi
 
+if [ -z $AZURE_AKS_USER ]; then
+  AZURE_AKS_USER="osdu.${UNIQUE}"
+fi
 
 
 
@@ -70,6 +71,10 @@ function CreateResourceGroup() {
       OUTPUT=$(az group create --name $1 \
         --location $2 \
         -ojsonc)
+      LOCK=$(az group lock create --name "OSDU-PROTECTED" \
+        --resource-group $1 \
+        --lock-type CanNotDelete \
+        -ojsonc) 
     else
       tput setaf 3;  echo "Resource Group $1 already exists."; tput sgr0
     fi
@@ -88,23 +93,37 @@ function CreateServicePrincipal() {
     if [ "$_result"  == "" ]
     then
 
-      if [ $3 == true ]; then
-        PRINCIPAL_SECRET=$(az ad sp create-for-rbac \
+      PRINCIPAL_SECRET=$(az ad sp create-for-rbac \
         --name $1 \
         --skip-assignment \
         --role owner \
         --scopes subscription/${ARM_SUBSCRIPTION_ID} \
         --query password -otsv)
-      else
-        PRINCIPAL_SECRET=$(az ad sp create-for-rbac \
-        --name $1 \
-        --skip-assignment \
-        --query password -otsv)
-      fi
 
       PRINCIPAL_ID=$(az ad sp list \
         --display-name $1 \
         --query [].appId -otsv)
+
+      # Azure AD Graph API Access Application.ReadWrite.OwnedBy
+      AD_GRAPH_API=$(az ad app permission add \
+        --id $PRINCIPAL_ID \
+        --api 00000002-0000-0000-c000-000000000000 \
+        --api-permissions 824c81eb-e3f8-4ee6-8f6d-de7f50d565b7=Role \
+        -ojsonc)
+
+      # MS Graph API Application.ReadWrite.OwnedBy
+      MS_GRAPH_API=$(az ad app permission add \
+        --id $PRINCIPAL_ID \
+        --api 00000003-0000-0000-c000-000000000000 \
+        --api-permissions 18a4783c-866b-4cc7-a460-3d5e5662c884=Role \
+        -ojsonc)
+
+      # MS Graph API User.Read | Delegated
+      MS_GRAPH=$(az ad app permission add \
+        --id $PRINCIPAL_ID \
+        --api 00000003-0000-0000-c000-000000000000 \
+        --api-permissions e1fe6dd8-ba31-4d61-89e7-88639da4683d=Scope \
+        -ojsonc)
 
       tput setaf 2; echo "Adding AD Application Credentials to Vault..." ; tput sgr0
       AddKeyToVault $2 "${1}-id" $PRINCIPAL_ID
@@ -146,10 +165,16 @@ function CreateSSHKeys() {
   # Required Argument $1 = SSH_USER
   if [ -d ./.ssh ]
   then
-    tput setaf 3;  echo "SSH Keys for User $1: "; tput sgr0
+    tput setaf 3;  echo "SSH Keys already exist."; tput sgr0
   else
     mkdir .ssh && cd .ssh
-    ssh-keygen -t rsa -b 2048 -C $1 -f azure-aks-gitops-ssh-key && cd ..
+    local PASSPHRASE=$(cat /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^0*//' | head --bytes 20)
+    ssh-keygen -t rsa -b 2048 -C $1 -f azure-aks-gitops-ssh-key -N $PASSPHRASE && cd ..
+
+    tput setaf 2; echo "Adding SSH Information to Vault..." ; tput sgr0
+    AddKeyToVault $AZURE_VAULT "gitops-key" ".ssh/azure-aks-gitops-ssh-key" "file"
+    AddKeyToVault $AZURE_VAULT "gitops-key-pub" ".ssh/azure-aks-gitops-ssh-key.pub" "file"
+    AddKeyToVault $AZURE_VAULT "gitops-key-passphrase" $PASSPHRASE
   fi
 
  _result=`cat ./.ssh/azure-aks-gitops-ssh-key.pub`
@@ -274,6 +299,7 @@ function AddKeyToVault() {
   # Required Argument $1 = KEY_VAULT
   # Required Argument $2 = SECRET_NAME
   # Required Argument $3 = SECRET_VALUE
+  # Optional Argument $4 = isFile (bool)
 
   if [ -z $1 ]; then
     tput setaf 1; echo 'ERROR: Argument $1 (KEY_VAULT) not received' ; tput sgr0
@@ -290,8 +316,11 @@ function AddKeyToVault() {
     exit 1;
   fi
 
-  local _secret=$(az keyvault secret set --vault-name $1 --name $2 --value $3)
-  echo ${_secret}
+  if [ "$4" == "file" ]; then
+    local _secret=$(az keyvault secret set --vault-name $1 --name $2 --file $3)
+  else
+    local _secret=$(az keyvault secret set --vault-name $1 --name $2 --value $3)  
+  fi  
 }
 
 
@@ -306,10 +335,11 @@ tput setaf 3; echo "------------------------------------" ; tput sgr0
 tput setaf 2; echo 'Logging in and setting subscription...' ; tput sgr0
 az account set --subscription ${ARM_SUBSCRIPTION_ID}
 
-
-
 tput setaf 2; echo 'Creating Resource Group...' ; tput sgr0
 CreateResourceGroup $AZURE_GROUP $AZURE_LOCATION
+
+tput setaf 2; echo "Creating the Key Vault..." ; tput sgr0
+CreateKeyVault $AZURE_VAULT $AZURE_GROUP $AZURE_LOCATION
 
 tput setaf 2; echo "Creating the Storage Account..." ; tput sgr0
 CreateStorageAccount $AZURE_STORAGE $AZURE_GROUP $AZURE_LOCATION
@@ -320,21 +350,28 @@ STORAGE_KEY=$(GetStorageAccountKey $AZURE_STORAGE $AZURE_GROUP)
 tput setaf 2; echo "Creating the Storage Account Container..." ; tput sgr0
 CreateBlobContainer $REMOTE_STATE_CONTAINER $AZURE_STORAGE $STORAGE_KEY
 
-tput setaf 2; echo "Creating the Key Vault..." ; tput sgr0
-CreateKeyVault $AZURE_VAULT $AZURE_GROUP $AZURE_LOCATION
-
 tput setaf 2; echo "Adding Storage Account to Vault..." ; tput sgr0
-AddKeyToVault $AZURE_VAULT "terraform-storage-account" $AZURE_STORAGE
-AddKeyToVault $AZURE_VAULT "terraform-storage-key" $STORAGE_KEY
+AddKeyToVault $AZURE_VAULT "${AZURE_STORAGE}-storage" $AZURE_STORAGE
+AddKeyToVault $AZURE_VAULT "${AZURE_STORAGE}-storage-key" $STORAGE_KEY
 
 tput setaf 2; echo 'Creating Service Principal...' ; tput sgr0
-CreateServicePrincipal "osdu-deploy-${UNIQUE}" $AZURE_VAULT
+CreateServicePrincipal "osdu-infra-${UNIQUE}-principal" $AZURE_VAULT
 
 tput setaf 2; echo 'Creating AD Application...' ; tput sgr0
-CreateServicePrincipal "aad-entitlement-integration-test-app-client" $AZURE_VAULT
-CreateServicePrincipal "aad-no-data-access-tester-client" $AZURE_VAULT
+CreateServicePrincipal "osdu-infra-${UNIQUE}-test-app" $AZURE_VAULT
+CreateServicePrincipal "osdu-infra-${UNIQUE}-test-app-noaccess" $AZURE_VAULT
 
 tput setaf 2; echo 'Creating SSH Keys...' ; tput sgr0
-AZURE_USER=$(az account show --query user.name -otsv)
-LINUX_USER=(${AZURE_USER//@/ })
-CreateSSHKeys $AZURE_USER
+CreateSSHKeys $AZURE_AKS_USER
+
+tput setaf 2; echo 'Extracting Key Information...' ; tput sgr0
+tput setaf 3; echo "------------------------------------" ; tput sgr0
+for i in `az keyvault secret list --vault-name $AZURE_VAULT --query [].id -otsv`
+do
+   echo "${i##*/}=\"$(az keyvault secret show --vault-name $AZURE_VAULT --id $i --query value -otsv)\""
+done 
+
+tput setaf 2; echo 'Please Request your Tenant Admin to now Grant Consent for elevated Principal' ; tput sgr0
+tput setaf 3; echo "----------------------------------------------------------------------------" ; tput sgr0
+PRINCIPAL_ID=$(az ad sp list --display-name osdu-infra-${UNIQUE}-principal --query [].appId -otsv)
+echo "az ad app permission admin-consent --id ${PRINCIPAL_ID}"
