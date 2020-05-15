@@ -1,4 +1,4 @@
-#  Copyright � Microsoft Corporation
+#  Copyright © Microsoft Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -39,36 +39,36 @@ trigger:
     include:
     - /devops/infrastructure/*
     - /infra/modules/providers/*
-    - /infra/templates/az-micro-svc-small-elastic-cloud/*
+    - /infra/templates/osdu-r2-resources/*
     - /test-harness/terratest-extensions/*
+    - /azure-pipeline.yml
     exclude:
     - /**/*.md
     
-  variables:
-  - name: 'TF_VERSION'
-    value: '0.12.20'
-  - name: 'GO_VERSION'
-    value: '1.12.14'
-  - name: 'TF_ROOT_DIR'
-    value: 'infra'
-  - name: 'PIPELINE_ROOT_DIR'
-    value: 'devops/infrastructure'
-  - name: 'TEST_HARNESS_DIR'
-    value: 'test-harness'
-  - group: 'Infrastructure Pipeline Variables'
+variables:
+- name: 'TF_VERSION'
+  value: '0.12.20'
+- name: 'GO_VERSION'
+  value: '1.12.14'
+- name: 'TF_ROOT_DIR'
+  value: 'infra'
+- name: 'PIPELINE_ROOT_DIR'
+  value: 'devops/infrastructure'
+- name: 'TEST_HARNESS_DIR'
+  value: 'test-harness'
+- group: 'Infrastructure Pipeline Variables'
   
-  stages:
-  - template: prepare-stage.yml
-    parameters:
-      environments:
-      - name: 'demo'
-        enablePrIsolation: false
-        resourceNameIsolationLevel: 8
+stages:
+- template: devops/infrastructure/prepare-stage.yml
+  parameters:
+    environments:
+    - name: 'demo'
+      enablePrIsolation: false
+      resourceNameIsolationLevel: 8
   
-      configurations:
-      - jobName: osdu_r2
-        terraformWorkspacePrefix: ado
-        terraformTemplatePath: infra/templates/osdu-r2-resources
-        deploymentTimeoutInMinutes: 120  # Not supported as a Variable :-(
-  
-  
+    configurations:
+    - jobName: osdu_r2
+      terraformWorkspacePrefix: ado
+      terraformTemplatePath: infra/templates/osdu-r2-resources
+      deploymentTimeoutInMinutes: 120
+ 
