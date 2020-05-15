@@ -1,5 +1,6 @@
 # osdu-infrastructure
 
+[![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/osdu-infrastructure-integration?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=892&branchName=master)
 
 This project is an implementation of the Infrastructure as Code and Pipelines necessary to build and deploy the required infrastructure necessary for the [Open Subsurface Data Universe](https://community.opengroup.org/osdu) (OSDU).  Project Development for this code base is performed and maintained on osdu-infrastructure in [GitHub](http://github.com/azure/osdu-infrastructure) with a mirrored copy located in [GitLab](https://community.opengroup.org/osdu/platform/deployment-and-operations/infrastructure-templates).
 
@@ -33,16 +34,7 @@ cd scripts
 1. Resource Group
 2. Storage Account
 3. Key Vault
-4. Service Principal (Elevated)
-5. Applications for Integration Testing (2)
-
-__Setup an Elevated Permissions Service Principal__
-
-The installed service principal must now be given access to the following API's.
-> This task requires AD Tenant Grant Admin Consent privileges.
-
-    - Azure Active Directory Graph - Application.ReadWrite.OwnedBy
-    - Microsoft Graph - Application.ReadWrite.OwnedBy
+4. Applications for Integration Testing (2)
 
 __Elastic Search Setup__
 
@@ -63,7 +55,6 @@ done
 
 ### Configure Azure DevOps
 
-_XXX refers to ${UNIQUE} and <your_env_name> without pipeline modification is `int`_
 
 1. Create a new ADO Project in your organization called `osdu-r2`
 2. Import the osdu-infrastructure to the ADO Project Repo from this URL `https://github.com/Azure/osdu-infrastructure.git`
@@ -80,12 +71,12 @@ _XXX refers to ${UNIQUE} and <your_env_name> without pipeline modification is `i
     - TF_VAR_elasticsearch_secrets_keyvault_resource_group = `osdu-common-<your_unique>`
     - TF_VAR_remote_state_account = `osducommon<your_unique>`
     - TF_VAR_remote_state_container = `remote-state-container`
-6. Setup and Configure the ADO Library `Infrastructure Pipeline Variables - <your_env_name>`
+6. Setup and Configure the ADO Library `Infrastructure Pipeline Variables - demo`
     - ARM_SUBSCRIPTION_ID = `<your_subscription_id>`
     - TF_VAR_cosmosdb_replica_location = `eastus2`
     - TF_VAR_resource_group_location = `centralus`
-7. Setup and Configure the ADO Library `Infrastructure Pipeline Secrets - <your_env_name>`
-    > This should be linked Secrets from Azure Key Vault `osdu-kv-XXX`
+7. Setup and Configure the ADO Library `Infrastructure Pipeline Secrets - demo`
+    > This should be linked Secrets from Azure Key Vault `osducommon<your_unique>-kv`
     - elastic-endpoint-ado-demo = `*********`
     - elastic-username-ado-demo = `*********`
     - elastic-password-ado-demo = `*********`
@@ -95,7 +86,7 @@ _XXX refers to ${UNIQUE} and <your_env_name> without pipeline modification is `i
     - azure-aks-node-ssh-key.pub
 9. Create a New Azure Pipeline from the Azure Repo using the pipeline `/azure-pipeline.yml`
 10. Run the Pipeline and the Infrastructure will deploy
-    > Pipelines automatically check for changes set a runtime variable of FORCE_RUN=true to bypass Change Detection.
+    > Pipelines automatically check for changes. Set a runtime variable of FORCE_RUN=true to bypass Change Detection.
 
 
 # Contributing
@@ -118,7 +109,7 @@ For project level questions, please contact [Daniel Scholl](mailto:Daniel.Scholl
 
 
 ## License
-Copyright � Microsoft Corporation
+Copyright © Microsoft Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
