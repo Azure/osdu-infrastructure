@@ -354,9 +354,6 @@ tput setaf 2; echo "Adding Storage Account to Vault..." ; tput sgr0
 AddKeyToVault $AZURE_VAULT "${AZURE_STORAGE}-storage" $AZURE_STORAGE
 AddKeyToVault $AZURE_VAULT "${AZURE_STORAGE}-storage-key" $STORAGE_KEY
 
-tput setaf 2; echo 'Creating Service Principal...' ; tput sgr0
-CreateServicePrincipal "osdu-infra-${UNIQUE}-principal" $AZURE_VAULT
-
 tput setaf 2; echo 'Creating AD Application...' ; tput sgr0
 CreateServicePrincipal "osdu-infra-${UNIQUE}-test-app" $AZURE_VAULT
 CreateServicePrincipal "osdu-infra-${UNIQUE}-test-app-noaccess" $AZURE_VAULT
@@ -370,8 +367,3 @@ for i in `az keyvault secret list --vault-name $AZURE_VAULT --query [].id -otsv`
 do
    echo "${i##*/}=\"$(az keyvault secret show --vault-name $AZURE_VAULT --id $i --query value -otsv)\""
 done 
-
-tput setaf 2; echo 'Please Request your Tenant Admin to now Grant Consent for elevated Principal' ; tput sgr0
-tput setaf 3; echo "----------------------------------------------------------------------------" ; tput sgr0
-PRINCIPAL_ID=$(az ad sp list --display-name osdu-infra-${UNIQUE}-principal --query [].appId -otsv)
-echo "az ad app permission admin-consent --id ${PRINCIPAL_ID}"
