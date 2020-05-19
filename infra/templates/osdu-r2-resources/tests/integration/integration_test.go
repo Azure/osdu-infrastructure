@@ -43,7 +43,7 @@ func TestAppSvcPlanSingleRegion(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 33,
+		ExpectedTfOutputCount: 28,
 		TfOutputAssertions: []infratests.TerraformOutputValidation{
 			verifyAppServiceConfig,
 			/* Now that we configured the services to run as Java containers via linux_fx_version,
