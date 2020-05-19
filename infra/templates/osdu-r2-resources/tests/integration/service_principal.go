@@ -58,7 +58,6 @@ func getActualRoleAssignmentsMap(t *testing.T, output infratests.TerraformOutput
 func getExpectedRoleAssignmentsMap(output infratests.TerraformOutput) map[string]string {
 	expectedAssignments := map[string]string{}
 	expectedAssignments[output["service_plan_id"].(string)] = "Contributor"
-	expectedAssignments[output["redis_resource_id"].(string)] = "Contributor"
 	expectedAssignments[output["container_registry_id"].(string)] = "Contributor"
 	expectedAssignments[output["storage_account_id"].(string)] = "Storage Blob Data Contributor"
 	expectedAssignments[output["sb_namespace_id"].(string)] = "Azure Service Bus Data Sender"

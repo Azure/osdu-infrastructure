@@ -1,4 +1,4 @@
-//  Copyright © Microsoft Corporation
+//  Copyright ï¿½ Microsoft Corporation
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -86,11 +86,6 @@ output "keyvault_name" {
   value       = module.keyvault.keyvault_name
 }
 
-output "redis_hostname" {
-  description = "The hostname of the redis cluster"
-  value       = module.cache.hostname
-}
-
 output "storage_account" {
   description = "The name of the storage account."
   value       = module.storage_account.name
@@ -130,27 +125,6 @@ output "cosmosdb_account_name" {
 output "cosmosdb_conn_string_kv_secret_name" {
   description = "Secret name storing the primary connection string for CosmosDB."
   value       = "cosmos-connection"
-}
-
-output "redis_port" {
-  description = "The ssl port of the redis cluster"
-  value       = module.cache.ssl_port
-}
-
-output "redis_primary_access_key" {
-  description = "The primary access key of the redis cluster"
-  value       = module.cache.primary_access_key
-  sensitive   = true
-}
-
-output "redis_name" {
-  description = "The resource name of the redis cluster"
-  value       = module.cache.name
-}
-
-output "redis_resource_id" {
-  description = "The resource identifier of the redis cluster"
-  value       = module.cache.id
 }
 
 output "elastic_cluster_properties" {

@@ -1,4 +1,4 @@
-//  Copyright © Microsoft Corporation
+//  Copyright ï¿½ Microsoft Corporation
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -63,7 +63,6 @@ app_services = [{
     linux_fx_version = "JAVA|8-jre8"
     app_command_line = null
     app_settings = {
-      #"azure.cache.setting.suffix" = "redis"
       "ELASTIC_CACHE_EXPIRATION"            = 1
       "MAX_CACHE_VALUE_SIZE"                = 60
       "ENVIRONMENT"                         = "evt"

@@ -1,4 +1,4 @@
-#  Copyright © Microsoft Corporation
+#  Copyright ï¿½ Microsoft Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ trigger:
     include:
     - /devops/infrastructure/*
     - /infra/modules/providers/*
-    - /infra/templates/az-micro-svc-small-elastic-cloud/*
+    - /infra/templates/osdu-r2-resources/*
     - /test-harness/terratest-extensions/*
     exclude:
     - /**/*.md
@@ -63,8 +63,7 @@ pr:
     include:
     - /devops/infrastructure/*
     - /infra/modules/providers/*
-    - /infra/templates/az-micro-svc-small-elastic-cloud/*
-    - /infra/templates/az-micro-svc-kube-elastic-cloud/environments/container_cluster/*
+    - /infra/templates/osdu-r2-resources/*
     - /test-harness/terratest-extensions/*
     exclude:
     - /**/*.md

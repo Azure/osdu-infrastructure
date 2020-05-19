@@ -20,7 +20,6 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	cosmosIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/cosmosdb/tests/integration"
-	redisIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/redis-cache/tests/integration"
 	sbIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/service-bus/tests/integration"
 	storageIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/storage-account/tests/integration"
 	esIntegTestConfig "github.com/microsoft/cobalt/infra/modules/providers/elastic/elastic-cloud-enterprise/tests"
@@ -44,7 +43,7 @@ func TestAppSvcPlanSingleRegion(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 33,
+		ExpectedTfOutputCount: 28,
 		TfOutputAssertions: []infratests.TerraformOutputValidation{
 			verifyAppServiceConfig,
 			/* Now that we configured the services to run as Java containers via linux_fx_version,
@@ -58,8 +57,6 @@ func TestAppSvcPlanSingleRegion(t *testing.T) {
 			esIntegTests.CheckClusterHealth("elastic_cluster_properties"),
 			esIntegTests.CheckClusterVersion("elastic_cluster_properties"),
 			esIntegTests.CheckClusterIndexing("elastic_cluster_properties"),
-			redisIntegTests.CheckRedisWriteOperations("redis_hostname", "redis_primary_access_key", "redis_port"),
-			redisIntegTests.InspectProvisionedCache("redis_name", "resource_group"),
 			storageIntegTests.InspectStorageAccount("storage_account", "storage_account_containers", "resource_group"),
 			sbIntegTests.VerifySubscriptionsList(subscription,
 				"resource_group",

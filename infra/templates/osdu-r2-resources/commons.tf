@@ -1,4 +1,4 @@
-//  Copyright © Microsoft Corporation
+//  Copyright ï¿½ Microsoft Corporation
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -72,7 +72,6 @@ locals {
   kv_name                     = "${local.base_name_21}-kv"                  // key vault (max 24 chars)
   svc_princ_name              = "${local.base_name}-svc-principal"          // service principal
   ad_app_name                 = "${local.base_name}-ad-app"                 // service principal
-  cache_name                  = "${local.base_name}-redis"                  // redis cache
   storage_name                = "${replace(local.base_name_21, "-", "")}sa" // storage account
   cosmosdb_name               = "${local.base_name_21}-cosmosdb"            // cosmosdb account (max 44 chars )
   ad_app_management_name      = "${local.base_name}-ad-app-management"

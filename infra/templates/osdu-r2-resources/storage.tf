@@ -1,4 +1,4 @@
-//  Copyright © Microsoft Corporation
+//  Copyright ï¿½ Microsoft Corporation
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -67,12 +67,6 @@ module "function_storage" {
   name                = local.function_storage_name
   resource_group_name = azurerm_resource_group.app_rg.name
   container_names     = []
-}
-
-module "cache" {
-  source              = "../../modules/providers/azure/redis-cache"
-  name                = local.cache_name
-  resource_group_name = azurerm_resource_group.app_rg.name
 }
 
 module "cosmosdb_account" {
