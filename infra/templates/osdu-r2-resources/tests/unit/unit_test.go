@@ -61,7 +61,6 @@ func TestTemplate(t *testing.T) {
 	appendAppServiceTests(t, resourceDescription)
 	appendAutoScaleTests(t, resourceDescription)
 	appendKeyVaultTests(t, resourceDescription)
-	appendRedisTests(t, resourceDescription)
 	appendStorageTests(t, resourceDescription)
 	appendFunctionAppTests(t, resourceDescription)
 	appendServicebusTests(t, resourceDescription)
@@ -71,7 +70,7 @@ func TestTemplate(t *testing.T) {
 		TfOptions:                       tfOptions,
 		Workspace:                       workspace,
 		PlanAssertions:                  nil,
-		ExpectedResourceCount:           104,
+		ExpectedResourceCount:           101,
 		ExpectedResourceAttributeValues: resourceDescription,
 	}
 

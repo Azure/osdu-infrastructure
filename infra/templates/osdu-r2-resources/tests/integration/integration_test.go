@@ -20,7 +20,6 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	cosmosIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/cosmosdb/tests/integration"
-	redisIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/redis-cache/tests/integration"
 	sbIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/service-bus/tests/integration"
 	storageIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/storage-account/tests/integration"
 	esIntegTestConfig "github.com/microsoft/cobalt/infra/modules/providers/elastic/elastic-cloud-enterprise/tests"
@@ -58,8 +57,6 @@ func TestAppSvcPlanSingleRegion(t *testing.T) {
 			esIntegTests.CheckClusterHealth("elastic_cluster_properties"),
 			esIntegTests.CheckClusterVersion("elastic_cluster_properties"),
 			esIntegTests.CheckClusterIndexing("elastic_cluster_properties"),
-			redisIntegTests.CheckRedisWriteOperations("redis_hostname", "redis_primary_access_key", "redis_port"),
-			redisIntegTests.InspectProvisionedCache("redis_name", "resource_group"),
 			storageIntegTests.InspectStorageAccount("storage_account", "storage_account_containers", "resource_group"),
 			sbIntegTests.VerifySubscriptionsList(subscription,
 				"resource_group",

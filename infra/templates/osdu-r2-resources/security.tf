@@ -1,4 +1,4 @@
-//  Copyright © Microsoft Corporation
+//  Copyright ï¿½ Microsoft Corporation
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -29,9 +29,6 @@ locals {
 
     # The storage resource id
     [module.storage_account.id],
-
-    # The redis resource id
-    [module.cache.id],
 
     # The Container Registry Id
     [module.container_registry.container_registry_id],
