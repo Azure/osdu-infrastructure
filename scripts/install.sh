@@ -19,7 +19,7 @@ fi
 
 if [ ! -z $2 ]; then UNIQUE=$2; fi
 if [ -z $UNIQUE ]; then
-  UNIQUE=$(cat /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^0*//' | head --bytes 3)
+  UNIQUE=$(head -c 10000 /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^0*//' | head --bytes 3)
   echo "export UNIQUE=${UNIQUE}" >> .envrc
 fi
 
