@@ -19,7 +19,13 @@ fi
 
 if [ ! -z $2 ]; then UNIQUE=$2; fi
 if [ -z $UNIQUE ]; then
-  UNIQUE=$(cat /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^0*//' | head --bytes 3)
+  if [ -x "$(command -v shuff)" ]; then
+    UNIQUE=$(shuff -i 100-999 -n 1)
+  elif [ -x "$(command -v jot)" ]; then
+    UNIQUE=$(jot -r 1 100 999)
+  else
+    UNIQUE=$(head -c 10000 /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^0*//' | head --bytes 3)
+  fi
   echo "export UNIQUE=${UNIQUE}" >> .envrc
 fi
 
@@ -332,6 +338,7 @@ printf "\n"
 tput setaf 2; echo "Creating OSDU Common Resources" ; tput sgr0
 tput setaf 3; echo "------------------------------------" ; tput sgr0
 
+exit
 tput setaf 2; echo 'Logging in and setting subscription...' ; tput sgr0
 az account set --subscription ${ARM_SUBSCRIPTION_ID}
 
