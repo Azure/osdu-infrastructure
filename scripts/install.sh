@@ -19,13 +19,7 @@ fi
 
 if [ ! -z $2 ]; then UNIQUE=$2; fi
 if [ -z $UNIQUE ]; then
-  if [ -x "$(command -v shuff)" ]; then
-    UNIQUE=$(shuff -i 100-999 -n 1)
-  elif [ -x "$(command -v jot)" ]; then
-    UNIQUE=$(jot -r 1 100 999)
-  else
-    UNIQUE=$(head -c 10000 /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^0*//' | head --bytes 3)
-  fi
+  UNIQUE=$(echo $((RANDOM%999+100)))
   echo "export UNIQUE=${UNIQUE}" >> .envrc
 fi
 
@@ -169,23 +163,40 @@ function CreateADApplication() {
 }
 function CreateSSHKeys() {
   # Required Argument $1 = SSH_USER
-  if [ -d ./.ssh ]
-  then
-    tput setaf 3;  echo "SSH Keys already exist."; tput sgr0
-  else
-    mkdir .ssh && cd .ssh
-    local PASSPHRASE=$(cat /dev/urandom | tr -dc '0-9' | fold -w 256 | head -n 1 | sed -e 's/^0*//' | head --bytes 20)
-    ssh-keygen -t rsa -b 2048 -C $1 -f azure-aks-gitops-ssh-key -N $PASSPHRASE && cd ..
+  # Required Argument $2 = KEY_NAME
 
-    tput setaf 2; echo "Adding SSH Information to Vault..." ; tput sgr0
-    AddKeyToVault $AZURE_VAULT "gitops-key" ".ssh/azure-aks-gitops-ssh-key" "file"
-    AddKeyToVault $AZURE_VAULT "gitops-key-pub" ".ssh/azure-aks-gitops-ssh-key.pub" "file"
-    AddKeyToVault $AZURE_VAULT "gitops-key-passphrase" $PASSPHRASE
+  if [ -z $1 ]; then
+    tput setaf 1; echo 'ERROR: Argument $1 (SSH_USER) not received'; tput sgr0
+    exit 1;
   fi
 
- _result=`cat ./.ssh/azure-aks-gitops-ssh-key.pub`
+  if [ -z $2 ]; then
+    tput setaf 1; echo 'ERROR: Argument $2 (KEY_NAME) not received'; tput sgr0
+    exit 1;
+  fi
+
+  if [ ! -d ./.ssh ]
+  then
+    mkdir .ssh
+  fi
+
+  if [ -f ./.ssh/$2 ]; then
+    tput setaf 3;  echo "SSH Keys already exist."; tput sgr0
+  else
+    cd .ssh
+
+    PASSPHRASE=$(echo $((RANDOM%20000000000000000000+100000000000000000000)))
+    ssh-keygen -t rsa -b 2048 -C $1 -f $2 -N $PASSPHRASE && cd ..
+  fi
+
+  AddKeyToVault $AZURE_VAULT "${2}" ".ssh/${2}" "file"
+  AddKeyToVault $AZURE_VAULT "${2}-pub" ".ssh/${2}.pub" "file"
+  AddKeyToVault $AZURE_VAULT "${2}-passphrase" $PASSPHRASE
+
+ _result=`cat ./.ssh/${2}.pub`
  echo $_result
 }
+
 function CreateKeyVault() {
   # Required Argument $1 = KV_NAME
   # Required Argument $2 = RESOURCE_GROUP
@@ -338,7 +349,6 @@ printf "\n"
 tput setaf 2; echo "Creating OSDU Common Resources" ; tput sgr0
 tput setaf 3; echo "------------------------------------" ; tput sgr0
 
-exit
 tput setaf 2; echo 'Logging in and setting subscription...' ; tput sgr0
 az account set --subscription ${ARM_SUBSCRIPTION_ID}
 
@@ -366,7 +376,11 @@ CreateServicePrincipal "osdu-infra-${UNIQUE}-test-app" $AZURE_VAULT
 CreateServicePrincipal "osdu-infra-${UNIQUE}-test-app-noaccess" $AZURE_VAULT
 
 tput setaf 2; echo 'Creating SSH Keys...' ; tput sgr0
-CreateSSHKeys $AZURE_AKS_USER
+GITOPS_KEY="azure-aks-gitops-ssh-key"
+CreateSSHKeys $AZURE_AKS_USER $GITOPS_KEY
+AddKeyToVault $AZURE_VAULT "azure-aks-gitops-ssh-key" ".ssh/${GITOPS_KEY}" "file"
+
+CreateSSHKeys $AZURE_AKS_USER "azure-aks-node-ssh-key"
 
 tput setaf 2; echo 'Extracting Key Information...' ; tput sgr0
 tput setaf 3; echo "------------------------------------" ; tput sgr0
