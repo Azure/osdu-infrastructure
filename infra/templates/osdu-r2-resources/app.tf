@@ -20,6 +20,7 @@ resource "azurerm_resource_group" "app_rg" {
   location = local.region
 }
 
+// This has been removed as not necessary.
 locals {
   aad_reply_uris = flatten([
     for config in module.authn_app_service.app_service_config_data :
@@ -31,17 +32,6 @@ locals {
     ]
   ])
 }
-
-// ### See Issue "841: Re-enable Resource Group Locking, prior to cobalt template being released"
-//resource "azurerm_management_lock" "app_rg_lock" {
-//  name       = local.app_rg_lock
-//  scope      = azurerm_resource_group.app_rg.id
-//  lock_level = "CanNotDelete"
-//
-//  lifecycle {
-//    prevent_destroy = true
-//  }
-//}
 
 module "app_insights" {
   source                           = "../../modules/providers/azure/app-insights"
@@ -79,41 +69,23 @@ module "authn_app_service" {
 }
 
 module "ad_application" {
-  source               = "../../modules/providers/azure/ad-application"
-  resource_access_type = "Scope"
-  ad_app_config = [
+  source                     = "../../modules/providers/azure/ad-application"
+  name                       = local.ad_app_name
+  oauth2_allow_implicit_flow = true
+
+  reply_urls = [
+    "http://localhost:8080",
+    "http://localhost:8080/auth/callback"
+  ]
+
+  api_permissions = [
     {
-      app_name   = local.ad_app_name
-      reply_urls = []
+      name = "Microsoft Graph"
+      oauth2_permissions = [
+        "User.Read"
+      ]
     }
   ]
-  resource_app_id  = local.graph_id
-  resource_role_id = local.graph_role_id
-}
-
-resource "null_resource" "auth" {
-  /* Orchestrates the destroy and create process of null_resource.auth dependencies
-  /  during subsequent deployments that require new resources.
-  */
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  triggers = {
-    app_service = join(",", module.authn_app_service.app_service_uris)
-  }
-  provisioner "local-exec" {
-    command = <<EOF
-      az ad app update           \
-        --id "$APP_ID"           \
-        --reply-urls $REPLY_URLS \
-      EOF
-
-    environment = {
-      REPLY_URLS = join(" ", local.aad_reply_uris)
-      APP_ID     = module.ad_application.azuread_config_data[local.ad_app_name].application_id
-    }
-  }
 }
 
 ## Service Bus

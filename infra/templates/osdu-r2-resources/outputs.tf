@@ -1,4 +1,4 @@
-//  Copyright � Microsoft Corporation
+//  Copyright © Microsoft Corporation
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -54,13 +54,13 @@ output "resource_group" {
   value = azurerm_resource_group.app_rg.name
 }
 
-output "azuread_app_ids" {
-  value = module.ad_application.azuread_app_ids
+output "azuread_app_id" {
+  value = module.ad_application.id
 }
 
 output "contributor_service_principal_id" {
   description = "ID of the service principal with contributor access to provisioned resources"
-  value       = module.app_management_service_principal.service_principal_object_id
+  value       = module.app_management_service_principal.id
 }
 
 output "keyvault_uri" {
