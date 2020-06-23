@@ -111,6 +111,12 @@ terraform apply
 terraform destroy
 ```
 
+### Azure AD Application Admin Consent
+>NOTE: This is a required Manual Step.
+
+The deployment by default creates a Service Prinicpal with the naming convention <env_unique>.osdu-r2-ad-app-management.  This service principal requires the ability to access the Microsoft Graph API and a final manual step is required for an admin to grant-consent as described in the [Azure AD Application Management Documentation](https://docs.microsoft.com/en-us/azure/active-directory/manage-apps/grant-admin-consent#grant-admin-consent-in-app-registrations).
+
+
 ## Automated Testing
 
 ### Unit Testing 
@@ -132,7 +138,7 @@ go test -v $(go list ./... | grep "integration")
 ```
 
 ## License
-Copyright © Microsoft Corporation
+Copyright ï¿½ Microsoft Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
