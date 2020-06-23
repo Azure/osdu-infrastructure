@@ -36,6 +36,9 @@ locals {
     # App services and the associated slots -- enables management of deployments, etc...
     # Note: RBAC for slots is inherited and does not need to be configured separately
     module.authn_app_service.app_service_ids,
+
+    # The Function App
+    module.function_app.ids
   )
 
   storage_role_principals = [
