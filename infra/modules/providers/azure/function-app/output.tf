@@ -28,6 +28,11 @@ output "uris" {
   value       = azurerm_function_app.main.*.default_hostname
 }
 
+output "ids" {
+  description = "The resource ids of the function apps created"
+  value       = azurerm_function_app.main.*.id
+}
+
 output "identity_tenant_id" {
   description = "The Tenant ID for the Service Principal associated with the Managed Service Identity of this Function App."
   value       = azurerm_function_app.main[0].identity[0].tenant_id

@@ -12,37 +12,60 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-resource "random_string" "password" {
-  length = 16
+resource "random_password" "main" {
+  count   = var.password == "" ? 1 : 0
+  length  = 32
+  special = false
 }
 
-locals {
-  sps_to_create = var.create_for_rbac == true ? 1 : 0
-  sp_password   = sha256(bcrypt(random_string.password.result))
+data "azuread_service_principal" "main" {
+  count        = length(local.api_names)
+  display_name = local.api_names[count.index]
 }
 
-resource "azuread_application" "sp" {
-  count = local.sps_to_create
-  name  = var.display_name
+
+resource "azuread_application" "main" {
+  count                      = local.create_count
+  name                       = var.name
+  available_to_other_tenants = false
+
+  dynamic "required_resource_access" {
+    for_each = local.required_resource_access
+    iterator = resource
+    content {
+      resource_app_id = resource.value.resource_app_id
+
+      dynamic "resource_access" {
+        for_each = resource.value.resource_access
+        iterator = access
+        content {
+          id   = access.value.id
+          type = access.value.type
+        }
+      }
+    }
+  }
 }
 
-resource "azuread_service_principal" "sp" {
-  count          = local.sps_to_create
-  application_id = azuread_application.sp[0].application_id
+resource "azuread_service_principal" "main" {
+  count          = local.create_count
+  application_id = azuread_application.main[0].application_id
 }
 
-resource "azurerm_role_assignment" "sp" {
-  count                = length(var.role_scopes)
-  role_definition_name = var.role_name
-  principal_id         = var.create_for_rbac == true ? azuread_service_principal.sp[0].object_id : var.object_id
-  scope                = var.role_scopes[count.index]
+resource "azurerm_role_assignment" "main" {
+  count                = length(var.scopes)
+  role_definition_name = var.role
+  principal_id         = var.create_for_rbac == true ? azuread_service_principal.main[0].object_id : var.object_id
+  scope                = var.scopes[count.index]
 }
 
-resource "azuread_service_principal_password" "sp" {
-  count                = local.sps_to_create
-  service_principal_id = azuread_service_principal.sp[0].object_id
-  value                = local.sp_password
-  end_date_relative    = var.sp_pwd_end_date_relative
+resource "azuread_service_principal_password" "main" {
+  count                = var.password != null ? 1 : 0
+  service_principal_id = azuread_service_principal.main[0].id
+
+  value             = coalesce(var.password, random_password.main[0].result)
+  end_date          = local.end_date
+  end_date_relative = local.end_date_relative
 
   lifecycle {
     ignore_changes = all

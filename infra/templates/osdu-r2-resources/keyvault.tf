@@ -25,7 +25,7 @@ module "keyvault" {
 locals {
   secrets_map = {
     # AAD Application Secrets
-    aad-client-id = module.ad_application.azuread_app_ids[0]
+    aad-client-id = module.ad_application.id
     # App Insights Secrets
     appinsights-key = module.app_insights.app_insights_instrumentation_key
     # Service Bus Namespace Secrets
@@ -43,8 +43,8 @@ locals {
     # Storage Account Secrets
     storage-account-key = module.storage_account.primary_access_key
     # Service Principal Secrets
-    app-dev-sp-username  = module.app_management_service_principal.service_principal_application_id
-    app-dev-sp-password  = module.app_management_service_principal.service_principal_password
+    app-dev-sp-username  = module.app_management_service_principal.client_id
+    app-dev-sp-password  = module.app_management_service_principal.client_secret
     app-dev-sp-tenant-id = data.azurerm_client_config.current.tenant_id
   }
 
@@ -93,7 +93,7 @@ module "app_management_service_principal_keyvault_access_policy" {
   vault_id  = module.keyvault.keyvault_id
   tenant_id = module.authn_app_service.app_service_identity_tenant_id
   object_ids = [
-  module.app_management_service_principal.service_principal_object_id]
+  module.app_management_service_principal.id]
   key_permissions = [
     "update",
     "delete",

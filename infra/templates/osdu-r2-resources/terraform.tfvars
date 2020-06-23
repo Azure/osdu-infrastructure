@@ -1,4 +1,4 @@
-//  Copyright � Microsoft Corporation
+//  Copyright © Microsoft Corporation
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -23,15 +23,16 @@
 prefix = "osdu-r2"
 
 # Targets that will be configured to also setup AuthN with Easy Auth
-app_services = [{
-  app_name         = "legal"
-  image            = null
-  linux_fx_version = "JAVA|8-jre8"
-  app_command_line = null
-  app_settings = {
-    legal_service_region  = "centralus"
-    servicebus_topic_name = "legaltags"
-  }
+app_services = [
+  {
+    app_name         = "legal"
+    image            = null
+    linux_fx_version = "JAVA|8-jre8"
+    app_command_line = null
+    app_settings = {
+      legal_service_region  = "centralus"
+      servicebus_topic_name = "legaltags"
+    }
   },
   {
     app_name         = "entitlements"
@@ -41,7 +42,8 @@ app_services = [{
     app_settings = {
       service_domain_name = "contoso.com"
     }
-    }, {
+  },
+  {
     app_name         = "indexer"
     image            = null
     linux_fx_version = "JAVA|8-jre8"
@@ -49,7 +51,8 @@ app_services = [{
     app_settings = {
       servicebus_topic_name = "indexing-progress"
     }
-    }, {
+  },
+  {
     app_name         = "storage"
     image            = null
     linux_fx_version = "JAVA|8-jre8"
@@ -57,7 +60,8 @@ app_services = [{
     app_settings = {
       servicebus_topic_name = "recordstopic"
     }
-    }, {
+  },
+  {
     app_name         = "search"
     image            = null
     linux_fx_version = "JAVA|8-jre8"

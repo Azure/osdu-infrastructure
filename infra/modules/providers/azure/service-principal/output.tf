@@ -12,23 +12,23 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-output "service_principal_object_id" {
+output "id" {
   description = "The ID of the Azure AD Service Principal"
-  value       = azuread_service_principal.sp[0].object_id
+  value       = azuread_service_principal.main[0].object_id
 }
 
-output "service_principal_application_id" {
+output "client_id" {
   description = "The ID of the Azure AD Application"
-  value       = azuread_service_principal.sp[0].application_id
+  value       = azuread_service_principal.main[0].application_id
 }
 
-output "service_principal_display_name" {
+output "name" {
   description = "The Display Name of the Azure AD Application associated with this Service Principal"
-  value       = azuread_service_principal.sp[0].display_name
+  value       = azuread_service_principal.main[0].display_name
 }
 
-output "service_principal_password" {
+output "client_secret" {
   description = "The password of the generated service principal. This is only exported when create_for_rbac is true."
-  value       = azuread_service_principal_password.sp[0].value
+  value       = azuread_service_principal_password.main[0].value
   sensitive   = true
 }

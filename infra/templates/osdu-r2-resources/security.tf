@@ -1,4 +1,4 @@
-//  Copyright � Microsoft Corporation
+//  Copyright © Microsoft Corporation
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -37,32 +37,39 @@ locals {
     # Note: RBAC for slots is inherited and does not need to be configured separately
     module.authn_app_service.app_service_ids,
 
-    # TODO: Add KeyVault service ID here
-    #   https://dev.azure.com/slb-des-ext-collaboration/open-data-ecosystem/_boards/board/t/microsoft-open-data-ecosystem/Stories/?workitem=752
-    # TODO: Add AzureFunctions service ID here
-    #   https://dev.azure.com/slb-des-ext-collaboration/open-data-ecosystem/_backlogs/backlog/microsoft-open-data-ecosystem/Stories/?workitem=755
+    # The Function App
+    module.function_app.ids
   )
 
   storage_role_principals = [
     module.authn_app_service.app_service_identity_config_data[local.storage_app_name],
     module.authn_app_service.app_service_identity_config_data[local.legal_app_name],
-    module.app_management_service_principal.service_principal_object_id
+    module.app_management_service_principal.id
   ]
 
   service_bus_role_principals = [
     module.authn_app_service.app_service_identity_config_data[local.storage_app_name],
     module.authn_app_service.app_service_identity_config_data[local.legal_app_name],
     module.authn_app_service.app_service_identity_config_data[local.indexer_app_name],
-    module.app_management_service_principal.service_principal_object_id
+    module.app_management_service_principal.id
   ]
 }
 
 module "app_management_service_principal" {
   source          = "../../modules/providers/azure/service-principal"
   create_for_rbac = true
-  display_name    = local.ad_app_management_name
-  role_name       = "Contributor"
-  role_scopes     = local.rbac_contributor_scopes
+  name            = local.ad_app_management_name
+  role            = "Contributor"
+  scopes          = local.rbac_contributor_scopes
+
+  api_permissions = [
+    {
+      name = "Microsoft Graph"
+      app_roles = [
+        "Directory.Read.All"
+      ]
+    }
+  ]
 }
 
 resource "azurerm_role_assignment" "storage_roles" {

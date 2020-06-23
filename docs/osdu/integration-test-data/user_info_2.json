@@ -1,5 +1,6 @@
 {
-  "id": "$NO_DATA_SERVICE_PRINCIPAL_ID",
+  "id": "$SERVICE_PRINCIPAL_OBJECT_ID",
+  "uid": "$SERVICE_PRINCIPAL_CLIENT_ID",
   "tenants": [
     {
       "name": "common",
