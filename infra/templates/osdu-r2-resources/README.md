@@ -1,18 +1,19 @@
-# Azure Small Microservice Mesh on Elastic Cloud Enterprise
+# OSDU R2 Web App Microservice Architecture with Elastic Cloud SaaS
 
-The `az-micro-svc-small-elastic-cloud` template is intended to be a reference for running a small suite of public facing app services and functions which interface with [ECE](https://www.elastic.co/products/ece).
+The `osdu-r2-resources` template is intended to deploy infrastructure necessary for the OSDU R2 Release using web apps for hosting the microservices and integrates with [Elastic Cloud](https://www.elastic.co/cloud/)
 
-> *Have you completed the quick start guide? Deploy your first infrastructure as code project with Cobalt by following the [quick-start guide](https://github.com/microsoft/cobalt/blob/master/docs/2_QUICK_START_GUIDE.md).*
 
 ## Use-Case
 
-This particular template creates an Azure environment with a small set of fully managed microservices backed by Azure Application Services with [API Management](https://docs.microsoft.com/en-us/azure/api-management/api-management-key-concepts) acting as the single ingress control plane. Our customer use-case had spatial data search requirements so Elasticsearch was an obvious choice. We decided to use ECE with the intent to follow ElasticSearch cluster setup and security best practices.
+This particular template creates an Azure environment with a small set of fully managed microservices backed by Azure Application Services. Our customer use-case had spatial data search requirements so Elasticsearch was an obvious choice. We had initially decided to use ECE with the intent to follow ElasticSearch cluster setup and security best practices, but moved later to ESS which is a hosted SaaS solution for Elastic Search.
 
-Servlerless Azure Functions are used for our data processing layer with [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) as our Pub/Sub Solution.  
+Elastic Search Requirements require version 6.8.x and is currently tested against 6.8.3 with a valid SSL certificate on the endpoint.
+
+A Servlerless Azure Function is used for our data processing layer with [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) as our Pub/Sub Solution.  
 
 ## Scenarios this template should avoid
 
-This template is an adequate solution where the service count is less than 10. For Azure customers interested with provisioning more than 10 services, we recommend using AKS and [Bedrock](https://github.com/microsoft/bedrock). Reason being that with Kubernetes you can maximize cluster node CPU cores which helps minimize cloud resourcing costs.
+This template is an adequate solution where the service count is less than 10. For Azure customers interested with provisioning more than 10 services, we recommend using AKS and [Bedrock](https://github.com/microsoft/bedrock). Reason being that with Kubernetes you can maximize cluster node CPU cores which helps minimize cloud resourcing costs.  A future version anticipated with R3 will leverage AKS.
 
 ## Technical Design
 Template design [specifications](docs/design/README.md).
@@ -28,18 +29,20 @@ Cloud administrators that's versed with Cobalt templating.
 
 1. Azure Subscription
 2. An available Service Principal with API Permissions granted with Admin Consent within Azure app registration. The required Azure Active Directory Graph app role is `Application.ReadWrite.OwnedBy`
-![image](https://user-images.githubusercontent.com/7635865/71312782-d9b91800-23f4-11ea-80ee-cc646f1c74be.png)
+![image](./docs/design/.design_images/TFPrincipal-Permissions.png)
 3. Terraform and Go are locally installed
 4. Azure Storage Account is [setup](https://docs.microsoft.com/en-us/azure/terraform/terraform-backend) to store Terraform state
-5. Local environment variables are [setup](https://github.com/microsoft/cobalt/blob/f31aff95e7732efde96c91b2779e94e16c1d538e/docs/2_QUICK_START_GUIDE.md#step-3-setup-local-environment-variables)
+5. Local environment variables are [setup](https://github.com/Azure/osdu-infrastructure/blob/master/docs/osdu/INFRASTRUCTURE_DEPLOYMENTS.md)
 
 ## Cost
 
-Azure environment cost ballpark [estimate](https://azure.com/e/92b05a7cd1e646368ab74772e3122500). This is subject to change and is driven from the resource pricing tiers configured when the template is deployed. 
+Azure environment cost ballpark [estimate](https://azure.com/e/09aab61ac8cd43b48c54c9d7290473cc). This is subject to change and is driven from the resource pricing tiers configured when the template is deployed. 
 
 ## Deployment Steps
 
 1. Execute the following commands to set up your local environment variables:
+
+We recommend running [direnv](https://direnv.net/) for sourcing your environment variables.
 
 *Note for Windows Users using WSL*: We recommend running dos2unix utility on the environment file via `dos2unix .env` prior to sourcing your environment variables to chop trailing newline and carriage return characters.
 
@@ -56,32 +59,7 @@ export $(cat $DOT_ENV | xargs)
 az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
 ```
 
-3. Navigate to the `terraform.tfvars` terraform file. Here's a sample of the terraform.tfvars file for this template.
-
-```HCL
-resource_group_location = "centralus"
-prefix                  = "test-services"
-
-# Targets that will be configured to also setup AuthN with Easy Auth
-app_services = [
-  {
-    app_name = "tf-test-svc-1"
-    image    = null
-    app_settings = {
-      "one_sweet_app_setting" = "brilliant"
-    }
-  },
-  {
-    app_name = "tf-test-svc-2"
-    image    = null
-    app_settings = {
-      "another_sweet_svc_app_setting" = "ok"
-    }
-  }
-]
-```
-
-4. Execute the following commands to set up your terraform workspace.
+3. Execute the following commands to set up your terraform workspace.
 
 ```bash
 # This configures terraform to leverage a remote backend that will help you and your
@@ -94,7 +72,7 @@ TF_WORKSPACE="$USER"
 terraform workspace new $TF_WORKSPACE || terraform workspace select $TF_WORKSPACE
 ```
 
-5. Execute the following commands to orchestrate a deployment.
+4. Execute the following commands to orchestrate a deployment.
 
 ```bash
 # See what terraform will try to deploy without actually deploying
@@ -104,12 +82,6 @@ terraform plan
 terraform apply
 ```
 
-6. Optionally execute the following command to teardown your deployment and delete your resources.
-
-```bash
-# Destroy resources and tear down deployment. Only do this if you want to destroy your deployment.
-terraform destroy
-```
 
 ### Azure AD Application Admin Consent
 >NOTE: This is a required Manual Step.
@@ -138,7 +110,7 @@ go test -v $(go list ./... | grep "integration")
 ```
 
 ## License
-Copyright � Microsoft Corporation
+Copyright © Microsoft Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
