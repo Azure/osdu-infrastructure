@@ -154,7 +154,7 @@ output "sb_namespace_id" {
 output "sb_namespace_default_connection_string" {
   description = "The primary connection string for the Service Bus namespace authorization rule RootManageSharedAccessKey."
   value       = module.service_bus.service_bus_namespace_default_connection_string
-  sensitive = true
+  sensitive   = true
 }
 
 output "sb_topics" {
