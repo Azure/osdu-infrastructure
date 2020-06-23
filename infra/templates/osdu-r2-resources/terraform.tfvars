@@ -74,13 +74,6 @@ app_services = [
       "search.service.spring.logging.level" = "DEBUG"
       "search.service.port"                 = 80
     }
-  },
-  {
-    app_name         = "delivery"
-    image            = null
-    linux_fx_version = "JAVA|8-jre8"
-    app_command_line = null
-    app_settings     = {}
   }
 ]
 
