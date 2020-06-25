@@ -270,6 +270,7 @@ done
 | AGENT_POOL | `Hosted Ubuntu 1604` |
 | AZURE_AD_APP_RESOURCE_ID | `$(aad-client-id)` |
 | AZURE_AD_OTHER_APP_RESOURCE_ID | `$(osdu-infra-<your_unique>-test-app-id)` |
+| AZURE_AD_OTHER_APP_RESOURCE_OID | `$(osdu-infra-<your_unique>-test-app-oid)` |
 | AZURE_DEPLOY_APPSERVICE_PLAN | `$(ENVIRONMENT_RG_PREFIX)-$(PREFIX_BASE)-sp` |
 | AZURE_DEPLOY_CLIENT_ID| `$(app-dev-sp-username)` |
 | AZURE_DEPLOY_CLIENT_SECRET| `$(app-dev-sp-password)` |
@@ -303,6 +304,7 @@ done
 | STORAGE_URL | `https://$(AZURE_STORAGE_SERVICE_NAME).azurewebsites.net/` |
 | _GOOGLE_CLOUD_PROJECT_ | _`opendes`_ |
 
+
 > There is a current bug in legal that is pending being fixed the requires the `GOOGLE_CLOUD_PROJECT` variable to be set to build legal-core and pass the unit tests.
 
 - Setup and Configure the ADO Library `Azure Common Secrets`
@@ -310,8 +312,13 @@ done
 
 - osdu-infra-{unique}-test-app-id
 - osdu-infra-{unique}-test-app-key
+- osdu-infra-{unique}-test-app-oid
 - osdu-infra-{unique}-test-app-noaccess-id
 - osdu-infra-{unique}-test-app-noaccess-key
+- ad-user-email
+- ad-user-oid
+- ad-guest-email
+- ad-guest-oid
 
 ### Setup Environment ADO Libraries
 
@@ -352,7 +359,7 @@ done
 | MAVEN_DEPLOY_GOALS | `azure-webapp:deploy` |
 | MAVEN_DEPLOY_OPTIONS | `--settings $(System.DefaultWorkingDirectory)/drop/maven/settings.xml -DAZURE_DEPLOY_TENANT=$(AZURE_DEPLOY_TENANT) -DAZURE_DEPLOY_CLIENT_ID=$(AZURE_DEPLOY_CLIENT_ID) -DAZURE_DEPLOY_CLIENT_SECRET=$(AZURE_DEPLOY_CLIENT_SECRET) -Dazure.appservice.resourcegroup=$(AZURE_DEPLOY_RESOURCE_GROUP) -Dazure.appservice.plan=$(AZURE_DEPLOY_APPSERVICE_PLAN) -Dazure.appservice.appname=$(AZURE_ENTITLEMENTS_SERVICE_NAME) -Dazure.appservice.subscription=$(AZURE_DEPLOY_SUBSCRIPTION)` |
 | MAVEN_DEPLOY_POM_FILE_PATH | `drop` |
-| MAVEN_INTEGRATION_TEST_OPTIONS | `-DDOMAIN=$(DOMAIN) -DENTITLEMENT_URL=$(ENTITLEMENT_URL) -DENTITLEMENT_APP_KEY=$(entitlement-key) -DMY_TENANT=$(MY_TENANT) -DINTEGRATION_TESTER=$(INTEGRATION_TESTER) -DAZURE_TESTER_SERVICEPRINCIPAL_SECRET=$(AZURE_TESTER_SERVICEPRINCIPAL_SECRET) -DAZURE_AD_TENANT_ID=$(AZURE_DEPLOY_TENANT) -DAZURE_AD_APP_RESOURCE_ID=$(AZURE_AD_APP_RESOURCE_ID) -DAZURE_AD_OTHER_APP_RESOURCE_ID=$(AZURE_AD_OTHER_APP_RESOURCE_ID) -DEXPIRED_TOKEN=$(EXPIRED_TOKEN)  -DENTITLEMENT_MEMBER_NAME_VALID=$(INTEGRATION_TESTER) -DENTITLEMENT_MEMBER_NAME_INVALID=InvalidTestAdmin -DENTITLEMENT_GROUP_NAME_VALID=integ.test.data.creator` |
+| MAVEN_INTEGRATION_TEST_OPTIONS | `-DDOMAIN=$(DOMAIN) -DENTITLEMENT_URL=$(ENTITLEMENT_URL) -DENTITLEMENT_APP_KEY=$(entitlement-key) -DMY_TENANT=$(MY_TENANT) -DINTEGRATION_TESTER=$(INTEGRATION_TESTER) -DAZURE_TESTER_SERVICEPRINCIPAL_SECRET=$(AZURE_TESTER_SERVICEPRINCIPAL_SECRET) -DAZURE_AD_TENANT_ID=$(AZURE_DEPLOY_TENANT) -DAZURE_AD_APP_RESOURCE_ID=$(AZURE_AD_APP_RESOURCE_ID) -DAZURE_AD_OTHER_APP_RESOURCE_ID=$(AZURE_AD_OTHER_APP_RESOURCE_ID) -DAZURE_AD_OTHER_APP_RESOURCE_OID=$(AZURE_AD_OTHER_APP_RESOURCE_OID) -DEXPIRED_TOKEN=$(EXPIRED_TOKEN) -DENTITLEMENT_MEMBER_NAME_VALID=$(INTEGRATION_TESTER) -DENTITLEMENT_MEMBER_NAME_INVALID=InvalidTestAdmin -DENTITLEMENT_GROUP_NAME_VALID=integ.test.data.creator -DAZURE_AD_USER_EMAIL=$(ad-user-email) -DAZURE_AD_USER_OID=$(ad-user-oid) -DAZURE_AD_GUEST_EMAIL=$(ad-guest-email) -DAZURE_AD_GUEST_OID=$(ad-guest-oid)` |
 | MAVEN_INTEGRATION_TEST_POM_FILE_PATH | `drop/deploy/integration-tests` |
 | SERVICE_RESOURCE_NAME | `$(AZURE_ENTITLEMENTS_SERVICE_NAME)` |
 
