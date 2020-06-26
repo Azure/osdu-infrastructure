@@ -1,6 +1,6 @@
 {
-  "id": "$SERVICE_PRINCIPAL_OBJECT_ID",
-  "uid": "$SERVICE_PRINCIPAL_CLIENT_ID",
+  "id": "$SERVICE_PRINCIPAL_NO_ACCESS_APP_ID",
+  "uid": "",
   "tenants": [
     {
       "name": "common",
