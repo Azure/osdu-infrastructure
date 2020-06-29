@@ -39,8 +39,8 @@ _Eventually a bootstrap process will be handled by an [ado terraform provider](h
     | Variable | Value |
     |----------|-------|
     | ACCESS_TOKEN | <your_personal_access_token> |
-    | INFRASTRUCTURE_REPO | https://dev.azure.com/<your_organization>/_git/osdu-infrastructure |
-    | ENTITLEMENTS_REPO | https://dev.azure.com/<your_organization>/_git/entitlements-azure |
+    | INFRASTRUCTURE_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/osdu-infrastructure |
+    | ENTITLEMENTS_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/entitlements-azure |
     | LEGAL_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/legal |
     | INDEXER_QUEUE_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/indexer-queue |
     | STORAGE_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/storage |
