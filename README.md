@@ -32,15 +32,21 @@ _Eventually a bootstrap process will be handled by an [ado terraform provider](h
   - storage
   - indexer
   - search
+  - delivery
 
-- Setup the Variable Group Neccessary for the Pipeline
+- Setup the Variable Group called 'Mirror Variables' necessary for the Pipeline
 
     | Variable | Value |
     |----------|-------|
     | ACCESS_TOKEN | <your_personal_access_token> |
     | INFRASTRUCTURE_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/osdu-infrastructure |
-    | ENTITLEMENTS_REPO | https://dev.azure.com/<your_organization>/_git/entitlements-azure |
+    | ENTITLEMENTS_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/entitlements-azure |
     | LEGAL_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/legal |
+    | INDEXER_QUEUE_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/indexer-queue |
+    | STORAGE_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/storage |
+    | INDEXER_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/indexer |
+    | SEARCH_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/search |
+    | DELIVERY_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/delivery |
 
 - Add a Pipeline __osdu-r2-repository-sync__ -->  `azure-pipelines.yml`
 
@@ -58,6 +64,9 @@ _Eventually a bootstrap process will be handled by an [ado terraform provider](h
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+
+# Note: Pipeline uses the Swellaby Mirror Git Repository extension
+# Get it here: https://marketplace.visualstudio.com/items?itemName=swellaby.mirror-git-repository
 
 # Required Group Variables - `Mirror Variables`
 # ACCESS_TOKEN  (Personal Access Token)
