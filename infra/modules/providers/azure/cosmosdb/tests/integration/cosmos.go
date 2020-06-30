@@ -84,7 +84,7 @@ func InspectProvisionedCosmosDBAccount(resourceGroupOutputName, accountName, out
 		validateOfferType(t, result.DatabaseAccountOfferType)
 
 		failOverPolicies := *result.FailoverPolicies
-		require.Equal(t, 2, len(failOverPolicies))
+		require.Equal(t, 1, len(failOverPolicies))
 		validateFailOverPriority(t, failOverPolicies[0])
 
 		validateServiceResponse(t, output, outputName)
