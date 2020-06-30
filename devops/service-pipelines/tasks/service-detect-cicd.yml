@@ -58,7 +58,7 @@ steps:
         FILE_CHANGE_SET=$(git diff "$GIT_DIFF_SOURCEBRANCH" "$GIT_DIFF_UPSTREAMBRANCH" --name-only)
         echo "Files changed since last commit..."
         echo "$FILE_CHANGE_SET"
-
+        
         FILTERED_FILE_CHANGE_SET=$(grep -E "$GIT_DIFF_EXTENSION_WHITE_LIST" <<< "$FILE_CHANGE_SET" || true)
         echo "Files changed since last commit, filtered for build-relevant files..."
         echo "$FILTERED_FILE_CHANGE_SET"
@@ -105,10 +105,10 @@ steps:
 
         [ ! -z "${AZURE_CHANGES}" ] && AZURE_CHANGED="yes"
         [ ! -z "${AZURE_TESTS_CHANGES}" ] && AZURE_CHANGED="yes"
-
+        
         [ ! -z "${AWS_CHANGES}" ] && AWS_CHANGED="yes"
         [ ! -z "${AWS_TESTS_CHANGES}" ] && AWS_CHANGED="yes"
-
+        
         [ ! -z "${GCP_CHANGES}" ] && GCP_CHANGED="yes"
         [ ! -z "${GCP_TESTS_CHANGES}" ] && GCP_CHANGED="yes"
 

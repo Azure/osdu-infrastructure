@@ -27,6 +27,11 @@ variable "appgateway_name" {
   type        = string
 }
 
+variable "location" {
+  description = "Location of the application gateway"
+  type        = string
+}
+
 variable "ssl_key_vault_secret_id" {
   description = "Secret Id of (base-64 encoded unencrypted pfx) Secret or Certificate object stored in Azure KeyVault. You need to enable soft delete for keyvault."
   type        = string

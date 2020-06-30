@@ -70,6 +70,7 @@ func validateDeployedWebApp(t *testing.T, kubeConfigFile string, k8ServiceName s
 	}
 }
 
+// ValidateFluxNamespace - Validates the resources running within the Flux namespace are fully operational
 func validateFluxNamespace(t *testing.T, kubeConfigFile string) {
 	fluxNamespace := "flux"
 	fluxAppLabel := "flux"
@@ -89,13 +90,50 @@ func validateFluxNamespace(t *testing.T, kubeConfigFile string) {
 }
 
 // BaselineClusterAssertions - Runs the suite of baseline tests to validate the cluster is fully functional
-func BaselineClusterAssertions(kubeConfigFile string, clientIDOutputName string, k8ExternalServiceName string, expectedBodySubstring string) func(t *testing.T, output infratests.TerraformOutput) {
+func BaselineClusterAssertions(kubeConfigFile string, namespaceOutputAttribute string) func(t *testing.T, output infratests.TerraformOutput) {
 	return func(t *testing.T, output infratests.TerraformOutput) {
 		t.Parallel()
 
 		validateFluxNamespace(t, kubeConfigFile)
-		validateKeyvaultFlexVolNamespace(t, kubeConfigFile)
-		validateKeyvaultServicePrincipalSecret(t, kubeConfigFile, clientIDOutputName, output)
-		validateDeployedWebApp(t, kubeConfigFile, k8ExternalServiceName, expectedBodySubstring)
+		validateAADIdentityControllers(t, kubeConfigFile, output[namespaceOutputAttribute].(string))
+		validateAADIdentityCustomResources(t, kubeConfigFile, output[namespaceOutputAttribute].(string))
+
 	}
+}
+
+func validatePodsAreAvailable(t *testing.T, kubeConfigFile string, podLabelKey string, podLabelValue string, expectedPodCount int, namespace string) {
+	options := *k8s.NewKubectlOptions("", kubeConfigFile)
+	options.Namespace = namespace
+	filters := metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("%s=%s", podLabelKey, podLabelValue),
+	}
+
+	k8s.WaitUntilNumPodsCreated(t, &options, filters, expectedPodCount, 30, 10*time.Second)
+
+	pods := k8s.ListPods(t, &options, filters)
+
+	for _, pod := range pods {
+		k8s.WaitUntilPodAvailable(t, &options, pod.Name, 30, 10*time.Second)
+	}
+}
+
+func validateCustomResource(t *testing.T, kubeConfigFile string, namespace string, crname string, expected string) {
+	options := k8s.NewKubectlOptions("", kubeConfigFile)
+	output, err := k8s.RunKubectlAndGetOutputE(t, options, "get", crname, "--namespace="+namespace)
+	if err != nil || !strings.Contains(output, expected) {
+		t.Fatal(err)
+	} else {
+		fmt.Println("Custom resource verification complete" + crname + "-" + expected)
+	}
+}
+
+// ValidateAADIdentityControllers - Validates the AAD pod controller agents are available
+func validateAADIdentityControllers(t *testing.T, kubeConfigFile string, namespace string) {
+	validatePodsAreAvailable(t, kubeConfigFile, "app.kubernetes.io/component", "mic", 2, namespace)
+	validatePodsAreAvailable(t, kubeConfigFile, "app.kubernetes.io/component", "nmi", 3, namespace)
+}
+
+func validateAADIdentityCustomResources(t *testing.T, kubeConfigFile string, namespace string) {
+	validateCustomResource(t, kubeConfigFile, namespace, "AzureIdentity", "sdmspodidentity")
+	validateCustomResource(t, kubeConfigFile, namespace, "AzureIdentityBinding", "sdmspodidentitybinding")
 }

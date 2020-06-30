@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 #####################
-# README: Outputs path of maven build directory and also outputs if folder structure of a
+# README: Outputs path of maven build directory and also outputs if folder structure of a 
 #   service is uniplatform (maven dir is in root) or multiplatform (maven dir is in core dir).
 #####################
 

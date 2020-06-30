@@ -39,7 +39,7 @@ var tfOptions = &terraform.Options{
 // Runs a suite of test assertions to validate that a provisioned set of app services
 // are fully funtional.
 func TestAppSvcPlanSingleRegion(t *testing.T) {
-	esIntegTestConfig.ESVersion = "6.8.3"
+	esIntegTestConfig.ESVersion = os.Getenv("TF_VAR_elasticsearch_version")
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,

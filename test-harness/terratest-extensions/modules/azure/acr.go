@@ -16,8 +16,9 @@ package azure
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"testing"
+
+	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 )
 
 func registriesClientE(subscriptionID string) (*containerregistry.RegistriesClient, error) {
@@ -111,4 +112,20 @@ func ACRWebHookCallback(t *testing.T, subscriptionID string, resourceGroupName s
 		t.Fatal(err)
 	}
 	return webhookCallback
+}
+
+// ACRRegistryE - Return the Registry structure for the given ACR
+func ACRRegistryE(subscriptionID string, resourceGroupName string, acrName string) (*containerregistry.Registry, error) {
+
+	client, err := registriesClientE(subscriptionID)
+	if err != nil {
+		return nil, err
+	}
+
+	acr, err := client.Get(context.Background(), resourceGroupName, acrName)
+	if err != nil {
+		return nil, err
+	}
+
+	return &acr, nil
 }

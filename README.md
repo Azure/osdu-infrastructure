@@ -240,6 +240,7 @@ done
   | ARM_SUBSCRIPTION_ID | <your_subscription_id> |
   | TF_VAR_resource_group_location | centralus |
   | TF_VAR_cosmosdb_replica_location | eastus2 |
+  | TF_VAR_elasticsearch_version | 6.8.3 |
 
 > You can specify the desired region locations you wish.
 

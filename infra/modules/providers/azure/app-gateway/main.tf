@@ -11,15 +11,6 @@
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
-
-data "azurerm_resource_group" "appgateway" {
-  name = var.resource_group_name
-}
-
-data "azurerm_resource_group" "identity_rg" {
-  name = var.user_identity_rg
-}
-
 data "azurerm_client_config" "current" {}
 
 locals {
@@ -32,15 +23,15 @@ locals {
 # Public Ip
 resource "azurerm_public_ip" "appgw_pip" {
   name                = var.appgateway_public_ip_name
-  location            = data.azurerm_resource_group.appgateway.location
-  resource_group_name = data.azurerm_resource_group.appgateway.name
+  location            = var.location
+  resource_group_name = var.resource_group_name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
 resource "azurerm_user_assigned_identity" "app_gw_user_identity" {
   resource_group_name = var.user_identity_rg
-  location            = data.azurerm_resource_group.identity_rg.location
+  location            = var.location
   name                = var.user_identity_name
 }
 
@@ -58,8 +49,8 @@ module "app_gw_keyvault_access_policy" {
 
 resource "azurerm_application_gateway" "appgateway" {
   name                = var.appgateway_name
-  resource_group_name = data.azurerm_resource_group.appgateway.name
-  location            = data.azurerm_resource_group.appgateway.location
+  location            = var.location
+  resource_group_name = var.resource_group_name
   tags                = var.resource_tags
 
   sku {
