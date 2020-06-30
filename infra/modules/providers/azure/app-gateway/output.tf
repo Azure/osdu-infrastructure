@@ -41,3 +41,8 @@ output "managed_identity_principal_id" {
   description = "The resource id of the managed user identity"
   value       = azurerm_user_assigned_identity.app_gw_user_identity.principal_id
 }
+
+output "resource_group_name" {
+  description = "The resource group name"
+  value       = azurerm_application_gateway.appgateway.resource_group_name
+}

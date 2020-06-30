@@ -30,6 +30,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/otiai10/copy v1.1.1 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pquerna/otp v1.2.0 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/spf13/cobra v0.0.5 // indirect
