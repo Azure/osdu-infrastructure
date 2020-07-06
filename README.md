@@ -10,6 +10,12 @@ All patterns for this have been built and leverage to Microsoft Projects, for de
 1. [Project Cobalt](https://github.com/microsoft/cobalt)
 2. [Project Bedrock](https://github.com/microsoft/bedrock)
 
+
+## Solution Diagram
+
+![[0]][0]
+
+
 ## Setup Instructions
 
 _Eventually a bootstrap process will be handled by an [ado terraform provider](https://www.terraform.io/docs/providers/azuredevops/index.html) but for now this is a manual process._
@@ -513,3 +519,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+
+
+[0]: ./docs/osdu/.images/r2_arch.png "R2 Infrastructure Architecture"
