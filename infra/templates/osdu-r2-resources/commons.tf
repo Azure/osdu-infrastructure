@@ -93,10 +93,10 @@ locals {
   storage_app_name            = format("%s-%s", local.auth_svc_name_prefix, lower(local.storage_service_postfix))
   legal_app_name              = format("%s-%s", local.auth_svc_name_prefix, lower(local.legal_service_postfix))
   indexer_app_name            = format("%s-%s", local.auth_svc_name_prefix, lower(local.indexer_service_postfix))
-  entitlement_app_service_uri = format("https://%s-%s.azurewebsites.net", local.auth_svc_name_prefix, lower(local.entitlement_service_postfix))
-  legal_app_service_uri       = format("https://%s-%s.azurewebsites.net", local.auth_svc_name_prefix, lower(local.legal_service_postfix))
-  storage_app_service_uri     = format("https://%s-%s.azurewebsites.net", local.auth_svc_name_prefix, lower(local.storage_service_postfix))
-  indexer_app_service_uri     = format("https://%s-%s.azurewebsites.net", local.auth_svc_name_prefix, lower(local.indexer_service_postfix))
+  entitlement_app_service_uri = format("https://%s-%s.azurewebsites.net/entitlements/v1", local.auth_svc_name_prefix, lower(local.entitlement_service_postfix))
+  legal_app_service_uri       = format("https://%s-%s.azurewebsites.net/api/legal/v1", local.auth_svc_name_prefix, lower(local.legal_service_postfix))
+  storage_app_service_uri     = format("https://%s-%s.azurewebsites.net/api/storage/v2", local.auth_svc_name_prefix, lower(local.storage_service_postfix))
+  indexer_app_service_uri     = format("https://%s-%s.azurewebsites.net/api/indexer/v2", local.auth_svc_name_prefix, lower(local.indexer_service_postfix))
   graph_id                    = "00000003-0000-0000-c000-000000000000"      // ID for Microsoft Graph API
   graph_role_id               = "e1fe6dd8-ba31-4d61-89e7-88639da4683d"      // ID for User.Read API
   elastic_search_name         = "${local.base_name_21}-es"                  // elastic search deployment

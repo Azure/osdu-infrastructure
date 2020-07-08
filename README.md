@@ -304,10 +304,10 @@ done
 | CONTAINER_REGISTRY_NAME | `$(ENVIRONMENT_STORAGE_PREFIX)cr` |
 | DEPLOY_ENV | `empty` |
 | DOMAIN | `contoso.com` |
-| ENTITLEMENT_URL | `https://$(AZURE_ENTITLEMENTS_SERVICE_NAME).azurewebsites.net/` |
+| ENTITLEMENT_URL | `https://$(AZURE_ENTITLEMENTS_SERVICE_NAME).azurewebsites.net/entitlements/v1/` |
 | EXPIRED_TOKEN |  |
 | FUNCTION_APP_NAME | `$(ENVIRONMENT_BASE_NAME_21)-enque` |
-| LEGAL_URL | `https://$(AZURE_LEGAL_SERVICE_NAME).azurewebsites.net/` |
+| LEGAL_URL | `https://$(AZURE_LEGAL_SERVICE_NAME).azurewebsites.net/api/legal/v1/` |
 | INTEGRATION_TESTER | `$(app-dev-sp-username)` |
 | MY_TENANT | `opendes` |
 | NO_DATA_ACCESS_TESTER | `$(osdu-infra-azg-test-app-noaccess-id)` |
@@ -317,7 +317,7 @@ done
 | RESOURCE_GROUP_NAME | `$(ENVIRONMENT_RG_PREFIX)-$(PREFIX_BASE)-app-rg` |
 | SEARCH_URL | `https://$(AZURE_SEARCH_SERVICE_NAME).azurewebsites.net/` |
 | SERVICE_CONNECTION_NAME| `osdu-infrastructure` |
-| STORAGE_URL | `https://$(AZURE_STORAGE_SERVICE_NAME).azurewebsites.net/` |
+| STORAGE_URL | `https://$(AZURE_STORAGE_SERVICE_NAME).azurewebsites.net/api/storage/v2/` |
 | _GOOGLE_CLOUD_PROJECT_ | _`opendes`_ |
 
 

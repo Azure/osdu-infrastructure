@@ -96,11 +96,11 @@ The following table describes the variable groups required to support this servi
 | `CONTAINER_REGISTRY_NAME` | `$(ENVIRONMENT_STORAGE_PREFIX)cr` | ACR name | no | ADO |
 | `DEPLOY_ENV` | `empty` | Deployment environment | no | ADO |
 | `DOMAIN` | `contoso.com` | Domain name | no | ADO |
-| `ENTITLEMENT_URL` | `https://$(AZURE_ENTITLEMENTS_SERVICE_NAME).azurewebsites.net/` | Entitlements endpoint | no | ADO |
+| `ENTITLEMENT_URL` | `https://$(AZURE_ENTITLEMENTS_SERVICE_NAME).azurewebsites.net/entitlements/v1/` | Entitlements endpoint | no | ADO |
 | `EXPIRED_TOKEN` | `********` | An expired JWT token | yes | ADO |
 | `FUNCTION_APP_NAME` | `$(ENVIRONMENT_BASE_NAME_21)-enque` | Name of App Service for enqueue function | no | ADO |
 | `INTEGRATION_TESTER` | `$(app-dev-sp-username)` | See `app-dev-sp-username` | yes | ADO |
-| `LEGAL_URL` | `https://$(AZURE_LEGAL_SERVICE_NAME).azurewebsites.net/` | Endpoint for legal service | no | ADO |
+| `LEGAL_URL` | `https://$(AZURE_LEGAL_SERVICE_NAME).azurewebsites.net/api/legal/v1/` | Endpoint for legal service | no | ADO |
 | `MY_TENANT` | `opendes` | OSDU tenant used for testing | no | ADO |
 | `NO_DATA_ACCESS_TESTER` | `$(aad-no-data-access-tester-client-id)` | See `aad-no-data-access-tester-client-id` | yes | ADO |
 | `NO_DATA_ACCESS_TESTER_SERVICEPRINCIPAL_SECRET` | `$(aad-no-data-access-tester-secret)` | See `aad-no-data-access-tester-secret` | yes | ADO |
@@ -108,7 +108,7 @@ The following table describes the variable groups required to support this servi
 | `PUBSUB_TOKEN` | `az` | . | no | ADO |
 | `RESOURCE_GROUP_NAME` | `$(ENVIRONMENT_RG_PREFIX)-$(PREFIX_BASE)-app-rg` | Resource group for deployments | no | ADO |
 | `SEARCH_URL` | `https://$(AZURE_SEARCH_SERVICE_NAME).azurewebsites.net/` | Endpoint for search service | no | ADO |
-| `STORAGE_URL` | `https://$(AZURE_STORAGE_SERVICE_NAME).azurewebsites.net/` | Endpoint of storage service | no | ADO |
+| `STORAGE_URL` | `https://$(AZURE_STORAGE_SERVICE_NAME).azurewebsites.net/api/storage/v2/` | Endpoint of storage service | no | ADO |
 | `VSTS_FEED_TOKEN` | `$(vsts-feed-token)` | See `vsts-feed-token` | yes | ADO |
 | `SERVICE_CONNECTION_NAME` | ex `cobalt-service-principal` | Default service connection name for deployment | no | ADO |
 
