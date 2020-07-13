@@ -70,9 +70,13 @@ locals {
      and concat the results in several places.
  */
   entitlement_service_postfix = "entitlements"
+  entitlement_context         = "/entitlements/v1"
   legal_service_postfix       = "legal"
+  legal_context               = "/api/legal/v1"
   storage_service_postfix     = "storage"
+  storage_context             = "/api/storage/v2"
   indexer_service_postfix     = "indexer"
+  indexer_context             = "/api/indexer/v2"
   search_service_postfix      = "search"
   // Resource names
   data_store_rg_name          = "${local.base_name_83}-ds-rg"               // resource group used for admin resources (max 90 chars)
@@ -93,10 +97,10 @@ locals {
   storage_app_name            = format("%s-%s", local.auth_svc_name_prefix, lower(local.storage_service_postfix))
   legal_app_name              = format("%s-%s", local.auth_svc_name_prefix, lower(local.legal_service_postfix))
   indexer_app_name            = format("%s-%s", local.auth_svc_name_prefix, lower(local.indexer_service_postfix))
-  entitlement_app_service_uri = format("https://%s-%s.azurewebsites.net", local.auth_svc_name_prefix, lower(local.entitlement_service_postfix))
-  legal_app_service_uri       = format("https://%s-%s.azurewebsites.net", local.auth_svc_name_prefix, lower(local.legal_service_postfix))
-  storage_app_service_uri     = format("https://%s-%s.azurewebsites.net", local.auth_svc_name_prefix, lower(local.storage_service_postfix))
-  indexer_app_service_uri     = format("https://%s-%s.azurewebsites.net", local.auth_svc_name_prefix, lower(local.indexer_service_postfix))
+  entitlement_app_service_uri = format("https://%s-%s.azurewebsites.net%s", local.auth_svc_name_prefix, lower(local.entitlement_service_postfix), local.entitlement_context)
+  legal_app_service_uri       = format("https://%s-%s.azurewebsites.net%s", local.auth_svc_name_prefix, lower(local.legal_service_postfix), local.legal_context)
+  storage_app_service_uri     = format("https://%s-%s.azurewebsites.net%s", local.auth_svc_name_prefix, lower(local.storage_service_postfix), local.storage_context)
+  indexer_app_service_uri     = format("https://%s-%s.azurewebsites.net%s", local.auth_svc_name_prefix, lower(local.indexer_service_postfix), local.indexerr_context)
   graph_id                    = "00000003-0000-0000-c000-000000000000"      // ID for Microsoft Graph API
   graph_role_id               = "e1fe6dd8-ba31-4d61-89e7-88639da4683d"      // ID for User.Read API
   elastic_search_name         = "${local.base_name_21}-es"                  // elastic search deployment
