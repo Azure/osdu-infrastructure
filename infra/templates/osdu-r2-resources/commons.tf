@@ -78,6 +78,7 @@ locals {
   indexer_service_postfix     = "indexer"
   indexer_context             = "/api/indexer/v2"
   search_service_postfix      = "search"
+  search_context              = "/api/search/v2/query"
   // Resource names
   data_store_rg_name          = "${local.base_name_83}-ds-rg"               // resource group used for admin resources (max 90 chars)
   app_rg_name                 = "${local.base_name_83}-app-rg"              // app resource group (max 90 chars)
@@ -111,7 +112,7 @@ locals {
   app_service_global_config = {
     aad_client_id                 = format(local.app_setting_kv_format, local.output_secret_map.aad-client-id)
     appinsights_key               = format(local.app_setting_kv_format, local.output_secret_map.appinsights-key)
-    search_service_endpoint       = format("https://%s-%s.azurewebsites.net/api/search/v2/query", local.auth_svc_name_prefix, lower(local.search_service_postfix))
+    search_service_endpoint       = format("https://%s-%s.azurewebsites.net/%s", local.auth_svc_name_prefix, lower(local.search_service_postfix), local.search_context)
     legal_service_endpoint        = local.legal_app_service_uri
     storage_service_endpoint      = local.storage_app_service_uri
     entitlements_service_api_key  = format(local.app_setting_kv_format, local.output_secret_map.entitlement-key)
