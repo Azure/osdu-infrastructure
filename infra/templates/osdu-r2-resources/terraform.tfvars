@@ -119,7 +119,7 @@ sb_topics = [
     subscriptions = [
       {
         name                                 = "recordstopicsubscription"
-        max_delivery_count                   = 1
+        max_delivery_count                   = 5
         lock_duration                        = "PT5M" //ISO 8601 format
         forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
         dead_lettering_on_message_expiration = true
