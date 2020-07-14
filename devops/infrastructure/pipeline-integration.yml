@@ -88,9 +88,10 @@ stages:
     - name: 'test'
       enablePrIsolation: false
       resourceNameIsolationLevel: 8
-    - name: 'int'
-      enablePrIsolation: false
-      resourceNameIsolationLevel: 8
+    - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+      - name: 'int'
+        enablePrIsolation: false
+        resourceNameIsolationLevel: 8
 
     configurations:
     - jobName: osdu_r2
