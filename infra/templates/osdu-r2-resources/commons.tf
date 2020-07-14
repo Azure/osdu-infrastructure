@@ -101,7 +101,7 @@ locals {
   entitlement_app_service_uri = format("https://%s-%s.azurewebsites.net%s", local.auth_svc_name_prefix, lower(local.entitlement_service_postfix), local.entitlement_context)
   legal_app_service_uri       = format("https://%s-%s.azurewebsites.net%s", local.auth_svc_name_prefix, lower(local.legal_service_postfix), local.legal_context)
   storage_app_service_uri     = format("https://%s-%s.azurewebsites.net%s", local.auth_svc_name_prefix, lower(local.storage_service_postfix), local.storage_context)
-  indexer_app_service_uri     = format("https://%s-%s.azurewebsites.net%s", local.auth_svc_name_prefix, lower(local.indexer_service_postfix), local.indexerr_context)
+  indexer_app_service_uri     = format("https://%s-%s.azurewebsites.net%s", local.auth_svc_name_prefix, lower(local.indexer_service_postfix), local.indexer_context)
   graph_id                    = "00000003-0000-0000-c000-000000000000"      // ID for Microsoft Graph API
   graph_role_id               = "e1fe6dd8-ba31-4d61-89e7-88639da4683d"      // ID for User.Read API
   elastic_search_name         = "${local.base_name_21}-es"                  // elastic search deployment
