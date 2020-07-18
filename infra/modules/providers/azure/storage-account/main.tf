@@ -27,7 +27,6 @@ resource "azurerm_storage_account" "main" {
   # optional
   account_kind              = var.kind
   enable_https_traffic_only = var.https
-  account_encryption_source = var.encryption_source
   tags                      = var.resource_tags
 
   # enrolls storage account into azure 'managed identities' authentication

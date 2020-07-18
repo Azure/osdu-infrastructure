@@ -84,13 +84,13 @@ Variable groups can be created in the Azure Devops portal or optionally through 
 1. Select Pipelines menu from within the side-navigation panel
 1. Select Library
 
-    ![Pipeline Menu](.images/Pipeline-Menu-Library.PNG)
+    ![Pipeline Menu](images/Pipeline-Menu-Library.PNG)
 
 1. Select [+ Variable group] to add a new variable group
 1. Create Variable groups based on your knowledge from the [Variable-Group-Overview](###Variable Group Overview)
 1. Select Save
 
-    ![Variable Group Properties](.images/Variable-Group-Properties.PNG)
+    ![Variable Group Properties](images/Variable-Group-Properties.PNG)
 
 ## Step 3: Pipeline Configuration
 
@@ -205,17 +205,17 @@ The infrastructure deployment pipeline is created and setup by pointing to the a
 1. Select Pipelines menu from within the side-navigation panel
 1. Select Pipelines
 
-    ![Pipelines Menu](.images/Pipeline-Menu-Pipelines.PNG)
+    ![Pipelines Menu](images/Pipeline-Menu-Pipelines.PNG)
 
 1. Select New Pipelines and then choose 'Azure Repos Git [YAML]'
 1. Search for the 'infrastructure-templates' repository and select it
 
-    ![Repository Search](.images/Repository-Search.PNG)
+    ![Repository Search](images/Repository-Search.PNG)
 
 1. Import `yaml` by selecting 'Existing Azure Pipelines YAML file'
 1. Enter the path to the entry point `yaml` file that's appropriate for the Cobalt Terraform templates planned for deployment. (i.e. devops/infrastructure/pipeline-env-managed-svc.yml)
 
-    ![YAML Search](.images/Yaml-Search.PNG)
+    ![YAML Search](images/Yaml-Search.PNG)
 
 1. Configure the chosen `yaml` file based on your knowledge from the [YAML File Overview](###YAML-File-Overview) and [Variable Group Overview](###Variable-Group-Overview)
 1. Save (The pipeline name is automatically saved as "infrastructure-templates".)
@@ -225,7 +225,7 @@ The infrastructure deployment pipeline is created and setup by pointing to the a
 
 We strongly recommend adding branch policies to help protect the master branch and configure mandatory validation builds to avoid simultaneous builds when merging into master. For help navigating to the branch policies page, visit [Improve code quality with branch policies](https://docs.microsoft.com/en-us/azure/devops/repos/git/branch-policies?view=azure-devops).  Also, visit [Microsoft branch policies](https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/github?view=azure-devops&tabs=yaml#protecting-branches) for more guidance. 
 
-  ![Pipelines Menu](.images/Branch-Policies.PNG)
+  ![Pipelines Menu](images/Branch-Policies.PNG)
 
 - Recommended Branch Policies
     - ✅ Do - Require pull request reviews before merging.

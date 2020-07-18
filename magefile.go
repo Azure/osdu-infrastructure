@@ -1,6 +1,6 @@
 //+build mage
 
-// iac-terraform task runner.
+// osdu-infrastructure task runner.
 package main
 
 import (
@@ -23,7 +23,7 @@ func Test() error {
 	mg.Deps(Clean)
 	mg.Deps(Check)
 	fmt.Println("INFO: Running unit tests...")
-	return FindAndRunTests("sample")
+	return FindAndRunTests("tests")
 }
 
 // Validate both Terraform code and Go code.
@@ -47,7 +47,7 @@ func LintTF() error {
 // Remove temporary build and test files.
 func Clean() error {
 	fmt.Println("INFO: Cleaning...")
-	return filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+	return filepath.Walk("./infra/modules", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

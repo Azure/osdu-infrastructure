@@ -1,0 +1,26 @@
+# Global level settings
+
+project_name              = ""
+project_id                = ""
+resource_group_location   = ""
+service_connection_name   = ""
+remote_state_account      = ""
+remote_state_container    = ""
+cosmosdb_replica_location = ""
+
+# Environment level settings
+environments = [{
+  environment : "",
+  az_sub_id : "",
+  aks_agent_vm_count : "",
+  data_sources_workspace : "",
+  flux_recreate : "",
+  gitops_ssh_url : "",
+  gitops_url_branch : "",
+  gitops_path : "",
+  image_repository_workspace_name : "",
+  cosmosdb_replica_location : "",
+  ssl_certificate_keyvault_id : "",
+  ssl_keyvault_id : "",
+  service_connection_name : ""
+}]
