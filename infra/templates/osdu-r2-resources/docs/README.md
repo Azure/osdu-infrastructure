@@ -48,13 +48,13 @@ These open questions may impact the implementation plan and overall scope of the
 
 This graphic shows the targeted deployment topology needed by our enterprise customers. The deployment is deployed to a single tenant and subscription. The resources are partitioned to align with the different personas within the customer.
 
-![Deployment Topology](./.design_images/deployment_topology.jpg "Deployment Topology")
+![Deployment Topology](./images/deployment_topology.jpg "Deployment Topology")
 
 ## Template Topology
 
 The graphic below outlines the topology of the terraform templates that will deploy the topology called out above.
 
-![Template Topology](./.design_images/template_topology.jpg "Template Topology")
+![Template Topology](./images/template_topology.jpg "Template Topology")
 
 ## Module and Template Deep Dive
 
