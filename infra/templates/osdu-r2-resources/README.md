@@ -572,7 +572,7 @@ terraform apply
 The deployment by default creates a Service Prinicpal with the naming convention <env_unique>.osdu-r2-ad-app-management.  This service principal requires the ability to access the Microsoft Graph API and a final manual step is required for an admin to grant-consent as described in the [Azure AD Application Management Documentation](https://docs.microsoft.com/en-us/azure/active-directory/manage-apps/grant-admin-consent#grant-admin-consent-in-app-registrations).
 
 
-#### Unit Testing 
+## Unit Testing 
 
 Navigate to the template folder `infra/templates/az-micro-svc-small-elastic-cloud`. Unit tests can be run using the following command:
 
@@ -580,7 +580,7 @@ Navigate to the template folder `infra/templates/az-micro-svc-small-elastic-clou
 go test -v $(go list ./... | grep "unit")
 ```
 
-#### Integration Testing
+## Integration Testing
 
 Please confirm that you've completed the `terraform apply` step before running the integration tests as we're validating the active terraform workspace.
 
