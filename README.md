@@ -3,21 +3,21 @@
 [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/osdu-infrastructure-integration?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=892&branchName=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Azure/osdu-infrastructure)](https://goreportcard.com/report/github.com/Azure/osdu-infrastructure)
 
-This project is an implementation of the Infrastructure as Code and Pipelines necessary to build and deploy the required infrastructure necessary for the [Open Subsurface Data Universe](https://community.opengroup.org/osdu) (OSDU).  Project Development for this code base is performed and maintained on osdu-infrastructure in [GitHub](http://github.com/azure/osdu-infrastructure) with a mirrored copy located in [GitLab](https://community.opengroup.org/osdu/platform/deployment-and-operations/infrastructure-templates).
+This project is an implementation of the Infrastructure as Code and Pipelines necessary to build and deploy the required infrastructure necessary for the [Open Subsurface Data Universe](https://community.opengroup.org/osdu) (OSDU).  Project Development for this code base is performed and maintained on osdu-infrastructure here in [GitHub](http://github.com/azure/osdu-infrastructure) with some information also located in [GitLab](https://community.opengroup.org/osdu/platform/deployment-and-operations/infrastructure-templates) in order for this project to be discoverable to OSDU.
 
-All patterns for this have been built and leverage to Microsoft Projects, for detailed design principals, operation and tutorials and those patterns it is best to review information directly from those projects.
+All patterns for this have been built and leverage Microsoft Projects, for detailed design principals, operation and tutorials on those patterns it is best to review information directly from those projects. Code and modules have been forked and located here with no direct references in terraform modules to code outside of this project space.
 
 1. [Project Cobalt](https://github.com/microsoft/cobalt)
 2. [Project Bedrock](https://github.com/microsoft/bedrock)
 
 
 ## Architecture Solutions
-Currently this project holds 2 Solution Architectures for OSDU on Azure.
+Currently this project holds 2 different Solution Architectures for OSDU on Azure.
 
 - [R3 - Azure OSDU AKS Architecture Solution with Elastic Cloud SaaS](infra/templates/osdu-r3-resources)
 - [R2 - Azure OSDU AppService Architecture Solution with Elastic Cloud SaaS](infra/templates/osdu-r2-resources)
 
-> IMPORTANT: Current OSDU releases should only use the AppService Architecture at this time.
+> IMPORTANT: Current OSDU releases should only use the AppService Architecture at this time until R3 is officially released.
 
 
 # Contributing
