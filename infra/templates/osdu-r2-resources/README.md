@@ -574,7 +574,7 @@ The deployment by default creates a Service Prinicpal with the naming convention
 
 ## Unit Testing 
 
-Navigate to the template folder `infra/templates/az-micro-svc-small-elastic-cloud`. Unit tests can be run using the following command:
+Navigate to the template folder `infra/templates/osdu-r2-resources`. Unit tests can be run using the following command:
 
 ```
 go test -v $(go list ./... | grep "unit")
