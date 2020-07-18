@@ -121,17 +121,17 @@ variable "oms_agent_enabled" {
 }
 
 variable "service_principal_id" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "service_principal_secret" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "msi_enabled" {
-  type = bool
+  type    = bool
   default = true
 }
 

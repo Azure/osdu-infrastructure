@@ -14,7 +14,7 @@
 
 locals {
   msi_identity_type = "SystemAssigned"
-  cli_query = <<-EOT
+  cli_query         = <<-EOT
       {
         user_assigned_identity_id:identity.principalId,
         node_resource_group:nodeResourceGroup
@@ -97,7 +97,7 @@ resource "azurerm_kubernetes_cluster" "main" {
   }
 
   dynamic "service_principal" {
-    for_each = !var.msi_enabled && var.service_principal_id != "" ? [{
+    for_each = ! var.msi_enabled && var.service_principal_id != "" ? [{
       client_id     = var.service_principal_id
       client_secret = var.service_principal_secret
     }] : []
@@ -132,7 +132,7 @@ resource "azurerm_kubernetes_cluster" "main" {
 }
 
 data "external" "az_cli" {
-  program = ["bash", "-c", 
+  program = ["bash", "-c",
     "az aks show -ojson -n ${var.name} -g ${data.azurerm_resource_group.main.name} --subscription ${data.azurerm_subscription.current.subscription_id} --query '${local.cli_query}'"
   ]
 
