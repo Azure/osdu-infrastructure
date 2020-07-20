@@ -8,7 +8,7 @@ The `az-micro-svc-small-elastic-cloud` - `container_cluster` environment templat
 Template design [specifications](../../docs/design/aks-environment.md).
 
 ## Architecture
-![Template Topology](../../docs/design/.design_images/aks_deployment_topology.jpg "Template Topology")
+![Template Topology](../../docs/images/topology.png "Template Topology")
 
 ## Intended audience
 
