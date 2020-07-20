@@ -60,10 +60,9 @@ _Eventually a bootstrap process will be handled by an [ado terraform provider](h
 
 > This typically takes about 10-15 minutes to complete.
 
-- Create a new ADO Project in your organization called `osdu-r2`
+- Create a new Azure DevOps (ADO) Project in your organization called `osdu-r2`
 
-- In the base project repo now import the base project
-  - https://dev.azure.com/<your_organization>/osdu-r2/_git/osdu-r2
+- Initialise the base project repo (osdu-r2).
 
 - Create Empty Repositories (No Readme)
   - osdu-infrastructure
@@ -74,6 +73,9 @@ _Eventually a bootstrap process will be handled by an [ado terraform provider](h
   - indexer
   - search
   - delivery
+
+- Create an ADO Personal Acces Token:
+> In ADO click on user in top right-> "..." -> User settings -> Personal access token -> New token
 
 - Setup the Variable Group called 'Mirror Variables' necessary for the Pipeline
 
@@ -89,7 +91,7 @@ _Eventually a bootstrap process will be handled by an [ado terraform provider](h
     | SEARCH_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/search |
     | DELIVERY_REPO | https://dev.azure.com/<your_organization>/osdu-r2/_git/delivery |
 
-- Add a Pipeline __osdu-r2-repository-sync__ -->  `azure-pipelines.yml`
+- Add the following file (as azure-pipelines.yml) to the osdu_r2 repository.
 
 ```yaml
 #  Copyright © Microsoft Corporation
@@ -195,6 +197,8 @@ jobs:
         destinationGitRepositoryPersonalAccessToken: $(ACCESS_TOKEN)
 
 ```
+- Set up a Pipeline on the osdu-r2 repository with the pipeline YAML added in the previous step. There are other ways to do this,
+the goal is to have a pipeline that synchronises the required code.
 
 - Execute the Pipeline which will then pull the required code into the ADO project repos.
 
@@ -209,17 +213,19 @@ Here is an Azure Virtual [Developer Machine](https://github.com/danielscholl/hol
 
 >Procedures are tested using Ubuntu within WSL for Windows 10.  _(Typically MacOS works well)_
 
+The Azure Cloud Shell can also be used for this.
+
 __Clone Infrastructure__
 
-Clone the osdu-infrastructure repository to a local machine.
+Clone the osdu-infrastructure repository to a local machine/Cloud Shell.
 
 __Execute Install Script__
 
 The script ./scripts/install.sh will conveniently setup the common things that are necessary to execute a pipeline.
-
-- Login to the azure cli and set the default account to the desired subscription.
-
-- Follow the instructions for bootstraping the osdu-infrastructure pipeline located in the README.md of that project space.
+- Change directory to osdu_infrastructure.
+- Run the script with your subscription ID as the first argument.
+- Note the files (azure-aks-gitops-ssh-key and azure-aks-node-ssh-key.pub) that have appeared in the .ssh directory.
+You will need these in a later step. 
 
 ### Installed Common Resources
 
@@ -231,6 +237,8 @@ The script ./scripts/install.sh will conveniently setup the common things that a
 __Elastic Search Setup__
 
 Infrastructure assumes bring your own Elastic Search Instance at a version of `6.8.3` and access information must be stored in the Common KeyVault.
+(It is not possible anymore to get a new Elastic Cloud instance of version `6.8.3`. 
+Other `6.8.?` versions should work as long as you set the appropriate version in __TF_VAR_elasticsearch_version__ below.)
 
 ```bash
 AZURE_VAULT="<your_keyvault>"
@@ -245,19 +253,23 @@ do
 done
 
 ```
+> The Elastic endpoint provided should include `https` and the appropriate port number. A `http` endpoint will not work. 
 
 ### Configure Azure DevOps Service Connection
 
-- Configure an [ARM Resources Service Connection](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure?view=azure-devops) for the desired subscription.
+- Configure an [ARM Resources Service Connection](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure?view=azure-devops)
+with name `osdu-infrastructure` for the desired subscription.
+> ADO -> Project Settings -> Service Connection -> New service connection -> Azure Resource Manager -> Service principal (automatic)
+
   - Scope should be to the desired Subscription but do not apply scope to a Resource Group
 
-- Locate the Service Principal created (<organization-project-subscription>) in Azure Active Directory and elevate the principal capability by adding in 2 API Permissions
+- Locate the Service Principal created (<organization-osdu-r2-subscription>) in Azure Active Directory and elevate the principal capability by adding in 2 API Permissions
   - Azure Active Directory Graph - Application.ReadWrite.OwnedBy
   - Microsoft Graph - Application.ReadWrite.OwnedBy
 
 > These 2 API's require `Grant Admin Consent`
 
-- In Azure Portal locate the subscription and under Access control (IAM) add an Owner Role Assignment to the principal then remove the default created Contributor role.
+- In Azure Portal locate the Azure subscription used and under Access control (IAM) add an Owner Role Assignment to the principal then remove the default created Contributor role.
 
 
 ### Setup ADO required Libraries
@@ -267,8 +279,8 @@ done
   | Variable | Value |
   |----------|-------|
   | AGENT_POOL | Hosted Ubuntu 1604 |
-  | BUILD_ARTIFACT_NAME | infra-templates` |
-  | SERVICE_CONNECTION_NAME | <your_service_connection_name> |
+  | BUILD_ARTIFACT_NAME | infra-templates |
+  | SERVICE_CONNECTION_NAME | osdu-infrastructure |
   | TF_VAR_elasticsearch_secrets_keyvault_name | osducommon<your_unique>-kv |
   | TF_VAR_elasticsearch_secrets_keyvault_resource_group | osdu-common-<your_unique> |
   | TF_VAR_remote_state_account | osducommon<your_unique> |
@@ -283,7 +295,7 @@ done
   | TF_VAR_cosmosdb_replica_location | eastus2 |
   | TF_VAR_elasticsearch_version | 6.8.3 |
 
-> You can specify the desired region locations you wish.
+> You can specify the desired region locations you wish. Change the Elastic version as required.
 
 - Setup and Configure the ADO Library `Infrastructure Pipeline Secrets - demo`
 
@@ -301,9 +313,12 @@ done
 
 ** This is future AKS work but required. Ensure the names of files uploaded have the exact names listed which will require renaming the .ssh key information created by the script.
 
+- We need to get the code into the __osdu-infrastructure__ project. One way is to update the synchronisation
+script above to deal with this. Instead, here we just import this gito repo into the empty __osdu_infrasctructure__ using ADO.
+
 - Add a Pipeline __osdu-infrastructure__ -->  `azure-pipelines.yml` and execute it.
 
-- Once Infrastructure is deployed grant admin_consent to the Service Principal
+- Once Infrastructure is deployed grant admin_consent to the Service Principal.
 
 > Review the Readme for the [template](https://github.com/Azure/osdu-infrastructure/blob/master/infra/templates/osdu-r2-resources/README.md) as necessary.
 
@@ -314,7 +329,7 @@ done
 
 ### Setup Common ADO Libraries
 
-- Setup and Configure the ADO Library `Azure Common`
+- Setup and Configure the ADO Library `Azure - Common`
 
 | Variable | Value |
 |----------|-------|
@@ -339,20 +354,20 @@ done
 | CONTAINER_REGISTRY_NAME | `$(ENVIRONMENT_STORAGE_PREFIX)cr` |
 | DEPLOY_ENV | `empty` |
 | DOMAIN | `contoso.com` |
-| ENTITLEMENT_URL | `https://$(AZURE_ENTITLEMENTS_SERVICE_NAME).azurewebsites.net/` |
+| ENTITLEMENT_URL | `https://$(AZURE_ENTITLEMENTS_SERVICE_NAME).azurewebsites.net/entitlements/v1/` |
 | EXPIRED_TOKEN |  |
 | FUNCTION_APP_NAME | `$(ENVIRONMENT_BASE_NAME_21)-enque` |
-| LEGAL_URL | `https://$(AZURE_LEGAL_SERVICE_NAME).azurewebsites.net/` |
+| LEGAL_URL | `https://$(AZURE_LEGAL_SERVICE_NAME).azurewebsites.net/api/legal/v1/` |
 | INTEGRATION_TESTER | `$(app-dev-sp-username)` |
 | MY_TENANT | `opendes` |
-| NO_DATA_ACCESS_TESTER | `$(osdu-infra-azg-test-app-noaccess-id)` |
-| NO_DATA_ACCESS_TESTER_SERVICEPRINCIPAL_SECRET | `$(osdu-infra-azg-test-app-noaccess-key)` |
+| NO_DATA_ACCESS_TESTER | `$(osdu-infra-<your_unique>-test-app-noaccess-id)` |
+| NO_DATA_ACCESS_TESTER_SERVICEPRINCIPAL_SECRET | `$(osdu-infra-<your_unique>-test-app-noaccess-key)` |
 | PREFIX_BASE | `osdu-r2` |
 | PUBSUB_TOKEN | `az` |
 | RESOURCE_GROUP_NAME | `$(ENVIRONMENT_RG_PREFIX)-$(PREFIX_BASE)-app-rg` |
 | SEARCH_URL | `https://$(AZURE_SEARCH_SERVICE_NAME).azurewebsites.net/` |
 | SERVICE_CONNECTION_NAME| `osdu-infrastructure` |
-| STORAGE_URL | `https://$(AZURE_STORAGE_SERVICE_NAME).azurewebsites.net/` |
+| STORAGE_URL | `https://$(AZURE_STORAGE_SERVICE_NAME).azurewebsites.net/api/storage/v2/` |
 | _GOOGLE_CLOUD_PROJECT_ | _`opendes`_ |
 
 
@@ -370,6 +385,10 @@ done
 - ad-user-oid
 - ad-guest-email
 - ad-guest-oid
+
+> Note that several of these are not in the keyvault (see issue #16). To proceed,
+> add the missing keys to the keyvault. For the ad ones, add an email adres plus the corresponding user Object Id.
+> For osdu-infra-{unique}-test-app-oid, as the object ID of the corresponding Managed application.
 
 ### Setup Environment ADO Libraries
 
@@ -399,6 +418,7 @@ done
 - entitlement-key
 - sb-connection
 - storage-account-key
+- app-dev-sp-tenant-id
 
 
 ### Setup Service ADO Libraries
@@ -470,8 +490,12 @@ __- Setup and Configure the ADO Library__ `Azure Service Release - search`
 
 ### Load Cosmos DB Integration Test Data
 
-The data to be loaded before services are deployed and can be found in the osdu-infrastructure repository `osdu-infrastructure/docs/osdu/integration-test-data/` and has to be modified with environment specific information as necessary.
+The following data items are used for integration testing of the services. 
+They can be found in the osdu-infrastructure repository `osdu-infrastructure/docs/osdu/integration-test-data/`.
+They should be manually loaded into the CosmosDB in use by OSDU, for example using the CosmosDB Data Explorer
+available in the Azure Portal. Each should be put in the section based on the name (e.g. tenant_info_1.json in TenantInfo).
 
+The data items are:
 - tenant_info_1.json
 - tenant_info_2.json
 - user_info_1.json
@@ -491,6 +515,12 @@ The data to be loaded before services are deployed and can be found in the osdu-
 - storage_schema_10.json
 - storage_schema_11.json
 
+Replace all occurrences of "variables" with environment specific information as follows:
+- $TENANT: opendes
+- $SERVICE_PRINCIPAL_ID: Application ID of ado-demo-<unique>-osdu-r2-ad-app-management
+- $SERVICE_PRINCIPAL_APPLICATION_ID: Same as $SERVICE_PRINCIPAL_ID
+- $SERVICE_PRINCIPAL_OBJECT_ID: Managed application object ID of ado-demo-<unique>-osdu-r2-ad-app-management
+- $SERVICE_PRINCIPAL_NO_ACCESS_APP_ID: Managed application object ID of osdu-infra-<unique>-test-app-noaccess (not sure if this is what is intended)
 
 ### Configure the ADO Service Pipelines
 
@@ -501,8 +531,8 @@ Create the pipelines and run things in this exact order.
 
 - Add a Pipeline __legal__ -->  Repo: legal Path:`/devops/azure-pipelines.yml` and execute it.
 
-- Add a Pipeline __indexer-queue__ -->  Repo: indexer-queue Path:`/devops/azure-pipelines.yml` and execute it.
-  > Note: This is a manual deploy at the moment.
+- Add a Pipeline __indexer-queue__ -->  Repo: indexer-queue Path:`/indexer-queue-azure-enqueue/azure-pipeline.yml` and execute it.
+  > ~~Note: This is a manual deploy at the moment.~~
 
 - Add a Pipeline __storage__ -->  Repo: storage Path:`/devops/azure-pipelines.yml` and execute it.
   > Note: The integration tests will fail due to delivery being part of storage which requires indexer and search. Ignore the error and proceed.
@@ -513,6 +543,55 @@ Create the pipelines and run things in this exact order.
 
 - Rerun the Pipeline for __storage__ so that tests now pass.
 
+## Access
+To access the system, you will need a client ID and secret. Find the ado-demo-<unique>-osdu-r2-ad-app "App registration" in Azure Portal.
+- CLIENT_ID: Application ID of this App registration.
+- CLIENT_SECRET: In "Certificates & Secrets", make a new Client secret.
+- In "Authentication", make sure you have the following redirect URI's: "http://localhost:8080" and "http://localhost:8080/auth/callback"
+- In "API permissions", make sure it has the Microsoft Graph User.Read permission, and that it is granted Admin Consent.
+
+To allow a user to access the system, you will need to add the user to OSDU UserInfo. At least for the first user, do this by adding an Item directly into the CosmosDB UserInfo section:
+```json
+{
+  "id": "$USER_AZURE_AD_OBJECT_ID",
+  "uid": "$USER_EMAIL",
+  "tenants": [
+    {
+      "name": "common",
+      "groups": [
+        "service.storage.admin",
+        "service.legal.admin",
+        "data.datalake.admin",
+        "data.datalake.viewer",
+        "data.default.viewer",
+        "data.default.owner",
+        "service.search.admin",
+        "service.search.user",
+        "data.default.viewers",
+        "data.default.owners",
+        "service.entitlements.admin"
+      ]
+    },
+    {
+      "name": "opendes",
+      "groups": [
+        "service.storage.admin",
+        "service.legal.admin",
+        "data.datalake.viewer",
+        "data.test1",
+        "data.datalake.viewer",
+        "data.default.viewer",
+        "data.default.owner",
+        "service.search.admin",
+        "service.search.user",
+        "data.default.viewers",
+        "data.default.owners",
+        "service.entitlements.admin"
+      ]
+    }
+  ]
+}
+```
 
 ## Data Loading
 
