@@ -12,46 +12,45 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-locals {
-  throughput = 400
-  cosmos_database = {
-    name       = local.cosmos_db_name
-    throughput = local.throughput
-  }
+# locals {
+#   cosmos_database = {
+#     name       = local.cosmos_db_name
+#     throughput = local.db_throughput
+#   }
 
-  cosmos_sql_collections = [
-    {
-      name               = "LegalTag"
-      database_name      = local.cosmos_db_name
-      partition_key_path = "/id"
-      throughput         = local.throughput
-    },
-    {
-      name               = "StorageRecord"
-      database_name      = local.cosmos_db_name
-      partition_key_path = "/id"
-      throughput         = local.throughput
-    },
-    {
-      name               = "StorageSchema"
-      database_name      = local.cosmos_db_name
-      partition_key_path = "/kind"
-      throughput         = local.throughput
-    },
-    {
-      name               = "TenantInfo"
-      database_name      = local.cosmos_db_name
-      partition_key_path = "/id"
-      throughput         = local.throughput
-    },
-    {
-      name               = "UserInfo"
-      database_name      = local.cosmos_db_name
-      partition_key_path = "/id"
-      throughput         = local.throughput
-    }
-  ]
-}
+#   cosmos_sql_collections = [
+#     {
+#       name               = "LegalTag"
+#       database_name      = local.cosmos_db_name
+#       partition_key_path = "/id"
+#       throughput         = local.col_throughput
+#     },
+#     {
+#       name               = "StorageRecord"
+#       database_name      = local.cosmos_db_name
+#       partition_key_path = "/id"
+#       throughput         = local.col_throughput
+#     },
+#     {
+#       name               = "StorageSchema"
+#       database_name      = local.cosmos_db_name
+#       partition_key_path = "/kind"
+#       throughput         = local.col_throughput
+#     },
+#     {
+#       name               = "TenantInfo"
+#       database_name      = local.cosmos_db_name
+#       partition_key_path = "/id"
+#       throughput         = local.col_throughput
+#     },
+#     {
+#       name               = "UserInfo"
+#       database_name      = local.cosmos_db_name
+#       partition_key_path = "/id"
+#       throughput         = local.col_throughput
+#     }
+#   ]
+# }
 
 module "storage_account" {
   source = "../../modules/providers/azure/storage-account"
@@ -76,6 +75,6 @@ module "cosmosdb_account" {
   primary_replica_location = var.cosmosdb_replica_location
   automatic_failover       = var.cosmosdb_automatic_failover
   consistency_level        = "Session"
-  databases                = [local.cosmos_database]
-  sql_collections          = local.cosmos_sql_collections
+  databases                = var.cosmos_databases
+  sql_collections          = var.cosmos_sql_collections
 }
