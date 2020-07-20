@@ -180,12 +180,14 @@ function CreateSSHKeys() {
     mkdir .ssh
   fi
 
-  if [ -f ./.ssh/$2 ]; then
+  if [ -f ./.ssh/$2.passphrase ]; then
     tput setaf 3;  echo "SSH Keys already exist."; tput sgr0
+    PASSPHRASE=`cat ./.ssh/${2}.passphrase`
   else
     cd .ssh
 
     PASSPHRASE=$(echo $((RANDOM%20000000000000000000+100000000000000000000)))
+    echo "$PASSPHRASE" >> "$2.passphrase"
     ssh-keygen -t rsa -b 2048 -C $1 -f $2 -N $PASSPHRASE && cd ..
   fi
 
@@ -340,6 +342,42 @@ function AddKeyToVault() {
   fi  
 }
 
+function CreateADUser() {
+  # Required Argument $1 = FIRST_NAME
+  # Required Argument $2 = LAST_NAME
+
+
+  if [ -z $1 ]; then
+    tput setaf 1; echo 'ERROR: Argument $1 (FIRST_NAME) not received' ; tput sgr0
+    exit 1;
+  fi
+
+  if [ -z $2 ]; then
+    tput setaf 1; echo 'ERROR: Argument $2 (LAST_NAME) not received' ; tput sgr0
+    exit 1;
+  fi
+
+  local _result=$(az ad user list --display-name $1 --query [].objectId -otsv)
+    if [ "$_result"  == "" ]
+    then
+      USER_PASSWORD=$(echo $((RANDOM%200000000000000+1000000000000000))TESTER\!)
+      TENANT_NAME=$(az ad signed-in-user show -otsv --query 'userPrincipalName' | cut -d '@' -f 2 | sed 's/\"//')
+      EMAIL="${1}.${2}@${TENANT_NAME}"
+
+      OBJECT_ID=$(az ad user create \
+        --display-name "${1} ${2}" \
+        --password $USER_PASSWORD \
+        --user-principal-name $EMAIL \
+        --query objectId
+      )
+
+      AddKeyToVault $AZURE_VAULT "ad-user-email" $EMAIL
+      AddKeyToVault $AZURE_VAULT "ad-user-oid" $OBJECT_ID
+    else
+        tput setaf 3;  echo "User $1 already exists."; tput sgr0
+    fi
+}
+
 
 ###############################
 ## Azure Intialize           ##
@@ -374,6 +412,9 @@ AddKeyToVault $AZURE_VAULT "${AZURE_STORAGE}-storage-key" $STORAGE_KEY
 tput setaf 2; echo 'Creating AD Application...' ; tput sgr0
 CreateServicePrincipal "osdu-infra-${UNIQUE}-test-app" $AZURE_VAULT
 CreateServicePrincipal "osdu-infra-${UNIQUE}-test-app-noaccess" $AZURE_VAULT
+
+tput setaf 2; echo 'Creating AD User...' ; tput sgr0
+CreateADUser "Integration" "Test"
 
 tput setaf 2; echo 'Creating SSH Keys...' ; tput sgr0
 GITOPS_KEY="azure-aks-gitops-ssh-key"
