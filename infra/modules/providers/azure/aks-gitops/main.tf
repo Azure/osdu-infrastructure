@@ -19,29 +19,29 @@ data "azurerm_resource_group" "aksgitops" {
 module "aks" {
   source = "../aks"
 
-  name                     = var.name
-  resource_group_name      = data.azurerm_resource_group.aksgitops.name
-  resource_tags            = var.resource_tags
+  name                = var.name
+  resource_group_name = data.azurerm_resource_group.aksgitops.name
+  resource_tags       = var.resource_tags
 
-  agent_vm_count           = var.agent_vm_count
-  agent_vm_size            = var.agent_vm_size
-  ssh_public_key           = var.ssh_public_key
-  kubernetes_version       = var.kubernetes_version
-  kubeconfig_filename      = var.kubeconfig_filename
+  agent_vm_count      = var.agent_vm_count
+  agent_vm_size       = var.agent_vm_size
+  ssh_public_key      = var.ssh_public_key
+  kubernetes_version  = var.kubernetes_version
+  kubeconfig_filename = var.kubeconfig_filename
 
-  dns_prefix               = var.dns_prefix
-  vnet_subnet_id           = var.vnet_subnet_id
-  network_policy           = var.network_policy
-  network_plugin           = var.network_plugin
-  dns_ip                   = var.dns_ip
-  docker_cidr              = var.docker_cidr
-  service_cidr             = var.service_cidr
+  dns_prefix     = var.dns_prefix
+  vnet_subnet_id = var.vnet_subnet_id
+  network_policy = var.network_policy
+  network_plugin = var.network_plugin
+  dns_ip         = var.dns_ip
+  docker_cidr    = var.docker_cidr
+  service_cidr   = var.service_cidr
 
   msi_enabled              = var.msi_enabled
   service_principal_id     = var.service_principal_id
   service_principal_secret = var.service_principal_secret
 
-  oms_agent_enabled        = var.oms_agent_enabled
+  oms_agent_enabled = var.oms_agent_enabled
 }
 
 module "flux" {
