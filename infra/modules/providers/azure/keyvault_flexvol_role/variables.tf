@@ -12,20 +12,30 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-locals {
-  secret_names = keys(var.secrets)
+variable "enable_flexvol" {
+  type    = string
+  default = "true"
 }
 
-resource "azurerm_key_vault_secret" "secret" {
-  count        = length(var.secrets)
-  name         = local.secret_names[count.index]
-  value        = var.secrets[local.secret_names[count.index]]
-  key_vault_id = var.keyvault_id
+variable "flexvol_role_assignment_role" {
+  description = "The role to give the AKS service principal to access the keyvault"
+  type        = string
+  default     = "Reader"
 }
 
-data "azurerm_key_vault_secret" "secret" {
-  count        = length(var.secrets)
-  depends_on   = [azurerm_key_vault_secret.secret]
-  name         = local.secret_names[count.index]
-  key_vault_id = var.keyvault_id
+variable "keyvault_name" {
+  description = "The name of the keyvault that will be associated with the flex volume."
+  type        = string
+}
+
+variable "resource_group_name" {
+  type = string
+}
+
+variable "service_principal_id" {
+  type = string
+}
+
+variable "subscription_id" {
+  type = string
 }
