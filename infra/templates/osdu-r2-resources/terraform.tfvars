@@ -227,3 +227,44 @@ sb_topics = [
     ]
   }
 ]
+
+# Database Settings
+cosmos_databases = [
+  {
+    name       = "dev-osdu-r2-db"
+    throughput = 400
+  }
+]
+
+cosmos_sql_collections = [
+  {
+    name               = "LegalTag"
+    database_name      = "dev-osdu-r2-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "StorageRecord"
+    database_name      = "dev-osdu-r2-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "StorageSchema"
+    database_name      = "dev-osdu-r2-db"
+    partition_key_path = "/kind"
+    throughput         = 400
+  },
+  {
+    name               = "TenantInfo"
+    database_name      = "dev-osdu-r2-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "UserInfo"
+    database_name      = "dev-osdu-r2-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  }
+]
