@@ -231,7 +231,7 @@ sb_topics = [
 cosmos_databases = [
   {
     name       = "dev-osdu-r2-db"
-    throughput = 1100
+    throughput = 400
   }
 ]
 
