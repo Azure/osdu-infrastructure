@@ -25,6 +25,7 @@ output "name" {
 output "primary_access_key" {
   description = "The primary access key for the storage account."
   value       = azurerm_storage_account.main.primary_access_key
+  sensitive = true
 }
 
 output "containers" {
@@ -36,6 +37,16 @@ output "containers" {
       name = c.name
     }
   }
+}
+
+output "properties" {
+  description = "Properties of the deployed Storage Account."
+  value = {
+      id                 = azurerm_storage_account.main.id
+      name               = azurerm_storage_account.main.name
+      primary_access_key = azurerm_storage_account.main.primary_access_key
+  }
+  sensitive = true
 }
 
 output "tenant_id" {

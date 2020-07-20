@@ -59,12 +59,6 @@ variable "https" {
   default     = true
 }
 
-variable "encryption_source" {
-  description = "Determines the source that will manage encryption for the storage account. Valid options are Microsoft.Storage and Microsoft.Keyvault."
-  type        = string
-  default     = "Microsoft.Storage"
-}
-
 
 # General Items (optional)
 
