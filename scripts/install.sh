@@ -180,18 +180,19 @@ function CreateSSHKeys() {
     mkdir .ssh
   fi
 
-  if [ -f ./.ssh/$2 ]; then
+  if [ -f ./.ssh/$2.passphrase ]; then
     tput setaf 3;  echo "SSH Keys already exist."; tput sgr0
+    PASSPHRASE=`cat ./.ssh/${2}.passphrase`
   else
     cd .ssh
-
     PASSPHRASE=$(echo $((RANDOM%20000000000000000000+100000000000000000000)))
+    echo "$PASSPHRASE" >> "$2.passphrase"
     ssh-keygen -t rsa -b 2048 -C $1 -f $2 -N $PASSPHRASE && cd ..
-    AddKeyToVault $AZURE_VAULT "${2}-passphrase" $PASSPHRASE
   fi
 
   AddKeyToVault $AZURE_VAULT "${2}" ".ssh/${2}" "file"
   AddKeyToVault $AZURE_VAULT "${2}-pub" ".ssh/${2}.pub" "file"
+  AddKeyToVault $AZURE_VAULT "${2}-passphrase" $PASSPHRASE
 
  _result=`cat ./.ssh/${2}.pub`
  echo $_result
