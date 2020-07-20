@@ -228,6 +228,7 @@ sb_topics = [
   }
 ]
 
+# Database Settings
 cosmos_databases = [
   {
     name       = "dev-osdu-r2-db"
