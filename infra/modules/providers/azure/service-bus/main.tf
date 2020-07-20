@@ -12,9 +12,6 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-module "azure-provider" {
-  source = "../provider"
-}
 locals {
   topic_authorization_rules = flatten([
     for topic in var.topics : [
