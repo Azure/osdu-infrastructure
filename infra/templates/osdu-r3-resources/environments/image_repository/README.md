@@ -8,7 +8,7 @@ The `az-micro-svc-small-elastic-cloud` - `image_registry` environment template i
 Template design [specifications](../../docs/design/README.md).
 
 ## Architecture
-![Template Topology](../../docs/design/.design_images/deployment_topology.jpg "Template Topology")
+![Template Topology](../../docs/images/topology.png "Template Topology")
 
 ## Intended audience
 

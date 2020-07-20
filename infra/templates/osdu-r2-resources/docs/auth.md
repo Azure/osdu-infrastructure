@@ -81,7 +81,7 @@ Considerations:
 
 
 # Proposal in image form
-![auth](.design_images/auth.png)
+![auth](images/auth.png)
 
 
 # Testing with MI
@@ -130,7 +130,7 @@ Impact of multi-tenancy in each of the core services:
 `os-storage`: The Record APIs check for a valid Tenant ID before allowing any modifications to Blob Storage or Cosmos.
 
 ## License
-Copyright © Microsoft Corporation
+Copyright ï¿½ Microsoft Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

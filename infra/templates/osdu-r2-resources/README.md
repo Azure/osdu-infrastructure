@@ -40,7 +40,7 @@ Cloud administrators that's versed with Cobalt templating.
 
 1. Azure Subscription
 2. An available Service Principal with API Permissions granted with Admin Consent within Azure app registration. The required Azure Active Directory Graph app role is `Application.ReadWrite.OwnedBy`
-![image](./docs/design/.design_images/TFPrincipal-Permissions.png)
+![image](./docs/images/TFPrincipal-Permissions.png)
 3. Terraform and Go are locally installed
 4. Azure Storage Account is [setup](https://docs.microsoft.com/en-us/azure/terraform/terraform-backend) to store Terraform state
 5. Local environment variables are [setup](https://github.com/Azure/osdu-infrastructure/blob/master/docs/osdu/INFRASTRUCTURE_DEPLOYMENTS.md)
