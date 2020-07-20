@@ -187,11 +187,11 @@ function CreateSSHKeys() {
 
     PASSPHRASE=$(echo $((RANDOM%20000000000000000000+100000000000000000000)))
     ssh-keygen -t rsa -b 2048 -C $1 -f $2 -N $PASSPHRASE && cd ..
+    AddKeyToVault $AZURE_VAULT "${2}-passphrase" $PASSPHRASE
   fi
 
   AddKeyToVault $AZURE_VAULT "${2}" ".ssh/${2}" "file"
   AddKeyToVault $AZURE_VAULT "${2}-pub" ".ssh/${2}.pub" "file"
-  AddKeyToVault $AZURE_VAULT "${2}-passphrase" $PASSPHRASE
 
  _result=`cat ./.ssh/${2}.pub`
  echo $_result
