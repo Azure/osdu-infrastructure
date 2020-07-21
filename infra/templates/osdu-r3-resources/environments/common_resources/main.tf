@@ -36,6 +36,12 @@ provider "azurerm" {
   features {}
 }
 
+provider "azuread" {
+  version = "=0.11.0"
+  features {}
+}
+
+
 provider "random" {
   version = "~>2.2"
 }
