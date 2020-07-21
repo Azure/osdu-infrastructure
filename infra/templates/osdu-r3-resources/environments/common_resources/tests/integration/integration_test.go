@@ -19,14 +19,14 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
-	aksGitOpsIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/aks-gitops/tests/integration"
-	sbIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/service-bus/tests/integration"
-	esIntegTests "github.com/microsoft/cobalt/infra/modules/providers/elastic/elastic-cloud-enterprise/tests/integration"
+	containerRegistryIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/container-registry/tests/integration"
+
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
+const outputVariableCount int = 3
+
 var subscription = os.Getenv("ARM_SUBSCRIPTION_ID")
-var kubeConfig = "../../output/bedrock_kube_config"
 var tfOptions = &terraform.Options{
 	TerraformDir: "../../",
 	BackendConfig: map[string]interface{}{
@@ -37,23 +37,16 @@ var tfOptions = &terraform.Options{
 
 // Runs a suite of test assertions to validate that a provisioned data source environment
 // is fully functional.
-func TestDataEnvironment(t *testing.T) {
+func TestImageRepoEnvironment(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 23,
+		ExpectedTfOutputCount: outputVariableCount,
 		TfOutputAssertions: []infratests.TerraformOutputValidation{
-			aksGitOpsIntegTests.BaselineClusterAssertions(
-				kubeConfig,
-				"contributor_service_principal_id",
-				"mywebapp",
-				"of your application is running on Kubernetes"),
-			verifyServicePrincipalRoleAssignments,
-			sbIntegTests.VerifySubscriptionsList(subscription,
-				"resource_group",
-				"sb_namespace_name",
-				"sb_topics"),
-			esIntegTests.ValidateElasticKvSecretValues("keyvault_secret_attributes", "elastic_cluster_properties"),
+			containerRegistryIntegTests.InspectContainerRegistryOutputs(
+				subscription,
+				"resource_group_name",
+				"container_registry_name"),
 		},
 	}
 	infratests.RunIntegrationTests(&testFixture)

@@ -12,4 +12,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package test
+prefix                  = "osdu"
+
+storage_containers = [
+  "data",
+  "legal-service-azure-configuration",
+  "opendes"
+]
+
+cosmos_db_name             = "osdu-data"
+cosmosdb_consistency_level = "Session"
