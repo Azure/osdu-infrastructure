@@ -15,22 +15,36 @@ import (
 
 // A build step that runs all tests.
 func All() {
-	mg.Deps(Test)
+	mg.Deps(TestModules)
+	mg.Deps(TestCommon)
 }
 
 // Execute Module Tests and fail if a test fails. Only executes tests in 'test' directories.
-func Test() error {
+func TestModules() error {
 	mg.Deps(Clean)
 	mg.Deps(Check)
 	fmt.Println("INFO: Running unit tests...")
 	return FindAndRunTests("testing")
 }
 
-// Execute Integration Tests for OSDU R3 Common Resources.
-func TestCommon() error {
+// Execute Unit Tests for OSDU R3 Common Resources.
+func CommonUnitTest() error {
 	mg.Deps(Check)
 	fmt.Println("INFO: Running integration tests...")
-	return FindAndRunTests("common_resources")
+	return FindAndRunTests("common_resources/tests/unit")
+}
+
+// Execute Integration Tests for OSDU R3 Common Resources.
+func CommonIntegrationTest() error {
+	mg.Deps(Check)
+	fmt.Println("INFO: Running integration tests...")
+	return FindAndRunTests("common_resources/tests/unit")
+}
+
+// Execute Tests for R3 Common Resources.
+func TestCommon() {
+	mg.Deps(CommonUnitTest)
+	mg.Deps(CommonIntegrationTest)
 }
 
 // Validate both Terraform code and Go code.
