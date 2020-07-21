@@ -28,7 +28,7 @@ const outputVariableCount int = 3
 
 var subscription = os.Getenv("ARM_SUBSCRIPTION_ID")
 var tfOptions = &terraform.Options{
-	TerraformDir: "../../",
+	TerraformDir: ".",
 	BackendConfig: map[string]interface{}{
 		"storage_account_name": os.Getenv("TF_VAR_remote_state_account"),
 		"container_name":       os.Getenv("TF_VAR_remote_state_container"),

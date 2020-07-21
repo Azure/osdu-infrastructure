@@ -143,6 +143,10 @@ resource "azurerm_management_lock" "acr_lock" {
 #-------------------------------
 # Output Variables  (output.tf)
 #-------------------------------
+output "resource_group_name" {
+  value = azurerm_resource_group.main.name
+}
+
 output "container_registry_id" {
   description = "The resource identifier of the container registry."
   value       = module.container_registry.container_registry_id

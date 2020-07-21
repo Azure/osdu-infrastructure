@@ -26,6 +26,13 @@ func Test() error {
 	return FindAndRunTests("testing")
 }
 
+// Execute Integration Tests for OSDU R3 Common Resources.
+func TestCommon() error {
+	mg.Deps(Check)
+	fmt.Println("INFO: Running integration tests...")
+	return FindAndRunTests("common_resources")
+}
+
 // Validate both Terraform code and Go code.
 func Check() {
 	mg.Deps(LintTF)
