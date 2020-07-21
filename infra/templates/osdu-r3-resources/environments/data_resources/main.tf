@@ -101,9 +101,9 @@ variable "cosmosdb_automatic_failover" {
 #-------------------------------
 locals {
   // sanitize names
-  prefix = replace(trimspace(lower(var.prefix)), "_", "-")
-  workspace  = replace(trimspace(lower(terraform.workspace)), "-", "")
-  suffix     = var.randomization_level > 0 ? "-${random_string.workspace_scope.result}" : ""
+  prefix    = replace(trimspace(lower(var.prefix)), "_", "-")
+  workspace = replace(trimspace(lower(terraform.workspace)), "-", "")
+  suffix    = var.randomization_level > 0 ? "-${random_string.workspace_scope.result}" : ""
 
   // base prefix for resources, prefix constraints documented here: https://docs.microsoft.com/en-us/azure/architecture/best-practices/naming-conventions
   base_name    = length(local.prefix) > 0 ? "${local.prefix}-${local.workspace}${local.suffix}" : "${local.workspace}${local.suffix}"
@@ -113,9 +113,9 @@ locals {
   base_name_76 = length(local.base_name) < 77 ? local.base_name : "${substr(local.base_name, 0, 76 - length(local.suffix))}${local.suffix}"
   base_name_83 = length(local.base_name) < 84 ? local.base_name : "${substr(local.base_name, 0, 83 - length(local.suffix))}${local.suffix}"
 
-  resource_group_name     = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
-  storage_name = "${replace(local.base_name_21, "-", "")}sa"
-  cosmosdb_name   = "${local.base_name}-db"
+  resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
+  storage_name        = "${replace(local.base_name_21, "-", "")}sa"
+  cosmosdb_name       = "${local.base_name}-db"
 }
 
 

@@ -72,9 +72,9 @@ variable "container_registry_sku" {
 #-------------------------------
 locals {
   // sanitize names
-  prefix = replace(trimspace(lower(var.prefix)), "_", "-")
-  workspace  = replace(trimspace(lower(terraform.workspace)), "-", "")
-  suffix     = var.randomization_level > 0 ? "-${random_string.workspace_scope.result}" : ""
+  prefix    = replace(trimspace(lower(var.prefix)), "_", "-")
+  workspace = replace(trimspace(lower(terraform.workspace)), "-", "")
+  suffix    = var.randomization_level > 0 ? "-${random_string.workspace_scope.result}" : ""
 
   // base prefix for resources, prefix constraints documented here: https://docs.microsoft.com/en-us/azure/architecture/best-practices/naming-conventions
   base_name    = length(local.prefix) > 0 ? "${local.prefix}-${local.workspace}${local.suffix}" : "${local.workspace}${local.suffix}"
