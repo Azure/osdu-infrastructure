@@ -82,6 +82,6 @@ stages:
 
     configurations:
     - jobName: osdu_r3
-      terraformWorkspacePrefix: ADO
+      terraformWorkspacePrefix: r3
       terraformTemplatePath: infra/templates/osdu-r3-resources/environments/common_resources
       deploymentTimeoutInMinutes: 120  # Not supported as a Variable :-(
