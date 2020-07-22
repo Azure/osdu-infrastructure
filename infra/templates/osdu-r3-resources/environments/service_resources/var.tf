@@ -50,7 +50,7 @@ variable "resource_group_location" {
 }
 
 variable "dns_name" {
-  description = "Default DNS Name for the Public IP" 
+  description = "Default DNS Name for the Public IP"
   type        = string
   default     = "osdu.contoso.com"
 }

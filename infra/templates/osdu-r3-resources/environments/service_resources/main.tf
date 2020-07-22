@@ -47,9 +47,9 @@ provider "external" {
 #-------------------------------
 locals {
   // sanitize names
-  prefix = replace(trimspace(lower(var.prefix)), "_", "-")
-  workspace  = replace(trimspace(lower(terraform.workspace)), "-", "")
-  suffix     = var.randomization_level > 0 ? "-${random_string.workspace_scope.result}" : ""
+  prefix    = replace(trimspace(lower(var.prefix)), "_", "-")
+  workspace = replace(trimspace(lower(terraform.workspace)), "-", "")
+  suffix    = var.randomization_level > 0 ? "-${random_string.workspace_scope.result}" : ""
 
   // base prefix for resources, prefix constraints documented here: https://docs.microsoft.com/en-us/azure/architecture/best-practices/naming-conventions
   base_name    = length(local.prefix) > 0 ? "${local.prefix}-${local.workspace}${local.suffix}" : "${local.workspace}${local.suffix}"
@@ -59,24 +59,24 @@ locals {
   base_name_76 = length(local.base_name) < 77 ? local.base_name : "${substr(local.base_name, 0, 76 - length(local.suffix))}${local.suffix}"
   base_name_83 = length(local.base_name) < 84 ? local.base_name : "${substr(local.base_name, 0, 83 - length(local.suffix))}${local.suffix}"
 
-  tenant_id               = data.azurerm_client_config.current.tenant_id
-  resource_group_name     = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
-  ai_name                = "${local.base_name}-ai"
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
+  ai_name             = "${local.base_name}-ai"
 
   // security.tf
-  kv_name                = "${local.base_name_21}-kv"
+  kv_name = "${local.base_name_21}-kv"
 
   // network.tf
-  vnet_name              = "${local.base_name_60}-vnet"
-  fe_subnet_name         = "${local.base_name_21}-fe-subnet"
-  aks_subnet_name        = "${local.base_name_21}-aks-subnet"
-  be_subnet_name         = "${local.base_name_21}-be-subnet"
+  vnet_name       = "${local.base_name_60}-vnet"
+  fe_subnet_name  = "${local.base_name_21}-fe-subnet"
+  aks_subnet_name = "${local.base_name_21}-aks-subnet"
+  be_subnet_name  = "${local.base_name_21}-be-subnet"
 
   secrets_map = {
     # Imported Secrets from State
-    cosmos-endpoint    = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.endpoint
-    cosmos-primary-key = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.primary_master_key
-    cosmos-connection  = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.connection_strings[0]
+    cosmos-endpoint     = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.endpoint
+    cosmos-primary-key  = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.primary_master_key
+    cosmos-connection   = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.connection_strings[0]
     storage-account-key = data.terraform_remote_state.data_resources.outputs.storage_properties.primary_access_key
 
     # Secrets from this template
@@ -142,12 +142,12 @@ resource "azurerm_management_lock" "rg_lock" {
 # Application Insights (main.tf)
 #-------------------------------
 module "app_insights" {
-  source                           = "../../../../modules/providers/azure/app-insights"
+  source = "../../../../modules/providers/azure/app-insights"
 
   appinsights_name                 = local.ai_name
   service_plan_resource_group_name = azurerm_resource_group.main.name
-  
-  appinsights_application_type     = "other"
+
+  appinsights_application_type = "other"
 }
 
 
@@ -155,7 +155,7 @@ module "app_insights" {
 # Network (main.tf)
 #-------------------------------
 module "network" {
-  source              = "../../../../modules/providers/azure/network"
+  source = "../../../../modules/providers/azure/network"
 
   name                = local.vnet_name
   resource_group_name = azurerm_resource_group.main.name
@@ -170,7 +170,7 @@ module "network" {
 # Key Vault  (security.tf)
 #-------------------------------
 module "keyvault" {
-  source              = "../../../../modules/providers/azure/keyvault"
+  source = "../../../../modules/providers/azure/keyvault"
 
   keyvault_name       = local.kv_name
   resource_group_name = azurerm_resource_group.main.name
