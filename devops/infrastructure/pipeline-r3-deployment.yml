@@ -81,11 +81,11 @@ stages:
       resourceNameIsolationLevel: 8
 
     configurations:
-    - jobName: osdu_r3
+    - jobName: common_resources
       terraformWorkspacePrefix: cr
       terraformTemplatePath: infra/templates/osdu-r3-resources/environments/common_resources
       deploymentTimeoutInMinutes: 120
-    - jobName: osdu_r3
+    - jobName: data_resources
       terraformWorkspacePrefix: dr
       terraformTemplatePath: infra/templates/osdu-r3-resources/environments/data_resources
       deploymentTimeoutInMinutes: 120
