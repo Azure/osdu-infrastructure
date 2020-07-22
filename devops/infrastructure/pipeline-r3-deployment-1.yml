@@ -40,7 +40,8 @@ trigger:
     include:
     - /devops/infrastructure/*
     - /infra/modules/providers/*
-    - /infra/templates/osdu-r3-resources/*
+    - /infra/templates/osdu-r3-resources/environments/common_resources/*
+    - /infra/templates/osdu-r3-resources/environments/data_resources/*
     - /test-harness/terratest-extensions/*
     exclude:
     - /**/*.md
@@ -54,7 +55,8 @@ pr:
     include:
     - /devops/infrastructure/*
     - /infra/modules/providers/*
-    - /infra/templates/osdu-r3-resources/*
+    - /infra/templates/osdu-r3-resources/environments/common_resources/*
+    - /infra/templates/osdu-r3-resources/environments/data_resources/*
     - /test-harness/terratest-extensions/*
     exclude:
     - /**/*.md

@@ -148,7 +148,7 @@ resource "azurerm_management_lock" "acr_lock" {
 #-------------------------------
 # Output Variables  (output.tf)
 #-------------------------------
-output "resource_group_name" {
+output "common_resource_group_name" {
   value = azurerm_resource_group.main.name
 }
 

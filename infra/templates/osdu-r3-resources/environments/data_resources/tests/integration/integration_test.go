@@ -41,8 +41,8 @@ func TestDataEnvironment(t *testing.T) {
 		TfOptions:             tfOptions,
 		ExpectedTfOutputCount: 6,
 		TfOutputAssertions: []infratests.TerraformOutputValidation{
-			storageIntegTests.InspectStorageAccount("storage_account", "storage_account_containers", "resource_group_name"),
-			cosmosIntegTests.InspectProvisionedCosmosDBAccount("resource_group_name", "cosmosdb_account_name", "cosmosdb_properties"),
+			storageIntegTests.InspectStorageAccount("storage_account", "storage_account_containers", "data_resource_group_name"),
+			cosmosIntegTests.InspectProvisionedCosmosDBAccount("data_resource_group_name", "cosmosdb_account_name", "cosmosdb_properties"),
 		},
 	}
 	infratests.RunIntegrationTests(&testFixture)
