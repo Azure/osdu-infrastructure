@@ -20,15 +20,12 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	containerRegistryIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/container-registry/tests/integration"
-
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
-const outputVariableCount int = 3
-
 var subscription = os.Getenv("ARM_SUBSCRIPTION_ID")
 var tfOptions = &terraform.Options{
-	TerraformDir: ".",
+	TerraformDir: "../../",
 	BackendConfig: map[string]interface{}{
 		"storage_account_name": os.Getenv("TF_VAR_remote_state_account"),
 		"container_name":       os.Getenv("TF_VAR_remote_state_container"),
@@ -37,16 +34,13 @@ var tfOptions = &terraform.Options{
 
 // Runs a suite of test assertions to validate that a provisioned data source environment
 // is fully functional.
-func TestImageRepoEnvironment(t *testing.T) {
+func TestDataEnvironment(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: outputVariableCount,
+		ExpectedTfOutputCount: 11,
 		TfOutputAssertions: []infratests.TerraformOutputValidation{
-			containerRegistryIntegTests.InspectContainerRegistryOutputs(
-				subscription,
-				"resource_group_name",
-				"container_registry_name"),
+			containerRegistryIntegTests.InspectContainerRegistryOutputs(subscription, "resource_group_name", "container_registry_name"),
 		},
 	}
 	infratests.RunIntegrationTests(&testFixture)
