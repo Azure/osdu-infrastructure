@@ -89,7 +89,6 @@ func ServiceIntegrationTest() error {
 	return FindAndRunTests("service_resources/tests/integration")
 }
 
-
 // Validate both Terraform code and Go code.
 func Check() {
 	mg.Deps(LintTF)
