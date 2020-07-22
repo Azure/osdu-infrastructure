@@ -84,4 +84,8 @@ stages:
     - jobName: osdu_r3
       terraformWorkspacePrefix: cr
       terraformTemplatePath: infra/templates/osdu-r3-resources/environments/common_resources
-      deploymentTimeoutInMinutes: 120  # Not supported as a Variable :-(
+      deploymentTimeoutInMinutes: 120
+    - jobName: osdu_r3
+      terraformWorkspacePrefix: dr
+      terraformTemplatePath: infra/templates/osdu-r3-resources/environments/data_resources
+      deploymentTimeoutInMinutes: 120

@@ -13,3 +13,45 @@
 //  limitations under the License.
 
 package test
+
+import (
+	"os"
+	"testing"
+
+	"github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/microsoft/cobalt/test-harness/infratests"
+)
+
+var tfOptions = &terraform.Options{
+	TerraformDir: "../../",
+	Upgrade:      true,
+	Vars: map[string]interface{}{
+		"resource_group_location": region,
+		"prefix":                  prefix,
+	},
+	BackendConfig: map[string]interface{}{
+		"storage_account_name": os.Getenv("TF_VAR_remote_state_account"),
+		"container_name":       os.Getenv("TF_VAR_remote_state_container"),
+	},
+}
+
+func TestTemplate(t *testing.T) {
+	expectedAppDevResourceGroup := asMap(t, `{
+		"location": "`+region+`"
+	}`)
+
+	resourceDescription := infratests.ResourceDescription{
+		"azurerm_resource_group.main": expectedAppDevResourceGroup,
+	}
+
+	testFixture := infratests.UnitTestFixture{
+		GoTest:                          t,
+		TfOptions:                       tfOptions,
+		Workspace:                       workspace,
+		PlanAssertions:                  nil,
+		ExpectedResourceCount:           12,
+		ExpectedResourceAttributeValues: resourceDescription,
+	}
+
+	infratests.RunUnitTests(&testFixture)
+}

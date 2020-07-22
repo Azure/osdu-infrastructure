@@ -197,9 +197,19 @@ output "resource_group_name" {
   value       = azurerm_resource_group.main.name
 }
 
-output "storage_properties" {
-  description = "Properties of the deployed Storage Account."
-  value       = module.storage_account.properties
+output "storage_account" {
+  description = "The name of the storage account."
+  value       = module.storage_account.name
+}
+
+output "storage_account_containers" {
+  description = "Map of storage account containers."
+  value       = module.storage_account.containers
+}
+
+output "cosmosdb_account_name" {
+  description = "The name of the CosmosDB account."
+  value       = module.cosmosdb_account.account_name
 }
 
 output "cosmosdb_properties" {

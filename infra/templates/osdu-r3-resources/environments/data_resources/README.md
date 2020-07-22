@@ -80,9 +80,15 @@ terraform plan
 terraform apply
 ```
 
-## Integration Testing
+## Testing
 
 Please confirm that you've completed the `terraform apply` step before running the integration tests as we're validating the active terraform workspace.
+
+Unit tests can be run using the following command:
+
+```
+go test -v $(go list ./... | grep "unit")
+```
 
 Integration tests can be run using the following command:
 
