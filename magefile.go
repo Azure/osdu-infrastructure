@@ -67,8 +67,6 @@ func DataIntegrationTest() error {
 	return FindAndRunTests("data_resources/tests/unit")
 }
 
-
-
 // Validate both Terraform code and Go code.
 func Check() {
 	mg.Deps(LintTF)
