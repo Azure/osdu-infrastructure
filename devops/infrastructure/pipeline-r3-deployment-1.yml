@@ -26,8 +26,9 @@
   # ARM_SUBSCRIPTION_ID
 
 # Required Env Group Variables - `Infrastructure Pipeline - {configurations.jobName} - {env_name}`
-  # TF_VAR_cosmosdb_replica_location
   # TF_VAR_resource_group_location
+  # TF_VAR_cosmosdb_replica_location
+  
 
 
 # Deploy and validate infra changes once changes have been merged into

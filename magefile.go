@@ -17,6 +17,8 @@ import (
 func All() {
 	mg.Deps(TestModules)
 	mg.Deps(TestCommonResources)
+	mg.Deps(TestDataResources)
+	mg.Deps(TestServiceResources)
 }
 
 // Execute Module Tests and fail if a test fails. Only executes tests in 'test' directories.
@@ -36,7 +38,7 @@ func TestCommonResources() {
 // Execute Unit Tests for OSDU R3 Common Resources.
 func CommonUnitTest() error {
 	mg.Deps(Check)
-	fmt.Println("INFO: Running integration tests...")
+	fmt.Println("INFO: Running unit tests...")
 	return FindAndRunTests("common_resources/tests/unit")
 }
 
@@ -44,7 +46,7 @@ func CommonUnitTest() error {
 func CommonIntegrationTest() error {
 	mg.Deps(Check)
 	fmt.Println("INFO: Running integration tests...")
-	return FindAndRunTests("common_resources/tests/unit")
+	return FindAndRunTests("common_resources/tests/integration")
 }
 
 // Execute Tests for R3 Data Resources.
@@ -56,7 +58,7 @@ func TestDataResources() {
 // Execute Unit Tests for OSDU R3 Data Resources.
 func DataUnitTest() error {
 	mg.Deps(Check)
-	fmt.Println("INFO: Running integration tests...")
+	fmt.Println("INFO: Running unit tests...")
 	return FindAndRunTests("data_resources/tests/unit")
 }
 
@@ -64,8 +66,29 @@ func DataUnitTest() error {
 func DataIntegrationTest() error {
 	mg.Deps(Check)
 	fmt.Println("INFO: Running integration tests...")
-	return FindAndRunTests("data_resources/tests/unit")
+	return FindAndRunTests("data_resources/tests/integration")
 }
+
+// Execute Tests for R3 Service Resources.
+func TestServiceResources() {
+	mg.Deps(ServiceUnitTest)
+	mg.Deps(ServiceIntegrationTest)
+}
+
+// Execute Unit Tests for OSDU R3 Service Resources.
+func ServiceUnitTest() error {
+	mg.Deps(Check)
+	fmt.Println("INFO: Running unit tests...")
+	return FindAndRunTests("service_resources/tests/unit")
+}
+
+// Execute Integration Tests for OSDU R3 Service Resources.
+func ServiceIntegrationTest() error {
+	mg.Deps(Check)
+	fmt.Println("INFO: Running integration tests...")
+	return FindAndRunTests("service_resources/tests/integration")
+}
+
 
 // Validate both Terraform code and Go code.
 func Check() {

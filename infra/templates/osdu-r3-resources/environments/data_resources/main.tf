@@ -207,6 +207,11 @@ output "storage_account_containers" {
   value       = module.storage_account.containers
 }
 
+output "storage_properties" {
+  description = "Properties of the deployed Storage Account."
+  value       = module.storage_account.properties
+}
+
 output "cosmosdb_account_name" {
   description = "The name of the CosmosDB account."
   value       = module.cosmosdb_account.account_name

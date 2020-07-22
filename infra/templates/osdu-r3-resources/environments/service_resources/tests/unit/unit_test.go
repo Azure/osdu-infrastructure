@@ -19,31 +19,39 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
-	cosmosIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/cosmosdb/tests/integration"
-	storageIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/storage-account/tests/integration"
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
-var subscription = os.Getenv("ARM_SUBSCRIPTION_ID")
 var tfOptions = &terraform.Options{
 	TerraformDir: "../../",
+	Upgrade:      true,
+	Vars: map[string]interface{}{
+		"resource_group_location": region,
+		"prefix":                  prefix,
+	},
 	BackendConfig: map[string]interface{}{
 		"storage_account_name": os.Getenv("TF_VAR_remote_state_account"),
 		"container_name":       os.Getenv("TF_VAR_remote_state_container"),
 	},
 }
 
-// Runs a suite of test assertions to validate that a provisioned data source environment
-// is fully functional.
-func TestDataEnvironment(t *testing.T) {
-	testFixture := infratests.IntegrationTestFixture{
-		GoTest:                t,
-		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 6,
-		TfOutputAssertions: []infratests.TerraformOutputValidation{
-			storageIntegTests.InspectStorageAccount("storage_account", "storage_account_containers", "data_resource_group_name"),
-			cosmosIntegTests.InspectProvisionedCosmosDBAccount("data_resource_group_name", "cosmosdb_account_name", "cosmosdb_properties"),
-		},
+func TestTemplate(t *testing.T) {
+	expectedAppDevResourceGroup := asMap(t, `{
+		"location": "`+region+`"
+	}`)
+
+	resourceDescription := infratests.ResourceDescription{
+		"azurerm_resource_group.main": expectedAppDevResourceGroup,
 	}
-	infratests.RunIntegrationTests(&testFixture)
+
+	testFixture := infratests.UnitTestFixture{
+		GoTest:                          t,
+		TfOptions:                       tfOptions,
+		Workspace:                       workspace,
+		PlanAssertions:                  nil,
+		ExpectedResourceCount:           23,
+		ExpectedResourceAttributeValues: resourceDescription,
+	}
+
+	infratests.RunUnitTests(&testFixture)
 }
