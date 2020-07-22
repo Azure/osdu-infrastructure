@@ -76,7 +76,7 @@ stages:
 - template: prepare-stage.yml
   parameters:
     environments:
-    - name: 'test'
+    - name: 'dev'
       enablePrIsolation: false
       resourceNameIsolationLevel: 8
 
