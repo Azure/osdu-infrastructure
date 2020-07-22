@@ -1,4 +1,4 @@
-#  Copyright © Microsoft Corporation
+#  Copyright � Microsoft Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -15,27 +15,21 @@
 # Required Group Variables - `Infrastructure Pipeline Variables`
   # AGENT_POOL
   # BUILD_ARTIFACT_NAME
-  # SERVICE_CONNECTION_NAME
+  # FORCE_RUN
+  # TF_WARN_OUTPUT_ERRORS
+  # TF_VAR_randomization_level
   # TF_VAR_remote_state_account
   # TF_VAR_remote_state_container
 
-# Required Group Variables - `Infrastructure Pipeline - {env_name}`
-  # TF_VAR_aks_agent_vm_count
+# Required Group Variables - `Infrastructure Pipeline - {configurations.jobName}`
+  # SERVICE_CONNECTION_NAME
   # ARM_SUBSCRIPTION_ID
-  # TF_VAR_aks_agent_vm_count
-  # TF_VAR_cosmosdb_replica_location
-  # TF_VAR_data_sources_workspace_name
-  # TF_VAR_flux_recreate
-  # TF_VAR_gitops_path
-  # TF_VAR_gitops_ssh_url
-  # TF_VAR_gitops_url_branch
-  # TF_VAR_image_repository_workspace_name
-  # TF_VAR_resource_group_location
 
-# Required Env Group Variables - `Infrastructure Pipeline Secrets - {env_name}` (for each {env_name})
-  # elastic-username-ado-{env_name}
-  # elastic-password-ado-{env_name}
-  # elastic-endpoint-ado-{env_name}
+# Required Env Group Variables - `Infrastructure Pipeline - {configurations.jobName} - {env_name}`
+  # TF_VAR_resource_group_location
+  # TF_VAR_common_resources_workspace_name
+  # TF_VAR_data_resources_workspace_name
+
 
 # Deploy and validate infra changes once changes have been merged into
 trigger:
@@ -47,7 +41,7 @@ trigger:
     include:
     - /devops/infrastructure/*
     - /infra/modules/providers/*
-    - /infra/templates/osdu-r2-resources/*
+    - /infra/templates/osdu-r3-resources/environments/service_resources/*
     - /test-harness/terratest-extensions/*
     exclude:
     - /**/*.md
@@ -61,7 +55,7 @@ pr:
     include:
     - /devops/infrastructure/*
     - /infra/modules/providers/*
-    - /infra/templates/osdu-r2-resources/*
+    - /infra/templates/osdu-r3-resources/environments/service_resources/*
     - /test-harness/terratest-extensions/*
     exclude:
     - /**/*.md
@@ -88,8 +82,7 @@ stages:
       resourceNameIsolationLevel: 8
 
     configurations:
-    - jobName: osdu_r2
-      terraformWorkspacePrefix: ADO
-      terraformTemplatePath: infra/templates/osdu-r2-resources
+    - jobName: service_resources
+      terraformWorkspacePrefix: sr
+      terraformTemplatePath: infra/templates/osdu-r3-resources/environments/service_resources
       deploymentTimeoutInMinutes: 120
-
