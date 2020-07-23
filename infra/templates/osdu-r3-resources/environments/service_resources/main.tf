@@ -72,12 +72,14 @@ locals {
   aks_subnet_name = "${local.base_name_21}-aks-subnet"
   be_subnet_name  = "${local.base_name_21}-be-subnet"
 
+  // WARNING: Unfortunately order here is important.  Only append to the map don't insert.
   secrets_map = {
     # Imported Secrets from State
     cosmos-endpoint     = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.endpoint
     cosmos-primary-key  = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.primary_master_key
     cosmos-connection   = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.connection_strings[0]
     storage-account-key = data.terraform_remote_state.data_resources.outputs.storage_properties.primary_access_key
+    sb-connection       = data.terraform_remote_state.data_resources.outputs.sb_namespace_default_connection_string
 
     # Secrets from this template
     appinsights-key = module.app_insights.app_insights_instrumentation_key
