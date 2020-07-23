@@ -21,3 +21,132 @@ storage_containers = [
 
 cosmos_db_name             = "osdu-data"
 cosmosdb_consistency_level = "Session"
+
+sb_topics = [
+  {
+    name                         = "recordstopic"
+    default_message_ttl          = "PT30M" //ISO 8601 format
+    enable_partitioning          = false
+    requires_duplicate_detection = true
+    support_ordering             = true
+    authorization_rules = [
+      {
+        policy_name = "policy"
+        claims = {
+          listen = true
+          send   = true
+          manage = false
+        }
+      }
+    ]
+    subscriptions = [
+      {
+        name                                 = "recordstopicsubscription"
+        max_delivery_count                   = 5
+        lock_duration                        = "PT5M" //ISO 8601 format
+        forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
+        dead_lettering_on_message_expiration = true
+        filter_type                          = null
+        sql_filter                           = null
+        action                               = ""
+      }
+    ]
+  },
+  {
+    name                         = "legaltags"
+    default_message_ttl          = "PT30M" //ISO 8601 format
+    enable_partitioning          = false
+    requires_duplicate_detection = true
+    support_ordering             = true
+    authorization_rules = [
+      {
+        policy_name = "policy"
+        claims = {
+          listen = true
+          send   = true
+          manage = false
+        }
+      }
+    ]
+    subscriptions = [
+      {
+        name                                 = "legaltagsubscription"
+        max_delivery_count                   = 1
+        lock_duration                        = "PT5M" //ISO 8601 format
+        forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
+        dead_lettering_on_message_expiration = true
+        filter_type                          = null
+        sql_filter                           = null
+        action                               = ""
+      },
+      {
+        name                                 = "compliance-change--integration-test"
+        max_delivery_count                   = 1
+        lock_duration                        = "PT5M" //ISO 8601 format
+        forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
+        dead_lettering_on_message_expiration = true
+        filter_type                          = null
+        sql_filter                           = null
+        action                               = ""
+      }
+    ]
+  },
+  {
+    name                         = "recordstopicdownstream"
+    default_message_ttl          = "PT30M" //ISO 8601 format
+    enable_partitioning          = false
+    requires_duplicate_detection = true
+    support_ordering             = true
+    authorization_rules = [
+      {
+        policy_name = "policy"
+        claims = {
+          listen = true
+          send   = true
+          manage = false
+        }
+      }
+    ]
+    subscriptions = [
+      {
+        name                                 = "downstreamsub"
+        max_delivery_count                   = 1
+        lock_duration                        = "PT5M" //ISO 8601 format
+        forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
+        dead_lettering_on_message_expiration = true
+        filter_type                          = null
+        sql_filter                           = null
+        action                               = ""
+      }
+    ]
+  },
+  {
+    name                         = "indexing-progress"
+    default_message_ttl          = "PT30M" //ISO 8601 format
+    enable_partitioning          = false
+    requires_duplicate_detection = true
+    support_ordering             = true
+    authorization_rules = [
+      {
+        policy_name = "policy"
+        claims = {
+          listen = true
+          send   = true
+          manage = false
+        }
+      }
+    ]
+    subscriptions = [
+      {
+        name                                 = "indexing-progresssubscription"
+        max_delivery_count                   = 1
+        lock_duration                        = "PT5M" //ISO 8601 format
+        forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
+        dead_lettering_on_message_expiration = true
+        filter_type                          = null
+        sql_filter                           = null
+        action                               = ""
+      }
+    ]
+  }
+]

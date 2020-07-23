@@ -95,6 +95,78 @@ variable "cosmosdb_automatic_failover" {
   default     = true
 }
 
+variable "sb_sku" {
+  type        = string
+  default     = "Standard"
+  description = "The SKU of the namespace. The options are: `Basic`, `Standard`, `Premium`."
+}
+
+variable "sb_topics" {
+  type = list(object({
+    name                         = string
+    default_message_ttl          = string //ISO 8601 format
+    enable_partitioning          = bool
+    requires_duplicate_detection = bool
+    support_ordering             = bool
+    authorization_rules = list(object({
+      policy_name = string
+      claims      = object({ listen = bool, manage = bool, send = bool })
+
+    }))
+    subscriptions = list(object({
+      name                                 = string
+      max_delivery_count                   = number
+      lock_duration                        = string //ISO 8601 format
+      forward_to                           = string //set with the topic name that will be used for forwarding. Otherwise, set to ""
+      dead_lettering_on_message_expiration = bool
+      filter_type                          = string // SqlFilter is the only supported type now.
+      sql_filter                           = string //Required when filter_type is set to SqlFilter
+      action                               = string
+    }))
+  }))
+  default = [
+    {
+      name                         = "storage_topic"
+      default_message_ttl          = "PT30M" //ISO 8601 format
+      enable_partitioning          = true
+      requires_duplicate_detection = true
+      support_ordering             = true
+      authorization_rules = [
+        {
+          policy_name = "storage_policy"
+          claims = {
+            listen = true
+            send   = false
+            manage = false
+          }
+        }
+      ]
+      subscriptions = [
+        {
+          name                                 = "storage_sub_1"
+          max_delivery_count                   = 1
+          lock_duration                        = "PT5M" //ISO 8601 format
+          forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
+          dead_lettering_on_message_expiration = true
+          filter_type                          = "SqlFilter"     // SqlFilter is the only supported type now.
+          sql_filter                           = "color = 'red'" //Required when filter_type is set to SqlFilter
+          action                               = ""
+        },
+        {
+          name                                 = "storage_sub_2"
+          max_delivery_count                   = 1
+          lock_duration                        = "PT5M" //ISO 8601 format
+          forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
+          dead_lettering_on_message_expiration = true
+          filter_type                          = "SqlFilter"      // SqlFilter is the only supported type now.
+          sql_filter                           = "color = 'blue'" //Required when filter_type is set to SqlFilter
+          action                               = ""
+        }
+      ]
+    }
+  ]
+}
+
 
 #-------------------------------
 # Private Variables  (common.tf)
@@ -116,6 +188,7 @@ locals {
   resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
   storage_name        = "${replace(local.base_name_21, "-", "")}sa"
   cosmosdb_name       = "${local.base_name}-db"
+  sb_namespace           = "${local.base_name_21}-bus"
 }
 
 
@@ -188,6 +261,19 @@ resource "azurerm_management_lock" "db_lock" {
   lock_level = "CanNotDelete"
 }
 
+#-------------------------------
+# Azure Service Bus (main.tf)
+#-------------------------------
+module "service_bus" {
+  source              = "../../../../modules/providers/azure/service-bus"
+
+  namespace_name      = local.sb_namespace
+  resource_group_name = azurerm_resource_group.main.name
+
+  sku                 = var.sb_sku
+  topics              = var.sb_topics
+}
+
 
 #-------------------------------
 # Output Variables  (output.tf)
@@ -220,4 +306,25 @@ output "cosmosdb_account_name" {
 output "cosmosdb_properties" {
   description = "Properties of the deployed CosmosDB account."
   value       = module.cosmosdb_account.properties
+}
+
+output "sb_namespace_name" {
+  description = "The service bus namespace name."
+  value       = module.service_bus.namespace_name
+}
+
+output "sb_namespace_id" {
+  description = "The service bus namespace id."
+  value       = module.service_bus.namespace_id
+}
+
+output "sb_namespace_default_connection_string" {
+  description = "The primary connection string for the Service Bus namespace authorization rule RootManageSharedAccessKey."
+  value       = module.service_bus.service_bus_namespace_default_connection_string
+  sensitive   = true
+}
+
+output "sb_topics" {
+  description = "All topics with the corresponding subscriptions"
+  value       = module.service_bus.topics
 }

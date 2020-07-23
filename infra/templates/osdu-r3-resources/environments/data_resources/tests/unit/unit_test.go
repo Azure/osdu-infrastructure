@@ -44,12 +44,14 @@ func TestTemplate(t *testing.T) {
 		"azurerm_resource_group.main": expectedAppDevResourceGroup,
 	}
 
+	appendServicebusTests(t, resourceDescription)
+
 	testFixture := infratests.UnitTestFixture{
 		GoTest:                          t,
 		TfOptions:                       tfOptions,
 		Workspace:                       workspace,
 		PlanAssertions:                  nil,
-		ExpectedResourceCount:           11,
+		ExpectedResourceCount:           26,
 		ExpectedResourceAttributeValues: resourceDescription,
 	}
 
