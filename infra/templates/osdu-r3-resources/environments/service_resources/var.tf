@@ -79,3 +79,8 @@ variable "subnet_be_prefix" {
   default     = "10.10.3.0/28"
 }
 
+variable "ssl_certificate_file" {
+  type        = string
+  description = "(Required) The x509-based SSL certificate used to setup ssl termination on the app gateway."
+  default     = ""
+}

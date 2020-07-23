@@ -64,13 +64,15 @@ locals {
   ai_name             = "${local.base_name}-ai"
 
   // security.tf
-  kv_name = "${local.base_name_21}-kv"
+  kv_name       = "${local.base_name_21}-kv"
+  ssl_cert_name = "appgw-ssl-cert"
 
   // network.tf
   vnet_name       = "${local.base_name_60}-vnet"
   fe_subnet_name  = "${local.base_name_21}-fe-subnet"
   aks_subnet_name = "${local.base_name_21}-aks-subnet"
   be_subnet_name  = "${local.base_name_21}-be-subnet"
+  app_gw_name     = "${local.base_name_60}-gw"
 
   // WARNING: Unfortunately order here is important.  Only append to the map don't insert.
   secrets_map = {
@@ -167,6 +169,19 @@ module "network" {
   subnet_names        = [local.fe_subnet_name, local.aks_subnet_name, local.be_subnet_name]
 }
 
+module "appgateway" {
+  source = "../../../../modules/providers/azure/aks-appgw"
+
+  name                = local.app_gw_name
+  resource_group_name = azurerm_resource_group.main.name
+
+  vnet_name            = module.network.name
+  vnet_subnet_id       = module.network.subnets.0
+  keyvault_id          = module.keyvault.keyvault_id
+  keyvault_secret_id   = azurerm_key_vault_certificate.default.0.secret_id # TODO: If not default then import
+  ssl_certificate_name = local.ssl_cert_name
+}
+
 
 #-------------------------------
 # Key Vault  (security.tf)
@@ -176,6 +191,63 @@ module "keyvault" {
 
   keyvault_name       = local.kv_name
   resource_group_name = azurerm_resource_group.main.name
+}
+
+# Default Certificate Install.
+resource "azurerm_key_vault_certificate" "default" {
+  count = var.ssl_certificate_file == "" ? 1 : 0
+
+  name         = local.ssl_cert_name
+  key_vault_id = module.keyvault.keyvault_id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      # Server Authentication = 1.3.6.1.5.5.7.3.1
+      # Client Authentication = 1.3.6.1.5.5.7.3.2
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
+
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject_alternative_names {
+        dns_names = [var.dns_name, "${local.base_name}-gw.${azurerm_resource_group.main.location}.cloudapp.azure.com"]
+      }
+
+      subject            = "CN=*.contoso.com"
+      validity_in_months = 12
+    }
+  }
 }
 
 // Secrets Load from things created in this template.
