@@ -1,23 +1,36 @@
 # osdu-infrastructure
 
-[![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/osdu-infrastructure-integration?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=892&branchName=master)
+
 [![Go Report Card](https://goreportcard.com/badge/github.com/Azure/osdu-infrastructure)](https://goreportcard.com/report/github.com/Azure/osdu-infrastructure)
 
-This project is an implementation of the Infrastructure as Code and Pipelines necessary to build and deploy the required infrastructure necessary for the [Open Subsurface Data Universe](https://community.opengroup.org/osdu) (OSDU).  Project Development for this code base is performed and maintained on osdu-infrastructure here in [GitHub](http://github.com/azure/osdu-infrastructure) with some information also located in [GitLab](https://community.opengroup.org/osdu/platform/deployment-and-operations/infrastructure-templates) in order for this project to be discoverable to OSDU.
+This project is an implementation of the Infrastructure as Code and Pipelines necessary to build and deploy the required infrastructure necessary for the [Open Subsurface Data Universe](https://community.opengroup.org/osdu) (OSDU). Links and additional information is located in [GitLab](https://community.opengroup.org/osdu/platform/deployment-and-operations/infrastructure-templates) for OSDU discoverability.
 
-All patterns for this have been built and leverage Microsoft Projects, for detailed design principals, operation and tutorials on those patterns it is best to review information directly from those projects. Code and modules have been forked and located here with no direct references in terraform modules to code outside of this project space.
+
+Patterns used leverage Microsoft Projects, for detailed design principals, operation and tutorials on these patterns it is best to review information directly from those projects. 
 
 1. [Project Cobalt](https://github.com/microsoft/cobalt)
 2. [Project Bedrock](https://github.com/microsoft/bedrock)
 
+Please be aware that branching strategies are aligned with OSDU and the master branch is intended to be used as a [Current Delivery](https://docs.microsoft.com/en-us/azure/devops/learn/what-is-continuous-delivery) mechanism that aligns with master branches for the [OSDU Platform]((https://community.opengroup.org/osdu/platform))
 
 ## Architecture Solutions
-Currently this project holds 2 different Solution Architectures for OSDU on Azure.
+This project holds 2 different Solution Architectures for OSDU on Azure.
+> IMPORTANT: R3 is currently a work in progress.
 
-- [R3 - Azure OSDU AKS Architecture Solution with Elastic Cloud SaaS](infra/templates/osdu-r3-resources)
+- [R3 - Azure OSDU AKS Architecture Solution with Elastic Cloud SaaS](infra/templates/osdu-r3-resources)  
+
+  _osdu-r3-resources (cr/dr)_  
+  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infrastructure-r3%20(cr-dr)?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1155&branchName=master)
+
+  _osdu-r3-resources (sr)_  
+  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infrastructure-r3%20(sr)?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1156&branchName=master)  
+
 - [R2 - Azure OSDU AppService Architecture Solution with Elastic Cloud SaaS](infra/templates/osdu-r2-resources)
 
-> IMPORTANT: Current OSDU releases should only use the AppService Architecture at this time until R3 is officially released.
+  _osdu-r2-resources_  
+  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/osdu-infrastructure-integration?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=892&branchName=master) 
+
+
 
 
 # Contributing
@@ -53,7 +66,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-
-
-[0]: ./docs/osdu/images/r2_arch.png "R2 Infrastructure Architecture"
