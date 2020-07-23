@@ -188,7 +188,7 @@ locals {
   resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
   storage_name        = "${replace(local.base_name_21, "-", "")}sa"
   cosmosdb_name       = "${local.base_name}-db"
-  sb_namespace           = "${local.base_name_21}-bus"
+  sb_namespace        = "${local.base_name_21}-bus"
 }
 
 
@@ -265,13 +265,13 @@ resource "azurerm_management_lock" "db_lock" {
 # Azure Service Bus (main.tf)
 #-------------------------------
 module "service_bus" {
-  source              = "../../../../modules/providers/azure/service-bus"
+  source = "../../../../modules/providers/azure/service-bus"
 
   namespace_name      = local.sb_namespace
   resource_group_name = azurerm_resource_group.main.name
 
-  sku                 = var.sb_sku
-  topics              = var.sb_topics
+  sku    = var.sb_sku
+  topics = var.sb_topics
 }
 
 
