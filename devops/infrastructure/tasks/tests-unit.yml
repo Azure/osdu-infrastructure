@@ -16,6 +16,16 @@ parameters:
   skip: false
 
 steps:
+  - task: DownloadSecureFile@1
+    name: 'aksPublicAgentKeySecureDownload'  # The name with which to reference the secure file's path on the agent.
+    inputs:
+      secureFile: ${{ parameters.aksAgentSshPublicKeyFilename }} # The file name or GUID of the secure file
+
+  - task: DownloadSecureFile@1
+    name: 'aksPrivateGitopsKeySecureDownload'  # The name with which to reference the secure file's path on the agent.
+    inputs:
+      secureFile: ${{ parameters.aksGitOpsSshPrivateKeyFilename }} # The file name or GUID of the secure file
+
   - task: AzureCLI@1
     displayName: 'Run Unit Tests'
     env:
@@ -28,9 +38,9 @@ steps:
       TF_VAR_elasticsearch_endpoint: $(elastic-endpoint-${{ parameters.terraformWorkspacePrefix }}-${{ parameters.environmentName }})
       TF_VAR_common_resources_workspace_name: $(TF_VAR_common_resources_workspace_name)
       TF_VAR_data_resources_workspace_name: $(TF_VAR_data_resources_workspace_name)
+      TF_VAR_ssh_public_key_file: $(aksPublicAgentKeySecureDownload.secureFilePath)
+      TF_VAR_gitops_ssh_key_file: $(aksPrivateGitopsKeySecureDownload.secureFilePath)
       TF_VAR_gitops_ssh_url: ""
-      TF_VAR_ssh_public_key_file: ""
-      TF_VAR_gitops_ssh_key_file: ""
 
     condition: not(coalesce(variables.SKIP_TESTS, ${{ parameters.skip }}))
     inputs:
