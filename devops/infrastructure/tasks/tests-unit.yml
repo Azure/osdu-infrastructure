@@ -40,7 +40,7 @@ steps:
       TF_VAR_data_resources_workspace_name: $(TF_VAR_data_resources_workspace_name)
       TF_VAR_ssh_public_key_file: $(aksPublicAgentKeySecureDownload.secureFilePath)
       TF_VAR_gitops_ssh_key_file: $(aksPrivateGitopsKeySecureDownload.secureFilePath)
-      TF_VAR_gitops_ssh_url: ""
+      TF_VAR_gitops_ssh_url: $(TF_VAR_gitops_ssh_url)
 
     condition: not(coalesce(variables.SKIP_TESTS, ${{ parameters.skip }}))
     inputs:

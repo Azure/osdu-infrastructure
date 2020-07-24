@@ -77,31 +77,21 @@ git commit --allow-empty -m "Initializing the Flux Manifest Repository"
 
 Generate the [deploy key](https://developer.github.com/v3/guides/managing-deploy-keys/#deploy-keys) using `ssh-keygen`. The public portion of the key pair will be uploaded to GitHub as a deploy key.
 
-Run: `ssh-keygen -b 4096 -t rsa -f ~/.ssh/gitops-ssh-key`.
-
 ```bash
-$ ssh-keygen -b 4096 -t rsa -f ~/.ssh/gitops-ssh-key
-Generating public/private rsa key pair.
-Enter passphrase (empty for no passphrase):
-Enter same passphrase again:
-Your identification has been saved in /Users/jmspring/.ssh/gitops-ssh-key.
-Your public key has been saved in /Users/jmspring/.ssh/gitops-ssh-key.pub.
-The key fingerprint is:
-SHA256:jago9v63j05u9WoiNExnPM2KAWBk1eTHT2AmhIWPIXM jmspring@kudzu.local
-The key's randomart image is:
-+---[RSA 4096]----+
-|.=o.B= +         |
-|oo E..= .        |
-|  + =..oo.       |
-|   . +.*o=       |
-|    o * S..      |
-|   . * . .       |
-|... o ... .      |
-|...  .o+.. .     |
-|  .o..===o.      |
-+----[SHA256]-----+
-kudzu:azure-simple jmspring$
+AZURE_VAULT=<common_vault_name>
+KEY_NAME=gitops-ssh-key
+
+# Generate gitops-ssh-key
+ssh-keygen -b 4096 -t rsa -f $KEY_NAME
+
+# Save gitops-ssh-key
+az keyvault secret set --vault-name $AZURE_VAULT -n "${KEY_NAME}" -f "${KEY_NAME}"
+az keyvault secret set --vault-name $AZURE_VAULT -n "${KEY_NAME}-pub" -f "${KEY_NAME}.pub"
+
+# Show Public gitops-ssh-key
+az keyvault secret show --vault-name $AZURE_VAULT -n "${KEY_NAME}-pub" --query value -otsv
 ```
+
 
 This will create public and private keys for the Flux repository. We will assign the public key under the following heading: [Adding the Repository Key](#adding-the-repository-key). The private key is stored on the machine originating the deployment.
 
@@ -109,43 +99,45 @@ This will create public and private keys for the Flux repository. We will assign
 
 The public key of the [RSA key pair](#create-an-rsa-key-pair-for-a-deploy-key-for-the-flux-repository) previously created needs to be added as a deploy key. Note: _If you do not own the repository, you will have to fork it before proceeding_.
 
-First, display the contents of the public key: `more ~/.ssh/gitops-ssh-key.pub`.
+Use the contents of the Secret as shown above.
 
-```bash
-$ more ~/.ssh/gitops-ssh-key.pub
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDTNdGpnmztWRa8RofHl8dIGyNkEayNR6d7p2JtJ7+zMj0HRUJRc+DWvBML4DvT29AumVEuz1bsVyVS2f611NBmXHHKkbzAZZzv9gt2uB5sjnmm7LAORJyoBEodR/T07hWr8MDzYrGo5fdTDVagpoHcEke6JT04AL21vysBgqfLrkrtcEyE+uci4hRVj+FGL9twh3Mb6+0uak/UsTFgfDi/oTXdXOFIitQgaXsw8e3rkfbqGLbhb6o1muGd1o40Eip6P4xejEOuIye0cg7rfX461NmOP7HIEsUa+BwMExiXXsbxj6Z0TXG0qZaQXWjvZF+MfHx/J0Alb9kdO3pYx3rJbzmdNFwbWM4I/zN+ng4TFiHBWRxRFmqJmKZX6ggJvX/d3z0zvJnvSmOQz9TLOT4lqZ/M1sARtABPGwFLAvPHAkXYnex0v93HUrEi7g9EnM+4dsGU8/6gx0XZUdH17WZ1dbEP7VQwDPnWCaZ/aaG7BsoJj3VnDlFP0QytgVweWr0J1ToTRQQZDfWdeSBvoqq/t33yYhjNA82fs+bR/1MukN0dCWMi7MqIs2t3TKYW635E7VHp++G1DR6w6LoTu1alpAlB7d9qiq7o1c4N+gakXSUkkHL8OQbQBeLeTG1XtYa//A5gnAxLSzxAgBpVW15QywFgJlPk0HEVkOlVd4GzUw== sl;jlkjgl@kudzu.local
-```
 
 Next, in your Azure DevOPS Project, follow these [steps](https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops&tabs=current-page#step-2--add-the-public-key-to-azure-devops-servicestfs) to add your public SSH key to your ADO environment.
 
 ## Create an RSA Key Pair to use as Node Key
 
-The Terraform scripts use this node key to setup log-in credentials on the nodes in the AKS cluster. We will use this key when setting up the Terraform deployment variables. To generate the node key, run `ssh-keygen -b 4096 -t rsa -f ~/.ssh/node-ssh-key`:
+The Terraform scripts use this node key to setup log-in credentials on the nodes in the AKS cluster. We will use this key when setting up the Terraform deployment variables. Generate the Node Key:
 
 ```bash
-$ ssh-keygen -b 4096 -t rsa -f ~/.ssh/node-ssh-key
-Generating public/private rsa key pair.
-Enter passphrase (empty for no passphrase):
-Enter same passphrase again:
-Your identification has been saved in /home/jims/.ssh/node-ssh-key.
-Your public key has been saved in /home/jims/.ssh/node-ssh-key.pub.
-The key fingerprint is:
-SHA256:+8pQ4MuQcf0oKT6LQkyoN6uswApLZQm1xXc+pp4ewvs jims@fubu
-The key's randomart image is:
-+---[RSA 4096]----+
-|   ...           |
-|  . o. o .       |
-|.. .. + +        |
-|... .= o *       |
-|+  ++ + S o      |
-|oo=..+ = .       |
-|++ ooo=.o        |
-|B... oo=..       |
-|*+. ..oEo..      |
-+----[SHA256]-----+
+AZURE_VAULT=<common_vault_name>
+KEY_NAME=node-ssh-key
+
+# Generate node-ssh-key
+ssh-keygen -b 4096 -t rsa -f $KEY_NAME
+
+# Save node-ssh-key
+az keyvault secret set --vault-name $AZURE_VAULT -n "${KEY_NAME}" -f "${KEY_NAME}"
+az keyvault secret set --vault-name $AZURE_VAULT -n "${KEY_NAME}-pub" -f "${KEY_NAME}.pub"
+
+# Save Locally Public node-ssh-key
+az keyvault secret show --vault-name $AZURE_VAULT -n "${KEY_NAME}-pub" --query value -otsv
 ```
 
+
 ## Configure GitOPS + Node SSH keys with Terraform Deployment
+
+
+Download the required keys from the common Key Vault
+
+```
+AZURE_VAULT=<common_vault_name>
+
+az keyvault secret show --vault-name $AZURE_VAULT -n "node-ssh-key-pub" --query value -otsv > ~/.ssh/node-ssh-key.pub
+az keyvault secret show --vault-name $AZURE_VAULT -n "gitops-ssh-key" --query value -otsv > ~/.ssh/gitops-ssh-key
+chmod 644 ~/.ssh/node-ssh-key.pub
+chmod 600 ~/.ssh/gitops-ssh-key
+```
+
 
 Update your `.env` file with the paths to your public and private SSH keys for Node and GitOPS repo access.
 
