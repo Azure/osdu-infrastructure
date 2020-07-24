@@ -60,7 +60,4 @@ steps:
         # Setting the scripts to be run as executable
         chmod -fR 755 *.sh || true
 
-        # Debug and print env variables
-        env
-
         go test -v $(go list ./... | grep "$TERRAFORM_TEMPLATE_PATH" | grep "unit")
