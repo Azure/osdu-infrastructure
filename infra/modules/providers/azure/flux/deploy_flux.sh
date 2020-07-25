@@ -22,9 +22,6 @@ function finish {
 }
 trap finish EXIT
 cd $TMP_DIR
-pwd
-
-exit
 
 # are we running on macOs
 IS_MACOS=0
