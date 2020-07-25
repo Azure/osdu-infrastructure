@@ -30,7 +30,7 @@ resource "null_resource" "script" {
   }
 
   provisioner "local-exec" {
-    command   = "${data.template_file.flux_script.rendered}"
+    command     = "${data.template_file.flux_script.rendered}"
     interpreter = ["/bin/bash", "-c"]
   }
 }
