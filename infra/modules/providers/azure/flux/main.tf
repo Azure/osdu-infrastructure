@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 data "template_file" "flux_script" {
-  template = "${file("${path.module}/script.sh")}"
+  template = "${file("${path.module}/deploy_flux.sh")}"
 
   vars {
     flux_recreate = var.flux_recreate
