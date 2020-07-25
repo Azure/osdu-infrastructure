@@ -16,13 +16,26 @@ resource "null_resource" "deploy_flux" {
   count = var.enable_flux ? 1 : 0
 
   provisioner "local-exec" {
-    command = "chmod 744 deploy_flux.sh && ls -l"
+    command = "chmod 744 deploy.sh && ls -l"
     working_dir = path.module
   }
 
   provisioner "local-exec" {
-    command = "echo 'Need to use this var so terraform waits for kubeconfig ' ${var.kubeconfig_complete};KUBECONFIG=${var.output_directory}/${var.kubeconfig_filename} deploy_flux.sh"
+    command = "echo 'Need to use this var so terraform waits for kubeconfig ' ${var.kubeconfig_complete};KUBECONFIG=${var.output_directory}/${var.kubeconfig_filename} deploy.sh"
     working_dir = path.module
+    environment = {
+      GITOPS_URL_BRANCH = ${var.gitops_url_branch}
+      FLUX_REPO_URL = ${var.flux_repo_url}
+      GITOPS_SSH_URL = ${var.gitops_ssh_url}
+      GITOPS_SSH_KEY = ${var.gitops_ssh_key_path}
+      REPO_ROOT_DIR = ${var.flux_clone_dir}
+      GITOPS_PATH = ${var.gitops_path}
+      GITOPS_POLL_INTERVAL = ${var.gitops_poll_interval}
+      GITOPS_LABEL = ${var.gitops_label}
+      ACR_ENABLED = ${var.acr_enabled}
+      FLUX_IMAGE_REPOSITORY = ${var.flux_image_repository}
+      FLUX_IMAGE_TAG = ${var.flux_image_tag}
+    }
   }
 
   # provisioner "local-exec" {
