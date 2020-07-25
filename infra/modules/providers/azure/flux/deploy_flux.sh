@@ -17,10 +17,12 @@
 #set -x
 # create a temporary directory that is cleaned up after exection
 TMP_DIR=$(mktemp -d -t flux.XXXXXXXXXX) || { echo "Failed to create temp directory"; exit 1; }
-# function finish {
-#   rm -rf "$TMP_DIR"
-# }
-# trap finish EXIT
+
+function finish() {
+  rm -rf "$TMP_DIR"
+}
+
+trap finish EXIT
 cd $TMP_DIR
 
 # are we running on macOs
