@@ -37,6 +37,7 @@ resource "null_resource" "deploy_flux" {
       -t '${var.flux_image_tag}' \
       -z '${var.gc_enabled}'
 EOT
+    interpreter = ["/bin/bash"]
   }
 }
 
