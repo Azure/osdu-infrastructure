@@ -14,14 +14,55 @@
 
 prefix = "osdu-r3"
 
+# Storage Settings
 storage_containers = [
   "legal-service-azure-configuration",
   "opendes"
 ]
 
+# Database Settings
 cosmos_db_name             = "osdu-data"
 cosmosdb_consistency_level = "Session"
+cosmos_databases = [
+  {
+    name       = "osdu-db"
+    throughput = 400
+  }
+]
+cosmos_sql_collections = [
+  {
+    name               = "LegalTag"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "StorageRecord"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "StorageSchema"
+    database_name      = "osdu-db"
+    partition_key_path = "/kind"
+    throughput         = 400
+  },
+  {
+    name               = "TenantInfo"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "UserInfo"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  }
+]
 
+# Service Bus Settings
 sb_topics = [
   {
     name                         = "recordstopic"
@@ -71,7 +112,7 @@ sb_topics = [
     subscriptions = [
       {
         name                                 = "legaltagsubscription"
-        max_delivery_count                   = 1
+        max_delivery_count                   = 5
         lock_duration                        = "PT5M" //ISO 8601 format
         forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
         dead_lettering_on_message_expiration = true
@@ -110,7 +151,7 @@ sb_topics = [
     subscriptions = [
       {
         name                                 = "downstreamsub"
-        max_delivery_count                   = 1
+        max_delivery_count                   = 5
         lock_duration                        = "PT5M" //ISO 8601 format
         forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
         dead_lettering_on_message_expiration = true
@@ -139,7 +180,7 @@ sb_topics = [
     subscriptions = [
       {
         name                                 = "indexing-progresssubscription"
-        max_delivery_count                   = 1
+        max_delivery_count                   = 5
         lock_duration                        = "PT5M" //ISO 8601 format
         forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
         dead_lettering_on_message_expiration = true
