@@ -50,7 +50,7 @@ var ServicebusTFOptions = &terraform.Options{
 		"topics": append(listOfTopics, map[string]interface{}{
 			"subscriptions": append(listOfSubscriptions, map[string]interface{}{
 				"name":                                 "sub_test",
-				"max_delivery_count":                   1.0,
+				"max_delivery_count":                   5.0,
 				"lock_duration":                        "PT5M",
 				"forward_to":                           "",
 				"dead_lettering_on_message_expiration": "true",
