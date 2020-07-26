@@ -23,7 +23,7 @@ resource "null_resource" "deploy_flux" {
   provisioner "local-exec" {
     command = <<EOT
      chmod 744 ${path.module}/deploy_flux.sh
-     ls -l ${path.module}
+     ls -l ${path.module}/deploy_flux.sh
      echo 'Need to use this var so terraform waits for kubeconfig ' ${var.kubeconfig_complete}
      KUBECONFIG=${var.output_directory}/${var.kubeconfig_filename} ${path.module}/deploy_flux.sh \
       -b '${var.gitops_url_branch}' \
