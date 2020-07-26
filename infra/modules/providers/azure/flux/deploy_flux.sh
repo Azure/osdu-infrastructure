@@ -17,9 +17,11 @@
 #set -x
 # create a temporary directory that is cleaned up after exection
 TMP_DIR=$(mktemp -d -t flux.XXXXXXXXXX) || { echo "Failed to create temp directory"; exit 1; }
-function finish {
+
+finish () {
   rm -rf "$TMP_DIR"
 }
+
 trap finish EXIT
 cd $TMP_DIR
 
@@ -172,7 +174,14 @@ if kubectl get secret $KUBE_SECRET_NAME -n $KUBE_NAMESPACE > /dev/null 2>&1; the
         exit 1
     fi
 
-    secret=$(< "$GITOPS_SSH_KEY" base64 -w 0)
+    if [ "$IS_MACOS" -eq "1" ]; then
+      # use sed compatible with MacOS
+      secret=$(< "$GITOPS_SSH_KEY" base64)
+    else
+      secret=$(< "$GITOPS_SSH_KEY" base64 -w 0)
+    fi
+
+    
     if ! kubectl patch secret $KUBE_SECRET_NAME -n $KUBE_NAMESPACE -p="{\"data\":{\"identity\": \"$secret\"}}"; then
         echo "ERROR: failed to patch existing flux secret: $KUBE_SECRET_NAME "
         exit 1

@@ -1,4 +1,4 @@
-#  Copyright © Microsoft Corporation
+#  Copyright Â© Microsoft Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ parameters:
   configuration: ''
   forceRun: false
   skipTests: false
-  aksAgentSshPublicKeyFilename: ''
-  aksGitOpsSshPrivateKeyFilename: ''
+  aksAgentSshPublicKeyFilename: 'azure-aks-node-ssh-key.pub'
+  aksGitOpsSshPrivateKeyFilename: 'azure-aks-gitops-ssh-key'
 
 jobs:
 

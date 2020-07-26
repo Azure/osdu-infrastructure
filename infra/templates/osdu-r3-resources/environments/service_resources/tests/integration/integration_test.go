@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
-
+	appGatewayIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/aks-appgw/tests/integration"
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
@@ -38,8 +38,10 @@ func TestDataEnvironment(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 1,
-		TfOutputAssertions:    []infratests.TerraformOutputValidation{},
+		ExpectedTfOutputCount: 3,
+		TfOutputAssertions: []infratests.TerraformOutputValidation{
+			appGatewayIntegTests.InspectAppGateway("services_resource_group_name", "app_gw_name", "keyvault_secret_id"),
+		},
 	}
 	infratests.RunIntegrationTests(&testFixture)
 }

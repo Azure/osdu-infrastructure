@@ -74,6 +74,10 @@ locals {
   be_subnet_name  = "${local.base_name_21}-be-subnet"
   app_gw_name     = "${local.base_name_60}-gw"
 
+  // cluster.tf
+  aks_cluster_name = "${local.base_name_21}-aks"
+  aks_dns_prefix   = local.base_name_60
+
   // WARNING: Unfortunately order here is important.  Only append to the map don't insert.
   secrets_map = {
     # Imported Secrets from State
@@ -256,4 +260,64 @@ module "keyvault_secrets" {
   source      = "../../../../modules/providers/azure/keyvault-secret"
   keyvault_id = module.keyvault.keyvault_id
   secrets     = local.secrets_map
+}
+
+
+#-------------------------------
+# Azure AKS  (cluster.tf)
+#-------------------------------
+module "aks-gitops" {
+  source = "../../../../modules/providers/azure/aks-gitops"
+
+  name                = local.aks_cluster_name
+  resource_group_name = azurerm_resource_group.main.name
+
+  dns_prefix         = local.aks_dns_prefix
+  agent_vm_count     = var.aks_agent_vm_count
+  agent_vm_size      = var.aks_agent_vm_size
+  vnet_subnet_id     = module.network.subnets.1
+  ssh_public_key     = file(var.ssh_public_key_file)
+  kubernetes_version = var.kubernetes_version
+
+  flux_recreate     = var.flux_recreate
+  acr_enabled       = true
+  gc_enabled        = true
+  msi_enabled       = true
+  oms_agent_enabled = true
+
+  gitops_ssh_url       = var.gitops_ssh_url
+  gitops_ssh_key       = var.gitops_ssh_key_file
+  gitops_url_branch    = var.gitops_config.branch
+  gitops_path          = var.gitops_config.path
+  gitops_poll_interval = var.gitops_config.interval
+  gitops_label         = var.gitops_config.label
+}
+
+provider "kubernetes" {
+  version                = "~> 1.11.3"
+  load_config_file       = false
+  host                   = module.aks-gitops.kube_config.0.host
+  username               = module.aks-gitops.kube_config.0.username
+  password               = module.aks-gitops.kube_config.0.password
+  client_certificate     = base64decode(module.aks-gitops.kube_config.0.client_certificate)
+  client_key             = base64decode(module.aks-gitops.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(module.aks-gitops.kube_config.0.cluster_ca_certificate)
+}
+
+provider "helm" {
+  version = "~> 1.2.3"
+
+  kubernetes {
+    load_config_file       = false
+    host                   = module.aks-gitops.kube_config.0.host
+    username               = module.aks-gitops.kube_config.0.username
+    password               = module.aks-gitops.kube_config.0.password
+    client_certificate     = base64decode(module.aks-gitops.kube_config.0.client_certificate)
+    client_key             = base64decode(module.aks-gitops.kube_config.0.client_key)
+    cluster_ca_certificate = base64decode(module.aks-gitops.kube_config.0.cluster_ca_certificate)
+  }
+}
+
+data "azurerm_resource_group" "aks_node_resource_group" {
+  name = module.aks-gitops.node_resource_group
 }
