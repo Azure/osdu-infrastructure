@@ -88,6 +88,10 @@ locals {
   aks_cluster_name = "${local.base_name_21}-aks"
   aks_dns_prefix   = local.base_name_60
 
+  
+
+  
+
   // WARNING: Unfortunately order here is important.  Only append to the map don't insert.
   secrets_map = {
     # Imported Secrets from State
@@ -151,7 +155,7 @@ resource "azurerm_resource_group" "main" {
 }
 
 resource "azurerm_management_lock" "rg_lock" {
-  name       = "osdu_ds_rg_lock"
+  name       = "osdu_sr_rg_lock"
   scope      = azurerm_resource_group.main.id
   lock_level = "CanNotDelete"
 }
@@ -291,6 +295,22 @@ module "keyvault_secrets" {
   keyvault_id = module.keyvault.keyvault_id
   secrets     = local.secrets_map
 }
+
+/* START cluster node resource group role assignments for the kubelet identity*/
+resource "azurerm_role_assignment" "vm_contributor" {
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Virtual Machine Contributor"
+  principal_id         = module.aks-gitops.kubelet_client_id
+}
+
+resource "azurerm_role_assignment" "all_mi_operator" {
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Managed Identity Operator"
+  principal_id         = module.aks-gitops.kubelet_client_id
+}
+/* END cluster node resource group role assignments for the kubelet identity*/
+
+
 
 
 #-------------------------------

@@ -28,7 +28,7 @@ locals {
   backend_http_settings          = format("%s-be-htst", var.vnet_name)
   listener_name                  = format("%s-httplstn", var.vnet_name)
   request_routing_rule_name      = format("%s-rqrt", var.vnet_name)
-  identity_name                  = format("%s-pod-identity", var.name)
+  identity_name                  = format("%s-agic-identity", var.name)
 }
 
 resource "azurerm_public_ip" "main" {
@@ -50,6 +50,26 @@ resource "azurerm_user_assigned_identity" "main" {
 
   tags = var.resource_tags
 }
+
+/*START role assignments*/
+resource "azurerm_role_assignment" "appgwreader" {
+  principal_id         = azurerm_user_assigned_identity.main.principal_id
+  scope                = data.azurerm_resource_group.main.id
+  role_definition_name = "Reader"
+}
+
+resource "azurerm_role_assignment" "appgwcontributor" {
+  principal_id         = azurerm_user_assigned_identity.main.principal_id
+  scope                = azurerm_application_gateway.main.id
+  role_definition_name = "Contributor"
+}
+
+resource "azurerm_role_assignment" "appgwmanagedoperator" {
+  principal_id         = azurerm_user_assigned_identity.main.principal_id
+  scope                = azurerm_user_assigned_identity.main.id
+  role_definition_name = "Managed Identity Operator"
+}
+/*END role assignments*/
 
 module "app_gw_keyvault_access_policy" {
   source    = "../keyvault-policy"
