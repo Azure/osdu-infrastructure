@@ -71,7 +71,7 @@ locals {
   resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
   storage_name        = "${replace(local.base_name_21, "-", "")}la"
   ai_name             = "${local.base_name}-ai"
-  
+
 
   // security.tf
   kv_name       = "${local.base_name_21}-kv"
@@ -98,7 +98,7 @@ locals {
     sb-connection       = data.terraform_remote_state.data_resources.outputs.sb_namespace_default_connection_string
 
     # Secrets from this template
-    appinsights-key = module.app_insights.app_insights_instrumentation_key
+    appinsights-key         = module.app_insights.app_insights_instrumentation_key
     diagnostics-account-key = module.storage_account.primary_access_key
   }
 }
