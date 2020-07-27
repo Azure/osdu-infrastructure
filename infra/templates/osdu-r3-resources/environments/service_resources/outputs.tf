@@ -33,12 +33,12 @@ output "aks_name" {
 
 output "aks_identity_id" {
   description = "AKS Identity Resource Id"
-  value = azurerm_user_assigned_identity.aks.id
+  value = azurerm_user_assigned_identity.podidentity.id
 }
 
 output "aks_identity_client_id" {
   description = "AKS Identity Client Id"
-  value = azurerm_user_assigned_identity.aks.principal_id
+  value = azurerm_user_assigned_identity.podidentity.principal_id
 }
 
 # output "aks_kube_config" {

@@ -58,12 +58,12 @@ resource "helm_release" "aad_pod_id" {
 
   set {
     name  = "azureIdentities[0].resourceID"
-    value = azurerm_user_assigned_identity.aks.id
+    value = azurerm_user_assigned_identity.podidentity.id
   }
 
   set {
     name  = "azureIdentities[0].clientID"
-    value = azurerm_user_assigned_identity.aks.principal_id
+    value = azurerm_user_assigned_identity.podidentity.principal_id
   }
 
 
@@ -77,5 +77,5 @@ resource "helm_release" "aad_pod_id" {
     value = "podidentitybinding"
   }
 
-  depends_on = [kubernetes_namespace.pod_identity, azurerm_user_assigned_identity.aks]
+  depends_on = [kubernetes_namespace.pod_identity, azurerm_user_assigned_identity.podidentity]
 }
