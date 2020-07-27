@@ -37,15 +37,19 @@ provider "azurerm" {
 }
 
 provider "null" {
-  version = "~>2.1.0"
+  version = "~> 2.1.0"
 }
 
 provider "azuread" {
-  version = "~>0.7.0"
+  version = "~> 0.7.0"
 }
 
 provider "external" {
   version = "~> 1.0"
+}
+
+provider "random" {
+  version = "~> 2.3"
 }
 
 
@@ -93,6 +97,26 @@ variable "cosmosdb_automatic_failover" {
   description = "Determines if automatic failover is enabled for CosmosDB."
   type        = bool
   default     = true
+}
+
+variable "cosmos_databases" {
+  description = "The list of Cosmos DB SQL Databases."
+  type = list(object({
+    name       = string
+    throughput = number
+  }))
+  default = []
+}
+
+variable "cosmos_sql_collections" {
+  description = "The list of cosmos collection names to create. Names must be unique per cosmos instance."
+  type = list(object({
+    name               = string
+    database_name      = string
+    partition_key_path = string
+    throughput         = number
+  }))
+  default = []
 }
 
 variable "sb_sku" {
@@ -253,6 +277,8 @@ module "cosmosdb_account" {
   primary_replica_location = var.cosmosdb_replica_location
   automatic_failover       = var.cosmosdb_automatic_failover
   consistency_level        = var.cosmosdb_consistency_level
+  databases                = var.cosmos_databases
+  sql_collections          = var.cosmos_sql_collections
 }
 
 resource "azurerm_management_lock" "db_lock" {
