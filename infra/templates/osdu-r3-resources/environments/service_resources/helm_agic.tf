@@ -20,65 +20,69 @@ locals {
 }
 
 
-# resource "kubernetes_namespace" "agic" {
-#   metadata {
-#     name = local.helm_agic_ns
-#   }
-# }
+resource "kubernetes_namespace" "agic" {
+  metadata {
+    name = local.helm_agic_ns
+  }
 
-# resource "helm_release" "agic" {
-#   name       = local.helm_agic_name
-#   repository = local.helm_agic_repo
-#   chart      = "ingress-azure"
-#   version    = local.helm_agic_version
-#   namespace  = kubernetes_namespace.agic.metadata.0.name
-#   set {
-#     name  = "appgw.subscriptionId"
-#     value = data.azurerm_client_config.current.subscription_id
-#   }
+  depends_on = [module.aks-gitops]
+}
 
-#   set {
-#     name  = "appgw.resourceGroup"
-#     value = azurerm_resource_group.main.name
-#   }
+resource "helm_release" "agic" {
+  name       = local.helm_agic_name
+  repository = local.helm_agic_repo
+  chart      = "ingress-azure"
+  version    = local.helm_agic_version
+  namespace  = kubernetes_namespace.agic.metadata.0.name
 
-#   set {
-#     name  = "appgw.name"
-#     value = module.appgateway.name
-#   }
 
-#   set {
-#     name  = "armAuth.identityResourceID"
-#     value = module.appgateway.managed_identity_resource_id
-#   }
+  set {
+    name  = "appgw.subscriptionId"
+    value = data.azurerm_client_config.current.subscription_id
+  }
 
-#   set {
-#     name  = "armAuth.identityClientID"
-#     value = module.appgateway.managed_identity_principal_id
-#   }
+  set {
+    name  = "appgw.resourceGroup"
+    value = azurerm_resource_group.main.name
+  }
 
-#   set {
-#     name  = "armAuth.type"
-#     value = "aadPodIdentity"
-#   }
+  set {
+    name  = "appgw.name"
+    value = module.appgateway.name
+  }
 
-#   set {
-#     name  = "appgw.shared"
-#     value = false
-#   }
+  set {
+    name  = "armAuth.identityResourceID"
+    value = azurerm_user_assigned_identity.appgw.id
+  }
 
-#   set {
-#     name  = "appgw.usePrivateIP"
-#     value = false
-#   }
+  set {
+    name  = "armAuth.identityClientID"
+    value = azurerm_user_assigned_identity.appgw.client_id
+  }
 
-#   set {
-#     name  = "rbac.enabled"
-#     value = true
-#   }
+  set {
+    name  = "armAuth.type"
+    value = "aadPodIdentity"
+  }
 
-#   set {
-#     name  = "verbosityLevel"
-#     value = 5
-#   }
-# }
+  set {
+    name  = "appgw.shared"
+    value = false
+  }
+
+  set {
+    name  = "appgw.usePrivateIP"
+    value = false
+  }
+
+  set {
+    name  = "rbac.enabled"
+    value = true
+  }
+
+  set {
+    name  = "verbosityLevel"
+    value = 5
+  }
+}

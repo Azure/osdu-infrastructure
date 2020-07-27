@@ -38,7 +38,7 @@ func TestDataEnvironment(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 3,
+		ExpectedTfOutputCount: 8,
 		TfOutputAssertions: []infratests.TerraformOutputValidation{
 			appGatewayIntegTests.InspectAppGateway("services_resource_group_name", "app_gw_name", "keyvault_secret_id"),
 		},

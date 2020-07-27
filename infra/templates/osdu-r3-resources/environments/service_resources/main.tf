@@ -87,7 +87,7 @@ locals {
   aks_subnet_name = "${local.base_name_21}-aks-subnet"
   be_subnet_name  = "${local.base_name_21}-be-subnet"
   app_gw_name     = "${local.base_name_60}-gw"
-  appgw_identity_name    = format("%s-agis-identity", local.app_gw_name)
+  appgw_identity_name    = format("%s-agic-identity", local.app_gw_name)
 
   // cluster.tf
   aks_cluster_name = "${local.base_name_21}-aks"
@@ -170,7 +170,7 @@ module "keyvault" {
   }
 }
 
-# Default Certificate Install.
+# Create a Default SSL Certificate.
 resource "azurerm_key_vault_certificate" "default" {
   count = var.ssl_certificate_file == "" ? 1 : 0
 
@@ -242,6 +242,7 @@ module "storage_account" {
   replication_type    = "LRS"
 }
 
+// Add the Storage Key to the Vault
 resource "azurerm_key_vault_secret" "storage" {
   name         = local.storage_key_name
   value        = module.storage_account.primary_access_key
@@ -268,6 +269,7 @@ module "app_insights" {
   appinsights_application_type = "other"
 }
 
+// Add the App Insights Key to the Vault
 resource "azurerm_key_vault_secret" "ai" {
   name         = local.ai_key_name
   value        = module.app_insights.app_insights_instrumentation_key
@@ -299,10 +301,11 @@ module "appgateway" {
   vnet_name            = module.network.name
   vnet_subnet_id       = module.network.subnets.0
   keyvault_id          = module.keyvault.keyvault_id
-  keyvault_secret_id   = azurerm_key_vault_certificate.default.0.secret_id # TODO: If not default then import
+  keyvault_secret_id   = azurerm_key_vault_certificate.default.0.secret_id
   ssl_certificate_name = local.ssl_cert_name
 }
 
+// Identity for AGIC
 resource "azurerm_user_assigned_identity" "appgw" {
   name                = local.appgw_identity_name
   resource_group_name = azurerm_resource_group.main.name
@@ -342,12 +345,6 @@ resource "azurerm_role_assignment" "operator" {
 #-------------------------------
 # Azure AKS  (cluster.tf)
 #-------------------------------
-resource "azurerm_user_assigned_identity" "aks" {
-  name                = local.aks_identity_name
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-}
-
 module "aks-gitops" {
   source = "../../../../modules/providers/azure/aks-gitops"
 
@@ -379,24 +376,36 @@ data "azurerm_resource_group" "aks_node_resource_group" {
   name = module.aks-gitops.node_resource_group
 }
 
+// Identity for Pod Identity
+resource "azurerm_user_assigned_identity" "podidentity" {
+  name                = local.aks_identity_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+// Managed Identity Operator Role for Kubelet to the PodIdentity
 resource "azurerm_role_assignment" "aks_operator" {
-  scope                = azurerm_user_assigned_identity.aks.id
   principal_id         = module.aks-gitops.kubelet_client_id
+  scope                = azurerm_user_assigned_identity.podidentity.id
   role_definition_name = "Managed Identity Operator"
 }
 
-resource "azurerm_role_assignment" "aks_vm_contributor" {
-  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+// Managed Identity Operator Role for Kubelet to the AKS Node Resource Group
+resource "azurerm_role_assignment" "aks_rg_mi_operator" {
   principal_id         = module.aks-gitops.kubelet_client_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Virtual Machine Contributor Role for Kubelet to the AKS Node Resource Group
+resource "azurerm_role_assignment" "aks_vm_contributor" {
+  principal_id         = module.aks-gitops.kubelet_client_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
   role_definition_name = "Virtual Machine Contributor"
 }
 
-resource "azurerm_role_assignment" "aks_rg_mi_operator" {
-  scope                = data.azurerm_resource_group.aks_node_resource_group.id
-  principal_id         = module.aks-gitops.kubelet_client_id
-  role_definition_name = "Managed Identity Operator"
-}
 
+// Hook-up kubectl Provider for Terraform
 provider "kubernetes" {
   version                = "~> 1.11.3"
   load_config_file       = false
@@ -408,6 +417,7 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(module.aks-gitops.kube_config.0.cluster_ca_certificate)
 }
 
+// Hook-up helm Provider for Terraform
 provider "helm" {
   version = "~> 1.2.3"
 
