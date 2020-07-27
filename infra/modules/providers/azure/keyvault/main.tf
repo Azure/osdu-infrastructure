@@ -45,6 +45,15 @@ resource "azurerm_key_vault" "keyvault" {
   tags = var.resource_tags
 }
 
+resource "azurerm_key_vault_secret" "keyvault" {
+  for_each     = var.secrets
+  name         = each.key
+  value        = each.value
+  key_vault_id = azurerm_key_vault.keyvault.id
+
+  depends_on   = [module.deployment_service_principal_keyvault_access_policies]
+}
+
 module "deployment_service_principal_keyvault_access_policies" {
   source                  = "../keyvault-policy"
   vault_id                = azurerm_key_vault.keyvault.id

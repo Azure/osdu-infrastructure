@@ -51,11 +51,3 @@ output "kubelet_resource_id" {
 output "kubelet_client_id" {
   value = module.aks.kubelet_client_id
 }
-
-output "pod_identity_id" {
-  value = azurerm_user_assigned_identity.pod.id
-}
-
-output "pod_identity_client_id" {
-  value = azurerm_user_assigned_identity.pod.client_id
-}

@@ -32,13 +32,3 @@ output "frontend_ip_configuration" {
   description = "The Application Gateway Frontend IP Configuration"
   value       = azurerm_application_gateway.main.frontend_ip_configuration
 }
-
-output "managed_identity_resource_id" {
-  description = "The resource id of the managed user identity"
-  value       = azurerm_user_assigned_identity.main.id
-}
-
-output "managed_identity_principal_id" {
-  description = "The resource id of the managed user identity"
-  value       = azurerm_user_assigned_identity.main.principal_id
-}

@@ -28,52 +28,52 @@ resource "kubernetes_namespace" "aad_pod_id_ns" {
   depends_on = [module.aks-gitops]
 }
 
-resource "helm_release" "aad_pod_id" {
-  name       = local.helm_pod_identity_name
-  repository = local.helm_pod_identity_repo
-  chart      = "aad-pod-identity"
-  namespace  = kubernetes_namespace.aad_pod_id_ns.metadata.0.name
-  version    = local.helm_pod_identity_version
+# resource "helm_release" "aad_pod_id" {
+#   name       = local.helm_pod_identity_name
+#   repository = local.helm_pod_identity_repo
+#   chart      = "aad-pod-identity"
+#   namespace  = kubernetes_namespace.aad_pod_id_ns.metadata.0.name
+#   version    = local.helm_pod_identity_version
 
 
-  set {
-    name  = "azureIdentities[0].enabled"
-    value = true
-  }
+#   set {
+#     name  = "azureIdentities[0].enabled"
+#     value = true
+#   }
 
-  set {
-    name  = "azureIdentities[0].type"
-    value = 0
-  }
+#   set {
+#     name  = "azureIdentities[0].type"
+#     value = 0
+#   }
 
-  set {
-    name  = "azureIdentities[0].namespace"
-    value = kubernetes_namespace.aad_pod_id_ns.metadata.0.name
-  }
+#   set {
+#     name  = "azureIdentities[0].namespace"
+#     value = kubernetes_namespace.aad_pod_id_ns.metadata.0.name
+#   }
 
-  set {
-    name  = "azureIdentities[0].name"
-    value = "podidentity"
-  }
+#   set {
+#     name  = "azureIdentities[0].name"
+#     value = "podidentity"
+#   }
 
-  set {
-    name  = "azureIdentities[0].resourceID"
-    value = module.aks-gitops.pod_identity_id
-  }
+#   set {
+#     name  = "azureIdentities[0].resourceID"
+#     value = azurerm_user_assigned_identity.aks.id
+#   }
 
-  set {
-    name  = "azureIdentities[0].clientID"
-    value = module.aks-gitops.pod_identity_client_id
-  }
+#   set {
+#     name  = "azureIdentities[0].clientID"
+#     value = azurerm_user_assigned_identity.aks.principal_id
+#   }
 
 
-  set {
-    name  = "azureIdentities[0].binding.selector"
-    value = "podidentity"
-  }
+#   set {
+#     name  = "azureIdentities[0].binding.selector"
+#     value = "podidentity"
+#   }
 
-  set {
-    name  = "azureIdentities[0].binding.name"
-    value = "podidentitybinding"
-  }
-}
+#   set {
+#     name  = "azureIdentities[0].binding.name"
+#     value = "podidentitybinding"
+#   }
+# }

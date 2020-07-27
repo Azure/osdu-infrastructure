@@ -12,10 +12,6 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-locals {
-  identity_name                  = format("%s-pod-identity", var.name)
-}
-
 data "azurerm_resource_group" "aksgitops" {
   name = var.resource_group_name
 }
@@ -73,16 +69,3 @@ module "kubediff" {
   gitops_ssh_url      = var.gitops_ssh_url
 }
 
-resource "azurerm_user_assigned_identity" "pod" {
-  name                = local.identity_name
-  resource_group_name = data.azurerm_resource_group.aksgitops.name
-  location            = data.azurerm_resource_group.aksgitops.location
-}
-
-/* START Pod identity-specific role assignments for the kubelet identity*/
-resource "azurerm_role_assignment" "operator" {
-  principal_id         = module.aks.kubelet_client_id
-  scope                = azurerm_user_assigned_identity.pod.id
-  role_definition_name = "Managed Identity Operator"
-}
-/*END Pod identity-specific role assignments*/

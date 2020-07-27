@@ -21,6 +21,7 @@ terraform {
 }
 
 
+
 #-------------------------------
 # Providers  (main.tf)
 #-------------------------------
@@ -50,6 +51,7 @@ provider "random" {
 }
 
 
+
 #-------------------------------
 # Private Variables  (common.tf)
 #-------------------------------
@@ -69,8 +71,10 @@ locals {
 
   tenant_id           = data.azurerm_client_config.current.tenant_id
   resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
-  storage_name        = "${replace(local.base_name_21, "-", "")}la"
+  storage_name        = "${replace(local.base_name_21, "-", "")}diag"
+  storage_key_name    = "diagnostics-account-key"
   ai_name             = "${local.base_name}-ai"
+  ai_key_name         = "appinsights-key"
 
 
   // security.tf
@@ -83,29 +87,14 @@ locals {
   aks_subnet_name = "${local.base_name_21}-aks-subnet"
   be_subnet_name  = "${local.base_name_21}-be-subnet"
   app_gw_name     = "${local.base_name_60}-gw"
+  appgw_identity_name    = format("%s-agis-identity", local.app_gw_name)
 
   // cluster.tf
   aks_cluster_name = "${local.base_name_21}-aks"
+  aks_identity_name    = format("%s-pod-identity", local.aks_cluster_name)
   aks_dns_prefix   = local.base_name_60
-
-  
-
-  
-
-  // WARNING: Unfortunately order here is important.  Only append to the map don't insert.
-  secrets_map = {
-    # Imported Secrets from State
-    cosmos-endpoint     = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.endpoint
-    cosmos-primary-key  = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.primary_master_key
-    cosmos-connection   = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.connection_strings[0]
-    storage-account-key = data.terraform_remote_state.data_resources.outputs.storage_properties.primary_access_key
-    sb-connection       = data.terraform_remote_state.data_resources.outputs.sb_namespace_default_connection_string
-
-    # Secrets from this template
-    appinsights-key         = module.app_insights.app_insights_instrumentation_key
-    diagnostics-account-key = module.storage_account.primary_access_key
-  }
 }
+
 
 
 #-------------------------------
@@ -146,6 +135,7 @@ resource "random_string" "workspace_scope" {
 }
 
 
+
 #-------------------------------
 # Resource Group
 #-------------------------------
@@ -154,71 +144,12 @@ resource "azurerm_resource_group" "main" {
   location = var.resource_group_location
 }
 
-resource "azurerm_management_lock" "rg_lock" {
-  name       = "osdu_sr_rg_lock"
-  scope      = azurerm_resource_group.main.id
-  lock_level = "CanNotDelete"
-}
+# resource "azurerm_management_lock" "rg_lock" {
+#   name       = "osdu_sr_rg_lock"
+#   scope      = azurerm_resource_group.main.id
+#   lock_level = "CanNotDelete"
+# }
 
-#-------------------------------
-# Storage
-#-------------------------------
-module "storage_account" {
-  source = "../../../../modules/providers/azure/storage-account"
-
-  name                = local.storage_name
-  resource_group_name = azurerm_resource_group.main.name
-  container_names     = var.storage_containers
-  kind                = "StorageV2"
-  replication_type    = "LRS"
-}
-
-resource "azurerm_management_lock" "la_lock" {
-  name       = "osdu_sr_la_lock"
-  scope      = module.storage_account.id
-  lock_level = "CanNotDelete"
-}
-
-
-#-------------------------------
-# Application Insights (main.tf)
-#-------------------------------
-module "app_insights" {
-  source = "../../../../modules/providers/azure/app-insights"
-
-  appinsights_name                 = local.ai_name
-  service_plan_resource_group_name = azurerm_resource_group.main.name
-
-  appinsights_application_type = "other"
-}
-
-
-#-------------------------------
-# Network (main.tf)
-#-------------------------------
-module "network" {
-  source = "../../../../modules/providers/azure/network"
-
-  name                = local.vnet_name
-  resource_group_name = azurerm_resource_group.main.name
-  address_space       = var.address_space
-  dns_servers         = ["8.8.8.8"]
-  subnet_prefixes     = [var.subnet_fe_prefix, var.subnet_aks_prefix, var.subnet_be_prefix]
-  subnet_names        = [local.fe_subnet_name, local.aks_subnet_name, local.be_subnet_name]
-}
-
-module "appgateway" {
-  source = "../../../../modules/providers/azure/aks-appgw"
-
-  name                = local.app_gw_name
-  resource_group_name = azurerm_resource_group.main.name
-
-  vnet_name            = module.network.name
-  vnet_subnet_id       = module.network.subnets.0
-  keyvault_id          = module.keyvault.keyvault_id
-  keyvault_secret_id   = azurerm_key_vault_certificate.default.0.secret_id # TODO: If not default then import
-  ssl_certificate_name = local.ssl_cert_name
-}
 
 
 #-------------------------------
@@ -229,6 +160,14 @@ module "keyvault" {
 
   keyvault_name       = local.kv_name
   resource_group_name = azurerm_resource_group.main.name
+
+  secrets             = {
+    cosmos-connection   = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.connection_strings[0]
+    cosmos-endpoint     = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.endpoint
+    cosmos-primary-key  = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.primary_master_key
+    sb-connection       = data.terraform_remote_state.data_resources.outputs.sb_namespace_default_connection_string
+    storage-account-key = data.terraform_remote_state.data_resources.outputs.storage_properties.primary_access_key
+  }
 }
 
 # Default Certificate Install.
@@ -288,34 +227,127 @@ resource "azurerm_key_vault_certificate" "default" {
   }
 }
 
-// Secrets Load from things created in this template.
-// When this module runs depends upon the secrets loaded.
-module "keyvault_secrets" {
-  source      = "../../../../modules/providers/azure/keyvault-secret"
-  keyvault_id = module.keyvault.keyvault_id
-  secrets     = local.secrets_map
+
+
+#-------------------------------
+# Storage
+#-------------------------------
+module "storage_account" {
+  source = "../../../../modules/providers/azure/storage-account"
+
+  name                = local.storage_name
+  resource_group_name = azurerm_resource_group.main.name
+  container_names     = var.storage_containers
+  kind                = "StorageV2"
+  replication_type    = "LRS"
 }
 
-/* START cluster node resource group role assignments for the kubelet identity*/
-resource "azurerm_role_assignment" "vm_contributor" {
-  scope                = data.azurerm_resource_group.aks_node_resource_group.id
-  role_definition_name = "Virtual Machine Contributor"
-  principal_id         = module.aks-gitops.kubelet_client_id
+resource "azurerm_key_vault_secret" "storage" {
+  name         = local.storage_key_name
+  value        = module.storage_account.primary_access_key
+  key_vault_id = module.keyvault.keyvault_id
 }
 
-resource "azurerm_role_assignment" "all_mi_operator" {
-  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+resource "azurerm_management_lock" "la_lock" {
+  name       = "osdu_sr_la_lock"
+  scope      = module.storage_account.id
+  lock_level = "CanNotDelete"
+}
+
+
+
+#-------------------------------
+# Application Insights (main.tf)
+#-------------------------------
+module "app_insights" {
+  source = "../../../../modules/providers/azure/app-insights"
+
+  appinsights_name                 = local.ai_name
+  service_plan_resource_group_name = azurerm_resource_group.main.name
+
+  appinsights_application_type = "other"
+}
+
+resource "azurerm_key_vault_secret" "ai" {
+  name         = local.ai_key_name
+  value        = module.app_insights.app_insights_instrumentation_key
+  key_vault_id = module.keyvault.keyvault_id
+}
+
+
+
+#-------------------------------
+# Network (main.tf)
+#-------------------------------
+module "network" {
+  source = "../../../../modules/providers/azure/network"
+
+  name                = local.vnet_name
+  resource_group_name = azurerm_resource_group.main.name
+  address_space       = var.address_space
+  dns_servers         = ["8.8.8.8"]
+  subnet_prefixes     = [var.subnet_fe_prefix, var.subnet_aks_prefix, var.subnet_be_prefix]
+  subnet_names        = [local.fe_subnet_name, local.aks_subnet_name, local.be_subnet_name]
+}
+
+module "appgateway" {
+  source = "../../../../modules/providers/azure/aks-appgw"
+
+  name                = local.app_gw_name
+  resource_group_name = azurerm_resource_group.main.name
+
+  vnet_name            = module.network.name
+  vnet_subnet_id       = module.network.subnets.0
+  keyvault_id          = module.keyvault.keyvault_id
+  keyvault_secret_id   = azurerm_key_vault_certificate.default.0.secret_id # TODO: If not default then import
+  ssl_certificate_name = local.ssl_cert_name
+}
+
+resource "azurerm_user_assigned_identity" "appgw" {
+  name                = local.appgw_identity_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+// Reader role for AGIC to the Resource Group
+resource "azurerm_role_assignment" "appgwreader" {
+  principal_id         = azurerm_user_assigned_identity.appgw.principal_id
+  scope                = azurerm_resource_group.main.id
+  role_definition_name = "Reader"
+}
+
+// Contributor Role for AGIC to the Application Gateway
+resource "azurerm_role_assignment" "appgwcontributor" {
+  principal_id         = azurerm_user_assigned_identity.appgw.principal_id
+  scope                = module.appgateway.id
+  role_definition_name = "Contributor"
+}
+
+// Managed Identity Operator Role for AGIC to the Application Gateway
+resource "azurerm_role_assignment" "appgwoperator" {
+  principal_id         = azurerm_user_assigned_identity.appgw.principal_id
+  scope                = module.appgateway.id
   role_definition_name = "Managed Identity Operator"
-  principal_id         = module.aks-gitops.kubelet_client_id
 }
-/* END cluster node resource group role assignments for the kubelet identity*/
 
+// Managed Identity Operator Role for AKS to the Application Gateway
+resource "azurerm_role_assignment" "operator" {
+  principal_id         = module.aks-gitops.kubelet_client_id
+  scope                = module.appgateway.id
+  role_definition_name = "Managed Identity Operator"
+}
 
 
 
 #-------------------------------
 # Azure AKS  (cluster.tf)
 #-------------------------------
+resource "azurerm_user_assigned_identity" "aks" {
+  name                = local.aks_identity_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
 module "aks-gitops" {
   source = "../../../../modules/providers/azure/aks-gitops"
 
@@ -343,6 +375,28 @@ module "aks-gitops" {
   gitops_label         = var.gitops_config.label
 }
 
+data "azurerm_resource_group" "aks_node_resource_group" {
+  name = module.aks-gitops.node_resource_group
+}
+
+resource "azurerm_role_assignment" "aks_operator" {
+  scope                = azurerm_user_assigned_identity.aks.id
+  principal_id         = module.aks-gitops.kubelet_client_id
+  role_definition_name = "Managed Identity Operator"
+}
+
+resource "azurerm_role_assignment" "aks_vm_contributor" {
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  principal_id         = module.aks-gitops.kubelet_client_id
+  role_definition_name = "Virtual Machine Contributor"
+}
+
+resource "azurerm_role_assignment" "aks_rg_mi_operator" {
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  principal_id         = module.aks-gitops.kubelet_client_id
+  role_definition_name = "Managed Identity Operator"
+}
+
 provider "kubernetes" {
   version                = "~> 1.11.3"
   load_config_file       = false
@@ -366,8 +420,4 @@ provider "helm" {
     client_key             = base64decode(module.aks-gitops.kube_config.0.client_key)
     cluster_ca_certificate = base64decode(module.aks-gitops.kube_config.0.cluster_ca_certificate)
   }
-}
-
-data "azurerm_resource_group" "aks_node_resource_group" {
-  name = module.aks-gitops.node_resource_group
 }

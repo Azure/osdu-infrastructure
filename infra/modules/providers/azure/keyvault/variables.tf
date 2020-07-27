@@ -64,3 +64,9 @@ variable "resource_ip_whitelist" {
   type        = list(string)
   default     = []
 }
+
+variable "secrets" {
+  type        = map(string)
+  description = "A map of secrets for the Key Vault."
+  default     = {}
+}
