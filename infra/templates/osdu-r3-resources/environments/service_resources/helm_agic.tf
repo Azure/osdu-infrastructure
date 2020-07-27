@@ -13,9 +13,9 @@
 //  limitations under the License.
 
 locals {
-  helm_agic_name   = "agic"
-  helm_agic_ns     = "agic"
-  helm_agic_repo   = "https://blobbloghelmagic.blob.core.windows.net/helm"
+  helm_agic_name    = "agic"
+  helm_agic_ns      = "agic"
+  helm_agic_repo    = "https://blobbloghelmagic.blob.core.windows.net/helm"
   helm_agic_version = "1.0.0"
 }
 

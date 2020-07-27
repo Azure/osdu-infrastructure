@@ -13,10 +13,10 @@
 //  limitations under the License.
 
 locals {
-  pod_identity_name      = "${local.aks_cluster_name}-pod-identity"
-  helm_pod_identity_name = "aad-pod-identity"
-  helm_pod_identity_ns   = "podidentity"
-  helm_pod_identity_repo = "https://raw.githubusercontent.com/Azure/aad-pod-identity/master/charts"
+  pod_identity_name         = "${local.aks_cluster_name}-pod-identity"
+  helm_pod_identity_name    = "aad-pod-identity"
+  helm_pod_identity_ns      = "podidentity"
+  helm_pod_identity_repo    = "https://raw.githubusercontent.com/Azure/aad-pod-identity/master/charts"
   helm_pod_identity_version = "2.0.0"
 }
 

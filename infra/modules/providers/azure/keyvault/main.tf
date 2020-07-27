@@ -51,7 +51,7 @@ resource "azurerm_key_vault_secret" "keyvault" {
   value        = each.value
   key_vault_id = azurerm_key_vault.keyvault.id
 
-  depends_on   = [module.deployment_service_principal_keyvault_access_policies]
+  depends_on = [module.deployment_service_principal_keyvault_access_policies]
 }
 
 module "deployment_service_principal_keyvault_access_policies" {

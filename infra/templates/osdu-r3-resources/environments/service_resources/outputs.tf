@@ -28,17 +28,17 @@ output "appgw_identity_client_id" {
 
 output "aks_name" {
   description = "The Kubernetes Cluster Name"
-  value = module.aks-gitops.cluster_name
+  value       = module.aks-gitops.cluster_name
 }
 
 output "aks_identity_id" {
   description = "AKS Identity Resource Id"
-  value = azurerm_user_assigned_identity.podidentity.id
+  value       = azurerm_user_assigned_identity.podidentity.id
 }
 
 output "aks_identity_client_id" {
   description = "AKS Identity Client Id"
-  value = azurerm_user_assigned_identity.podidentity.principal_id
+  value       = azurerm_user_assigned_identity.podidentity.principal_id
 }
 
 # output "aks_kube_config" {

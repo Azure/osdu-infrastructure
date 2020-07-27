@@ -82,17 +82,17 @@ locals {
   ssl_cert_name = "appgw-ssl-cert"
 
   // network.tf
-  vnet_name       = "${local.base_name_60}-vnet"
-  fe_subnet_name  = "${local.base_name_21}-fe-subnet"
-  aks_subnet_name = "${local.base_name_21}-aks-subnet"
-  be_subnet_name  = "${local.base_name_21}-be-subnet"
-  app_gw_name     = "${local.base_name_60}-gw"
-  appgw_identity_name    = format("%s-agic-identity", local.app_gw_name)
+  vnet_name           = "${local.base_name_60}-vnet"
+  fe_subnet_name      = "${local.base_name_21}-fe-subnet"
+  aks_subnet_name     = "${local.base_name_21}-aks-subnet"
+  be_subnet_name      = "${local.base_name_21}-be-subnet"
+  app_gw_name         = "${local.base_name_60}-gw"
+  appgw_identity_name = format("%s-agic-identity", local.app_gw_name)
 
   // cluster.tf
-  aks_cluster_name = "${local.base_name_21}-aks"
-  aks_identity_name    = format("%s-pod-identity", local.aks_cluster_name)
-  aks_dns_prefix   = local.base_name_60
+  aks_cluster_name  = "${local.base_name_21}-aks"
+  aks_identity_name = format("%s-pod-identity", local.aks_cluster_name)
+  aks_dns_prefix    = local.base_name_60
 }
 
 
@@ -161,7 +161,7 @@ module "keyvault" {
   keyvault_name       = local.kv_name
   resource_group_name = azurerm_resource_group.main.name
 
-  secrets             = {
+  secrets = {
     cosmos-connection   = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.connection_strings[0]
     cosmos-endpoint     = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.endpoint
     cosmos-primary-key  = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.primary_master_key
