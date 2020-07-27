@@ -13,14 +13,15 @@
 //  limitations under the License.
 
 package unit
+
 //might be package test
 import (
 	"encoding/json"
 	"strings"
 	"testing"
 
-	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
@@ -29,9 +30,8 @@ var count = 9
 
 var tfOptions = &terraform.Options{
 	TerraformDir: "./",
-	Upgrade: false,
+	Upgrade:      false,
 }
-
 
 // helper function to parse blocks of JSON into a generic Go map
 func asMap(t *testing.T, jsonString string) map[string]interface{} {

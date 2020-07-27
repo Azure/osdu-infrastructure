@@ -24,45 +24,45 @@ module "resource_group" {
 }
 
 module "service-bus" {
-    source = "../"
+  source = "../"
 
-    namespace_name = "osdu-module-service-bus-${module.resource_group.random}"
-    resource_group_name = module.resource_group.name
-    sku = "Standard"
-    namespace_authorization_rules = [{
-        claims = {
-            listen = "true", 
-            send = "true", 
-            manage = "false"
-        },
-        policy_name = "policy"
-    }]
-    topics = [{
-        authorization_rules = [{
-            policy_name = "policy", 
-            claims = {
-                listen = "true", 
-                send = "true", 
-                manage = "false"
-                }
-            }], 
-        subscriptions = [{
-            filter_type = "SqlFilter", 
-            sql_filter = "color = 'red'", 
-            action = "", 
-            name = "sub_test", 
-            max_delivery_count = 1, 
-            lock_duration = "PT5M", 
-            forward_to = "", 
-            dead_lettering_on_message_expiration = "true"
-        }], 
-        name = "topic_test", 
-        default_message_ttl = "PT30M", 
-        enable_partitioning = "true", 
-        requires_duplicate_detection = "true", 
-        support_ordering = "true"
-    }]
-    tags = {
-        source = "terraform",
-    }
+  namespace_name      = "osdu-module-service-bus-${module.resource_group.random}"
+  resource_group_name = module.resource_group.name
+  sku                 = "Standard"
+  namespace_authorization_rules = [{
+    claims = {
+      listen = "true",
+      send   = "true",
+      manage = "false"
+    },
+    policy_name = "policy"
+  }]
+  topics = [{
+    authorization_rules = [{
+      policy_name = "policy",
+      claims = {
+        listen = "true",
+        send   = "true",
+        manage = "false"
+      }
+    }],
+    subscriptions = [{
+      filter_type                          = "SqlFilter",
+      sql_filter                           = "color = 'red'",
+      action                               = "",
+      name                                 = "sub_test",
+      max_delivery_count                   = 1,
+      lock_duration                        = "PT5M",
+      forward_to                           = "",
+      dead_lettering_on_message_expiration = "true"
+    }],
+    name                         = "topic_test",
+    default_message_ttl          = "PT30M",
+    enable_partitioning          = "true",
+    requires_duplicate_detection = "true",
+    support_ordering             = "true"
+  }]
+  tags = {
+    source = "terraform",
+  }
 }
