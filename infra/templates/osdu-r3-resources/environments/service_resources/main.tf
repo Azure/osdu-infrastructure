@@ -41,6 +41,14 @@ provider "external" {
   version = "~> 1.0"
 }
 
+provider "local" {
+  version = "~> 1.4"
+}
+
+provider "random" {
+  version = "~> 2.3"
+}
+
 
 #-------------------------------
 # Private Variables  (common.tf)
@@ -61,7 +69,9 @@ locals {
 
   tenant_id           = data.azurerm_client_config.current.tenant_id
   resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
+  storage_name        = "${replace(local.base_name_21, "-", "")}la"
   ai_name             = "${local.base_name}-ai"
+
 
   // security.tf
   kv_name       = "${local.base_name_21}-kv"
@@ -88,7 +98,8 @@ locals {
     sb-connection       = data.terraform_remote_state.data_resources.outputs.sb_namespace_default_connection_string
 
     # Secrets from this template
-    appinsights-key = module.app_insights.app_insights_instrumentation_key
+    appinsights-key         = module.app_insights.app_insights_instrumentation_key
+    diagnostics-account-key = module.storage_account.primary_access_key
   }
 }
 
@@ -142,6 +153,25 @@ resource "azurerm_resource_group" "main" {
 resource "azurerm_management_lock" "rg_lock" {
   name       = "osdu_ds_rg_lock"
   scope      = azurerm_resource_group.main.id
+  lock_level = "CanNotDelete"
+}
+
+#-------------------------------
+# Storage
+#-------------------------------
+module "storage_account" {
+  source = "../../../../modules/providers/azure/storage-account"
+
+  name                = local.storage_name
+  resource_group_name = azurerm_resource_group.main.name
+  container_names     = var.storage_containers
+  kind                = "StorageV2"
+  replication_type    = "LRS"
+}
+
+resource "azurerm_management_lock" "la_lock" {
+  name       = "osdu_sr_la_lock"
+  scope      = module.storage_account.id
   lock_level = "CanNotDelete"
 }
 

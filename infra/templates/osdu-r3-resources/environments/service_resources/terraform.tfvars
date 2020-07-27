@@ -13,3 +13,8 @@
 //  limitations under the License.
 
 prefix = "osdu-r3"
+
+# Storage Settings
+storage_containers = [
+  "airflow"
+]

@@ -49,6 +49,11 @@ variable "resource_group_location" {
   type        = string
 }
 
+variable "storage_containers" {
+  description = "The list of storage container names to create. Names must be unique per storage account."
+  type        = list(string)
+}
+
 variable "dns_name" {
   description = "Default DNS Name for the Public IP"
   type        = string
