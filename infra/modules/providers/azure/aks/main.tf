@@ -17,15 +17,6 @@
 // Need to be able to query the identityProfile to get kubelet client information. id, resourceid and client_id
 locals {
   msi_identity_type = "SystemAssigned"
-  cli_query         = <<-EOT
-      {
-        user_assigned_identity_id:identity.principalId,
-        node_resource_group:nodeResourceGroup,
-        kubelet_client_id:identityProfile.kubeletidentity.objectId,
-        kubelet_id:identityProfile.kubeletidentity.resourceId,
-        kubelet_resource_id:identityProfile.kubeletidentity.resourceId
-      }
-    EOT
 }
 
 data "azurerm_resource_group" "main" {
@@ -137,10 +128,3 @@ resource "azurerm_kubernetes_cluster" "main" {
   }
 }
 
-data "external" "az_cli" {
-  program = ["bash", "-c",
-    "az aks show -ojson -n ${var.name} -g ${data.azurerm_resource_group.main.name} --subscription ${data.azurerm_subscription.current.subscription_id} --query '${local.cli_query}'"
-  ]
-
-  depends_on = [azurerm_kubernetes_cluster.main]
-}

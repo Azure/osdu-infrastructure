@@ -12,8 +12,20 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+output "cluster_id" {
+  value = module.aks.id
+}
+
 output "cluster_name" {
   value = module.aks.name
+}
+
+output "cluster_principal_id" {
+  value = module.aks.principal_id
+}
+
+output "node_resource_group" {
+  value = module.aks.node_resource_group
 }
 
 output "kube_config" {
@@ -28,26 +40,16 @@ output "aks_flux_kubediff_done" {
   value = "${module.aks.kubeconfig_done}_${module.flux.flux_done}_${module.kubediff.kubediff_done}"
 }
 
-output "aks_resource_id" {
-  value = module.aks.id
-}
-
-output "msi_client_id" {
-  value = module.aks.msi_client_id
-}
-
-output "node_resource_group" {
-  value = module.aks.node_resource_group
-}
-
-output "kubelet_id" {
-  value = module.aks.kubelet_id
-}
-
-output "kubelet_resource_id" {
-  value = module.aks.kubelet_resource_id
+output "kubelet_identity_id" {
+  value = module.aks.kubelet_identity_id
 }
 
 output "kubelet_client_id" {
   value = module.aks.kubelet_client_id
 }
+
+output "kubelet_object_id" {
+  value = module.aks.kubelet_object_id
+}
+
+

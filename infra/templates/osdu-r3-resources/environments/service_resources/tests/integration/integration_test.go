@@ -19,11 +19,14 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
-	// appGatewayIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/aks-appgw/tests/integration"
+	appGatewayIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/aks-appgw/tests/integration"
+	aksGitOpsIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/aks-gitops/tests/integration"
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
 var subscription = os.Getenv("ARM_SUBSCRIPTION_ID")
+var kubeConfig = "../../output/bedrock_kube_config"
+
 var tfOptions = &terraform.Options{
 	TerraformDir: "../../",
 	BackendConfig: map[string]interface{}{
@@ -38,9 +41,13 @@ func TestDataEnvironment(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 8,
-		TfOutputAssertions:    []infratests.TerraformOutputValidation{
-			// appGatewayIntegTests.InspectAppGateway("services_resource_group_name", "app_gw_name", "keyvault_secret_id"),
+		ExpectedTfOutputCount: 20,
+		TfOutputAssertions: []infratests.TerraformOutputValidation{
+			appGatewayIntegTests.InspectAppGateway("services_resource_group_name", "appgw_name", "keyvault_secret_id"),
+			aksGitOpsIntegTests.BaselineClusterAssertions(kubeConfig, "aks_pod_identity_namespace"),
+			verifyAGICRoleAssignments,
+			verifyKubeletMSIRoleAssignments,
+			verifyOSDUPodIdentityMSIRoleAssignments,
 		},
 	}
 	infratests.RunIntegrationTests(&testFixture)

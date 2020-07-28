@@ -76,7 +76,6 @@ locals {
   ai_name             = "${local.base_name}-ai"
   ai_key_name         = "appinsights-key"
 
-
   // security.tf
   kv_name       = "${local.base_name_21}-kv"
   ssl_cert_name = "appgw-ssl-cert"
@@ -90,9 +89,10 @@ locals {
   appgw_identity_name = format("%s-agic-identity", local.app_gw_name)
 
   // cluster.tf
-  aks_cluster_name  = "${local.base_name_21}-aks"
-  aks_identity_name = format("%s-pod-identity", local.aks_cluster_name)
-  aks_dns_prefix    = local.base_name_60
+  aks_cluster_name      = "${local.base_name_21}-aks"
+  aks_identity_name     = format("%s-pod-identity", local.aks_cluster_name)
+  aks_dns_prefix        = local.base_name_60
+  osdupod_identity_name = "${local.aks_cluster_name}-osdu-identity"
 }
 
 
@@ -306,40 +306,39 @@ module "appgateway" {
 }
 
 // Identity for AGIC
-resource "azurerm_user_assigned_identity" "appgw" {
+resource "azurerm_user_assigned_identity" "agicidentity" {
   name                = local.appgw_identity_name
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
 }
 
-// Reader role for AGIC to the Resource Group
-resource "azurerm_role_assignment" "appgwreader" {
-  principal_id         = azurerm_user_assigned_identity.appgw.principal_id
-  scope                = azurerm_resource_group.main.id
-  role_definition_name = "Reader"
+// Managed Identity Operator role for AKS to AGIC Identity
+resource "azurerm_role_assignment" "mi_ag_operator" {
+  principal_id         = module.aks-gitops.kubelet_object_id
+  scope                = azurerm_user_assigned_identity.agicidentity.id
+  role_definition_name = "Managed Identity Operator"
 }
 
-// Contributor Role for AGIC to the Application Gateway
+// Contributor Role for AGIC to the AppGateway
 resource "azurerm_role_assignment" "appgwcontributor" {
-  principal_id         = azurerm_user_assigned_identity.appgw.principal_id
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
   scope                = module.appgateway.id
   role_definition_name = "Contributor"
 }
 
-// Managed Identity Operator Role for AGIC to the Application Gateway
-resource "azurerm_role_assignment" "appgwoperator" {
-  principal_id         = azurerm_user_assigned_identity.appgw.principal_id
-  scope                = module.appgateway.id
-  role_definition_name = "Managed Identity Operator"
+// Reader Role for AGIC to the Resource Group
+resource "azurerm_role_assignment" "agic_resourcegroup_reader" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = azurerm_resource_group.main.id
+  role_definition_name = "Reader"
 }
 
-// Managed Identity Operator Role for AKS to the Application Gateway
-resource "azurerm_role_assignment" "operator" {
-  principal_id         = module.aks-gitops.kubelet_client_id
-  scope                = module.appgateway.id
+// Managed Identity Operator Role for AGIC to AppGateway Managed Identity
+resource "azurerm_role_assignment" "agic_app_gw_mi" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = module.appgateway.managed_identity_resource_id
   role_definition_name = "Managed Identity Operator"
 }
-
 
 
 #-------------------------------
@@ -383,26 +382,27 @@ resource "azurerm_user_assigned_identity" "podidentity" {
   location            = azurerm_resource_group.main.location
 }
 
-// Managed Identity Operator Role for Kubelet to the PodIdentity
-resource "azurerm_role_assignment" "aks_operator" {
-  principal_id         = module.aks-gitops.kubelet_client_id
+// Managed Identity Operator role for AKS to Node Resource Group
+resource "azurerm_role_assignment" "all_mi_operator" {
+  principal_id         = module.aks-gitops.kubelet_object_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Virtual Machine Contributor role for AKS to Node Resource Group
+resource "azurerm_role_assignment" "vm_contributor" {
+  principal_id         = module.aks-gitops.kubelet_object_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Virtual Machine Contributor"
+}
+
+// Managed Identity Operator role for AKS to Pod Identity
+resource "azurerm_role_assignment" "mi_operator" {
+  principal_id         = module.aks-gitops.kubelet_object_id
   scope                = azurerm_user_assigned_identity.podidentity.id
   role_definition_name = "Managed Identity Operator"
 }
 
-// Managed Identity Operator Role for Kubelet to the AKS Node Resource Group
-resource "azurerm_role_assignment" "aks_rg_mi_operator" {
-  principal_id         = module.aks-gitops.kubelet_client_id
-  scope                = data.azurerm_resource_group.aks_node_resource_group.id
-  role_definition_name = "Managed Identity Operator"
-}
-
-// Virtual Machine Contributor Role for Kubelet to the AKS Node Resource Group
-resource "azurerm_role_assignment" "aks_vm_contributor" {
-  principal_id         = module.aks-gitops.kubelet_client_id
-  scope                = data.azurerm_resource_group.aks_node_resource_group.id
-  role_definition_name = "Virtual Machine Contributor"
-}
 
 
 // Hook-up kubectl Provider for Terraform
@@ -430,4 +430,34 @@ provider "helm" {
     client_key             = base64decode(module.aks-gitops.kube_config.0.client_key)
     cluster_ca_certificate = base64decode(module.aks-gitops.kube_config.0.cluster_ca_certificate)
   }
+}
+
+
+
+#-------------------------------
+# OSDU Identity  (security.tf)
+#-------------------------------
+// Identity for OSDU Pod Identity
+resource "azurerm_user_assigned_identity" "osdupodidentity" {
+  name                = local.osdupod_identity_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+resource "azurerm_role_assignment" "storage" {
+  scope                = data.terraform_remote_state.data_resources.outputs.storage_account_id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.osdupodidentity.principal_id
+}
+
+resource "azurerm_role_assignment" "cosmos" {
+  scope                = data.terraform_remote_state.data_resources.outputs.cosmosdb_account_id
+  role_definition_name = "Cosmos DB Account Reader Role"
+  principal_id         = azurerm_user_assigned_identity.osdupodidentity.principal_id
+}
+
+resource "azurerm_role_assignment" "kv" {
+  scope                = module.keyvault.keyvault_id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_user_assigned_identity.osdupodidentity.principal_id
 }
