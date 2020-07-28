@@ -39,7 +39,7 @@ func TestDataEnvironment(t *testing.T) {
 		GoTest:                t,
 		TfOptions:             tfOptions,
 		ExpectedTfOutputCount: 8,
-		TfOutputAssertions: []infratests.TerraformOutputValidation{
+		TfOutputAssertions:    []infratests.TerraformOutputValidation{
 			// appGatewayIntegTests.InspectAppGateway("services_resource_group_name", "app_gw_name", "keyvault_secret_id"),
 		},
 	}
