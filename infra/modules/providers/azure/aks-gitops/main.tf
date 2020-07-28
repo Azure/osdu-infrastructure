@@ -68,3 +68,4 @@ module "kubediff" {
   kubeconfig_complete = module.aks.kubeconfig_done
   gitops_ssh_url      = var.gitops_ssh_url
 }
+

@@ -47,14 +47,14 @@ output "node_resource_group" {
   value = data.external.az_cli.result.node_resource_group
 }
 
-# output "kubelet_id" {
-#   value = data.external.az_cli.result.kubelet_id
-# }
+output "kubelet_id" {
+  value = data.external.az_cli.result.kubelet_id
+}
 
-# output "kubelet_resource_id" {
-#   value = data.external.az_cli.result.kubelet_resource_id
-# }
+output "kubelet_resource_id" {
+  value = data.external.az_cli.result.kubelet_resource_id
+}
 
-# output "kubelet_client_id" {
-#   value = data.external.az_cli.result.kubelet_client_id
-# }
+output "kubelet_client_id" {
+  value = data.external.az_cli.result.kubelet_client_id
+}

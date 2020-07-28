@@ -12,12 +12,18 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+
+
+// Need to be able to query the identityProfile to get kubelet client information. id, resourceid and client_id
 locals {
   msi_identity_type = "SystemAssigned"
   cli_query         = <<-EOT
       {
         user_assigned_identity_id:identity.principalId,
-        node_resource_group:nodeResourceGroup
+        node_resource_group:nodeResourceGroup,
+        kubelet_client_id:identityProfile.kubeletidentity.objectId,
+        kubelet_id:identityProfile.kubeletidentity.resourceId,
+        kubelet_resource_id:identityProfile.kubeletidentity.resourceId
       }
     EOT
 }
