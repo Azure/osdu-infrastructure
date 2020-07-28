@@ -16,8 +16,8 @@ package test
 
 import (
 	"encoding/json"
-	"testing"
 	"strings"
+	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -53,8 +53,7 @@ func TestTemplate(t *testing.T) {
 						"action" : "Allow",
 						"ip_range" : "10.0.0.0/24"
 					}
-				],
-				"virtual_network" : null
+				]
 			}
 		],
 		"resource_group_name" : "osdu-module",
@@ -71,7 +70,7 @@ func TestTemplate(t *testing.T) {
 		PlanAssertions:        nil,
 		ExpectedResourceCount: count,
 		ExpectedResourceAttributeValues: infratests.ResourceDescription{
-			"module.container-registry.azurerm_container_registry.container_registry" : expectedResult,
+			"module.container-registry.azurerm_container_registry.container_registry": expectedResult,
 		},
 	}
 
