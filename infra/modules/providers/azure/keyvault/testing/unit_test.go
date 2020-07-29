@@ -41,7 +41,7 @@ func asMap(t *testing.T, jsonString string) map[string]interface{} {
 }
 
 func TestTemplate(t *testing.T) {
-	
+
 	expectedKeyVault := asMap(t, `{
 		"name" : "spkeyvault",
 		"resource_group_name" : "osdu-module",
@@ -78,8 +78,8 @@ func TestTemplate(t *testing.T) {
 		PlanAssertions:        nil,
 		ExpectedResourceCount: count,
 		ExpectedResourceAttributeValues: infratests.ResourceDescription{
-			"module.keyvault.module.deployment_service_principal_keyvault_access_policies.azurerm_key_vault_access_policy.keyvault[0]" : expectedAccessPolicy,
-			"module.keyvault.azurerm_key_vault.keyvault" : expectedKeyVault,
+			"module.keyvault.module.deployment_service_principal_keyvault_access_policies.azurerm_key_vault_access_policy.keyvault[0]": expectedAccessPolicy,
+			"module.keyvault.azurerm_key_vault.keyvault": expectedKeyVault,
 		},
 	}
 

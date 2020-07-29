@@ -24,10 +24,10 @@ module "resource_group" {
 }
 
 module "keyvault" {
-    source = "../"
+  source = "../"
 
-    resource_group_name = module.resource_group.name
-    resource_tags = {
-        osdu = "module"
-    }
+  resource_group_name = module.resource_group.name
+  resource_tags = {
+    osdu = "module"
+  }
 }
