@@ -1,16 +1,3 @@
-//  Copyright © Microsoft Corporation
-//
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//       http://www.apache.org/licenses/LICENSE-2.0
-//
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
 package test
 
 import (
@@ -22,9 +9,9 @@ import (
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
-var name = "cluster-"
+var name = "service-plan"
 var location = "eastus"
-var count = 18
+var count = 12
 
 var tfOptions = &terraform.Options{
 	TerraformDir: "./",
@@ -42,7 +29,12 @@ func asMap(t *testing.T, jsonString string) map[string]interface{} {
 func TestTemplate(t *testing.T) {
 
 	expectedResult := asMap(t, `{
-		"kubernetes_version": "1.17.7"
+			"https_only": true,
+			"version": "~2",
+			"app_settings": {
+				"FUNCTIONS_WORKER_RUNTIME": "java",
+				"WEBSITES_ENABLE_APP_SERVICE_STORAGE": "false"
+			}
 	}`)
 
 	testFixture := infratests.UnitTestFixture{
@@ -52,7 +44,7 @@ func TestTemplate(t *testing.T) {
 		PlanAssertions:        nil,
 		ExpectedResourceCount: count,
 		ExpectedResourceAttributeValues: infratests.ResourceDescription{
-			"module.aks.azurerm_kubernetes_cluster.main": expectedResult,
+			"module.function_app.azurerm_function_app.main[0]": expectedResult,
 		},
 	}
 

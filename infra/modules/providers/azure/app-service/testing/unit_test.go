@@ -1,16 +1,3 @@
-//  Copyright © Microsoft Corporation
-//
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//       http://www.apache.org/licenses/LICENSE-2.0
-//
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
 package test
 
 import (
@@ -22,9 +9,9 @@ import (
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
-var name = "cluster-"
+var name = "app-service-"
 var location = "eastus"
-var count = 18
+var count = 10
 
 var tfOptions = &terraform.Options{
 	TerraformDir: "./",
@@ -42,7 +29,22 @@ func asMap(t *testing.T, jsonString string) map[string]interface{} {
 func TestTemplate(t *testing.T) {
 
 	expectedResult := asMap(t, `{
-		"kubernetes_version": "1.17.7"
+		"enabled": true,
+		"app_settings": {
+			"DOCKER_REGISTRY_SERVER_URL": "https://mcr.microsoft.com",
+			"DOCKER_REGISTRY_SERVER_PASSWORD": "",
+			"DOCKER_REGISTRY_SERVER_USERNAME": "",
+			"KEYVAULT_URI": "",
+			"WEBSITES_ENABLE_APP_SERVICE_STORAGE": "false",
+			"APPLICATIONINSIGHTS_CONNECTION_STRING": "InstrumentationKey=secret_key",
+			"ApplicationInsightsAgent_EXTENSION_VERSION": "~2",
+			"iac": "terraform",
+			"tf_setting": "setting1"
+		},
+		"site_config": [{
+			"always_on": true,
+			"linux_fx_version": "DOCKER|mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+		}]
 	}`)
 
 	testFixture := infratests.UnitTestFixture{
@@ -52,7 +54,8 @@ func TestTemplate(t *testing.T) {
 		PlanAssertions:        nil,
 		ExpectedResourceCount: count,
 		ExpectedResourceAttributeValues: infratests.ResourceDescription{
-			"module.aks.azurerm_kubernetes_cluster.main": expectedResult,
+			"module.app_service.azurerm_app_service.appsvc[0]":                   expectedResult,
+			"module.app_service.azurerm_app_service_slot.appsvc_staging_slot[0]": expectedResult,
 		},
 	}
 

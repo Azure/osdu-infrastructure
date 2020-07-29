@@ -39,22 +39,22 @@ output "kubeconfig_done" {
   value = join("", local_file.cluster_credentials.*.id)
 }
 
-output "msi_client_id" {
-  value = data.external.az_cli.result.user_assigned_identity_id
+output "principal_id" {
+  value = azurerm_kubernetes_cluster.main.identity.0.principal_id
 }
 
-output "node_resource_group" {
-  value = data.external.az_cli.result.node_resource_group
+output "kubelet_identity_id" {
+  value = azurerm_kubernetes_cluster.main.kubelet_identity.0.user_assigned_identity_id
 }
 
-output "kubelet_id" {
-  value = data.external.az_cli.result.kubelet_id
-}
-
-output "kubelet_resource_id" {
-  value = data.external.az_cli.result.kubelet_resource_id
+output "kubelet_object_id" {
+  value = azurerm_kubernetes_cluster.main.kubelet_identity.0.object_id
 }
 
 output "kubelet_client_id" {
-  value = data.external.az_cli.result.kubelet_client_id
+  value = azurerm_kubernetes_cluster.main.kubelet_identity.0.client_id
+}
+
+output "node_resource_group" {
+  value = azurerm_kubernetes_cluster.main.node_resource_group
 }

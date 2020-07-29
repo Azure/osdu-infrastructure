@@ -132,7 +132,7 @@ variable "service_principal_secret" {
 
 variable "msi_enabled" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "enable_kube_dashboard" {

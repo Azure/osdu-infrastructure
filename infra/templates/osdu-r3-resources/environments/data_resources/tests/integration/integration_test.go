@@ -40,7 +40,7 @@ func TestDataEnvironment(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 10,
+		ExpectedTfOutputCount: 12,
 		TfOutputAssertions: []infratests.TerraformOutputValidation{
 			storageIntegTests.InspectStorageAccount("storage_account", "storage_account_containers", "data_resource_group_name"),
 			cosmosIntegTests.InspectProvisionedCosmosDBAccount("data_resource_group_name", "cosmosdb_account_name", "cosmosdb_properties"),

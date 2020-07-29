@@ -314,6 +314,11 @@ output "storage_account" {
   value       = module.storage_account.name
 }
 
+output "storage_account_id" {
+  description = "The name of the storage account."
+  value       = module.storage_account.id
+}
+
 output "storage_account_containers" {
   description = "Map of storage account containers."
   value       = module.storage_account.containers
@@ -327,6 +332,11 @@ output "storage_properties" {
 output "cosmosdb_account_name" {
   description = "The name of the CosmosDB account."
   value       = module.cosmosdb_account.account_name
+}
+
+output "cosmosdb_account_id" {
+  description = "The name of the CosmosDB account."
+  value       = module.cosmosdb_account.account_id
 }
 
 output "cosmosdb_properties" {
