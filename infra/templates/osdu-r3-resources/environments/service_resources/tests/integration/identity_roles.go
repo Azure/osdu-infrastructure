@@ -91,7 +91,7 @@ func getKubeletIdentityExpectedRoleAssignmentsMap(output infratests.TerraformOut
 	expectedAssignments[output["aks_node_resource_group_id"].(string)] = "Managed Identity Operator"
 	expectedAssignments[output["akspod_identity_id"].(string)] = "Managed Identity Operator"
 	expectedAssignments[output["agic_identity_id"].(string)] = "Managed Identity Operator"
-	// expectedAssignments[output["container_registry_id"].(string)] = "AcrPull"
+	expectedAssignments[output["container_registry_id"].(string)] = "AcrPull"
 
 	return expectedAssignments
 }
