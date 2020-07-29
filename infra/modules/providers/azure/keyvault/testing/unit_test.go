@@ -51,26 +51,6 @@ func TestTemplate(t *testing.T) {
 		}
 	}`)
 
-	expectedAccessPolicy := asMap(t, `{
-		"certificate_permissions" : [
-			"create",
-			"delete",
-			"get",
-			"list"
-		],
-		"key_permissions" : [
-			"create",
-			"delete",
-			"get"
-		],
-		"secret_permissions" : [
-			"set",
-			"delete",
-			"get",
-			"list"
-		]
-	}`)
-
 	testFixture := infratests.UnitTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
@@ -78,7 +58,6 @@ func TestTemplate(t *testing.T) {
 		PlanAssertions:        nil,
 		ExpectedResourceCount: count,
 		ExpectedResourceAttributeValues: infratests.ResourceDescription{
-			"module.keyvault.module.deployment_service_principal_keyvault_access_policies.azurerm_key_vault_access_policy.keyvault[0]": expectedAccessPolicy,
 			"module.keyvault.azurerm_key_vault.keyvault": expectedKeyVault,
 		},
 	}

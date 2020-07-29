@@ -23,14 +23,17 @@ module "resource_group" {
   location = "eastus2"
 }
 
-module "redis-cache" {
+module "keyvault" {
+  source = "../../keyvault"
+
+  resource_group_name = module.resource_group.name
+}
+
+module "keyvault-secret" {
   source = "../"
 
-  name                = "osdu-module-redis-cache-${module.resource_group.random}"
-  resource_group_name = module.resource_group.name
-
-  resource_tags = {
-    osdu = "module"
+  keyvault_id = module.keyvault.keyvault_id
+  secrets = {
+    test = "test"
   }
-
 }

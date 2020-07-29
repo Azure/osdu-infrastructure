@@ -16,7 +16,6 @@ package test
 
 import (
 	"encoding/json"
-	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/random"
@@ -24,9 +23,9 @@ import (
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
-var workspace = "osdu-services-" + strings.ToLower(random.UniqueId())
+var name = "keyvault-"
 var location = "eastus"
-var count = 4
+var count = 5
 
 var tfOptions = &terraform.Options{
 	TerraformDir: "./",
@@ -43,30 +42,34 @@ func asMap(t *testing.T, jsonString string) map[string]interface{} {
 
 func TestTemplate(t *testing.T) {
 
-	expectedResult := asMap(t, `{
-		"capacity" : 1,
-		"enable_non_ssl_port" : false,
-		"family" : "C",
-		"minimum_tls_version" : "1.2",
-		"shard_count" : 0,
-		"sku_name" : "Standard",
-		"redis_configuration" : [{
-			"enable_authentication" : true,
-			"maxfragmentationmemory_reserved" : 50,
-			"maxmemory_delta" : 50,
-			"maxmemory_policy" : "volatile-lru",
-			"maxmemory_reserved" : 50
-		}]
+	expectedAccessPolicy := asMap(t, `{
+		"certificate_permissions" : [
+			"create",
+			"delete",
+			"get",
+			"list"
+		],
+		"key_permissions" : [
+			"create",
+			"delete",
+			"get"
+		],
+		"secret_permissions" : [
+			"set",
+			"delete",
+			"get",
+			"list"
+		]
 	}`)
 
 	testFixture := infratests.UnitTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		Workspace:             workspace,
+		Workspace:             name + random.UniqueId(),
 		PlanAssertions:        nil,
 		ExpectedResourceCount: count,
 		ExpectedResourceAttributeValues: infratests.ResourceDescription{
-			"module.redis-cache.azurerm_redis_cache.arc": expectedResult,
+			"module.keyvault.module.deployment_service_principal_keyvault_access_policies.azurerm_key_vault_access_policy.keyvault[0]": expectedAccessPolicy,
 		},
 	}
 
