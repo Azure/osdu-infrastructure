@@ -52,4 +52,3 @@ output "kubelet_object_id" {
   value = module.aks.kubelet_object_id
 }
 
-

@@ -341,6 +341,7 @@ resource "azurerm_role_assignment" "agic_app_gw_mi" {
 }
 
 
+
 #-------------------------------
 # Azure AKS  (cluster.tf)
 #-------------------------------
