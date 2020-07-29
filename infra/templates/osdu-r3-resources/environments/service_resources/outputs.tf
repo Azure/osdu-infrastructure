@@ -102,3 +102,8 @@ output "cosmosdb_account_id" {
   description = "The resource id of the CosmosDB instance"
   value       = data.terraform_remote_state.data_resources.outputs.cosmosdb_account_id
 }
+
+output "container_registry_id" {
+  description = "The resource id of the ACR container instance"
+  value       = data.terraform_remote_state.common_resources.outputs.container_registry_id
+}

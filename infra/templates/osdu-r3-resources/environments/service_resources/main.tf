@@ -397,6 +397,13 @@ resource "azurerm_role_assignment" "vm_contributor" {
   role_definition_name = "Virtual Machine Contributor"
 }
 
+// Azure Container Registry Reader role for AKS to ACR
+resource "azurerm_role_assignment" "acr_reader" {
+  principal_id         = module.aks-gitops.kubelet_object_id
+  scope                = data.terraform_remote_state.common_resources.outputs.container_registry_id
+  role_definition_name = "AcrPull"
+}
+
 // Managed Identity Operator role for AKS to Pod Identity
 resource "azurerm_role_assignment" "mi_operator" {
   principal_id         = module.aks-gitops.kubelet_object_id
