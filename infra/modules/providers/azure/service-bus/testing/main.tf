@@ -62,6 +62,7 @@ module "service-bus" {
     requires_duplicate_detection = "true",
     support_ordering             = "true"
   }]
+
   tags = {
     source = "terraform",
   }
