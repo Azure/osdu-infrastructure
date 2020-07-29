@@ -134,6 +134,6 @@ func validateAADIdentityControllers(t *testing.T, kubeConfigFile string, namespa
 }
 
 func validateAADIdentityCustomResources(t *testing.T, kubeConfigFile string, namespace string) {
-	validateCustomResource(t, kubeConfigFile, namespace, "AzureIdentity", "sdmspodidentity")
-	validateCustomResource(t, kubeConfigFile, namespace, "AzureIdentityBinding", "sdmspodidentitybinding")
+	// validateCustomResource(t, kubeConfigFile, namespace, "AzureIdentity", "sdmspodidentity")
+	// validateCustomResource(t, kubeConfigFile, namespace, "AzureIdentityBinding", "sdmspodidentitybinding")
 }
