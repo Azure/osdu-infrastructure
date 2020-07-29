@@ -11,6 +11,7 @@
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
+
 package test
 
 import (
@@ -22,9 +23,9 @@ import (
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
-var name = "cluster-"
+var name = "keyvault-"
 var location = "eastus"
-var count = 18
+var count = 5
 
 var tfOptions = &terraform.Options{
 	TerraformDir: "./",
@@ -41,8 +42,33 @@ func asMap(t *testing.T, jsonString string) map[string]interface{} {
 
 func TestTemplate(t *testing.T) {
 
-	expectedResult := asMap(t, `{
-		"kubernetes_version": "1.17.7"
+	expectedKeyVault := asMap(t, `{
+		"name" : "spkeyvault",
+		"resource_group_name" : "osdu-module",
+		"sku_name" : "standard",
+		"tags" : {
+			"osdu" : "module"
+		}
+	}`)
+
+	expectedAccessPolicy := asMap(t, `{
+		"certificate_permissions" : [
+			"create",
+			"delete",
+			"get",
+			"list"
+		],
+		"key_permissions" : [
+			"create",
+			"delete",
+			"get"
+		],
+		"secret_permissions" : [
+			"set",
+			"delete",
+			"get",
+			"list"
+		]
 	}`)
 
 	testFixture := infratests.UnitTestFixture{
@@ -52,7 +78,8 @@ func TestTemplate(t *testing.T) {
 		PlanAssertions:        nil,
 		ExpectedResourceCount: count,
 		ExpectedResourceAttributeValues: infratests.ResourceDescription{
-			"module.aks.azurerm_kubernetes_cluster.main": expectedResult,
+			"module.keyvault.module.deployment_service_principal_keyvault_access_policies.azurerm_key_vault_access_policy.keyvault[0]": expectedAccessPolicy,
+			"module.keyvault.azurerm_key_vault.keyvault": expectedKeyVault,
 		},
 	}
 

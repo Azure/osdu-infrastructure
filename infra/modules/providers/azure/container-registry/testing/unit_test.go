@@ -11,10 +11,12 @@
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
+
 package test
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/random"
@@ -22,9 +24,9 @@ import (
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
-var name = "cluster-"
 var location = "eastus"
-var count = 18
+var count = 5
+var workspace = "osdu-services-" + strings.ToLower(random.UniqueId())
 
 var tfOptions = &terraform.Options{
 	TerraformDir: "./",
@@ -42,17 +44,33 @@ func asMap(t *testing.T, jsonString string) map[string]interface{} {
 func TestTemplate(t *testing.T) {
 
 	expectedResult := asMap(t, `{
-		"kubernetes_version": "1.17.7"
+		"admin_enabled" : true,
+		"network_rule_set" : [
+			{
+				"default_action" : "Deny",
+				"ip_rule" : [
+					{
+						"action" : "Allow",
+						"ip_range" : "10.0.0.0/24"
+					}
+				]
+			}
+		],
+		"resource_group_name" : "osdu-module",
+		"sku" : "Standard",
+		"tags" : {
+			"osdu" : "module"
+		} 
 	}`)
 
 	testFixture := infratests.UnitTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		Workspace:             name + random.UniqueId(),
+		Workspace:             workspace,
 		PlanAssertions:        nil,
 		ExpectedResourceCount: count,
 		ExpectedResourceAttributeValues: infratests.ResourceDescription{
-			"module.aks.azurerm_kubernetes_cluster.main": expectedResult,
+			"module.container-registry.azurerm_container_registry.container_registry": expectedResult,
 		},
 	}
 

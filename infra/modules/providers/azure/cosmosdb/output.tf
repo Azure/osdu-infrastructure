@@ -36,3 +36,9 @@ output "account_name" {
   description = "The name of the CosmosDB account."
   value       = azurerm_cosmosdb_account.cosmosdb.name
 }
+
+# This output is required for proper integration testing.
+output "account_id" {
+  description = "The name of the CosmosDB account."
+  value       = azurerm_cosmosdb_account.cosmosdb.id
+}
