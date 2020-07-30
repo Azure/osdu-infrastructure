@@ -16,6 +16,7 @@ package test
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/random"
@@ -23,9 +24,9 @@ import (
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
-var name = "keyvault-"
+var workspace = "osdu-services-" + strings.ToLower(random.UniqueId())
 var location = "eastus"
-var count = 5
+var count = 7
 
 var tfOptions = &terraform.Options{
 	TerraformDir: "./",
@@ -42,23 +43,18 @@ func asMap(t *testing.T, jsonString string) map[string]interface{} {
 
 func TestTemplate(t *testing.T) {
 
-	expectedKeyVault := asMap(t, `{
-		"name" : "spkeyvault",
-		"resource_group_name" : "osdu-module",
-		"sku_name" : "standard",
-		"tags" : {
-			"osdu" : "module"
-		}
+	expectedResult := asMap(t, `{
+		"name" : "test"
 	}`)
 
 	testFixture := infratests.UnitTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		Workspace:             name + random.UniqueId(),
+		Workspace:             workspace,
 		PlanAssertions:        nil,
 		ExpectedResourceCount: count,
 		ExpectedResourceAttributeValues: infratests.ResourceDescription{
-			"module.keyvault.azurerm_key_vault.keyvault": expectedKeyVault,
+			"module.keyvault-secret.azurerm_key_vault_secret.secret[0]": expectedResult,
 		},
 	}
 

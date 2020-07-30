@@ -16,6 +16,7 @@ package test
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/random"
@@ -23,9 +24,9 @@ import (
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
-var name = "keyvault-"
+var workspace = "osdu-services-" + strings.ToLower(random.UniqueId())
 var location = "eastus"
-var count = 5
+var count = 4
 
 var tfOptions = &terraform.Options{
 	TerraformDir: "./",
@@ -42,23 +43,30 @@ func asMap(t *testing.T, jsonString string) map[string]interface{} {
 
 func TestTemplate(t *testing.T) {
 
-	expectedKeyVault := asMap(t, `{
-		"name" : "spkeyvault",
-		"resource_group_name" : "osdu-module",
-		"sku_name" : "standard",
-		"tags" : {
-			"osdu" : "module"
-		}
+	expectedResult := asMap(t, `{
+		"capacity" : 1,
+		"enable_non_ssl_port" : false,
+		"family" : "C",
+		"minimum_tls_version" : "1.2",
+		"shard_count" : 0,
+		"sku_name" : "Standard",
+		"redis_configuration" : [{
+			"enable_authentication" : true,
+			"maxfragmentationmemory_reserved" : 50,
+			"maxmemory_delta" : 50,
+			"maxmemory_policy" : "volatile-lru",
+			"maxmemory_reserved" : 50
+		}]
 	}`)
 
 	testFixture := infratests.UnitTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		Workspace:             name + random.UniqueId(),
+		Workspace:             workspace,
 		PlanAssertions:        nil,
 		ExpectedResourceCount: count,
 		ExpectedResourceAttributeValues: infratests.ResourceDescription{
-			"module.keyvault.azurerm_key_vault.keyvault": expectedKeyVault,
+			"module.redis-cache.azurerm_redis_cache.arc": expectedResult,
 		},
 	}
 
