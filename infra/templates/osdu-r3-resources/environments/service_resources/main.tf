@@ -142,13 +142,17 @@ resource "random_string" "workspace_scope" {
 resource "azurerm_resource_group" "main" {
   name     = local.resource_group_name
   location = var.resource_group_location
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
-# resource "azurerm_management_lock" "rg_lock" {
-#   name       = "osdu_sr_rg_lock"
-#   scope      = azurerm_resource_group.main.id
-#   lock_level = "CanNotDelete"
-# }
+resource "azurerm_management_lock" "rg_lock" {
+  name       = "osdu_sr_rg_lock"
+  scope      = azurerm_resource_group.main.id
+  lock_level = "CanNotDelete"
+}
 
 
 
