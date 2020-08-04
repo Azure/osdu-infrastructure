@@ -49,7 +49,7 @@ func TestTemplate(t *testing.T) {
 		TfOptions:                       tfOptions,
 		Workspace:                       workspace,
 		PlanAssertions:                  nil,
-		ExpectedResourceCount:           56,
+		ExpectedResourceCount:           57,
 		ExpectedResourceAttributeValues: resourceDescription,
 	}
 
