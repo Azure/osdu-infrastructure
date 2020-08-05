@@ -128,17 +128,14 @@ variable "gitops_ssh_key_file" {
   description = "(Required) SSH key used to establish a connection to a private git repo containing the HLD manifest."
 }
 
-variable "gitops_config" {
-  type = object({
-    branch   = string
-    path     = string
-    label    = string
-    interval = string
-  })
-  default = {
-    branch   = "master"
-    path     = "providers/azure/hld-registry"
-    label    = "flux-sync"
-    interval = "10s"
-  }
+variable "gitops_branch" {
+  type        = string
+  description = "(Optional) The branch for flux to watch"
+  default     = "master"
+}
+
+variable "gitops_path" {
+  type        = string
+  description = "(Optional) The path for flux to watch"
+  default     = "providers/azure/hld-registry"
 }

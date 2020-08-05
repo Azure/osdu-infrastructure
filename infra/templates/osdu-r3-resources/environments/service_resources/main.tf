@@ -291,7 +291,6 @@ module "network" {
   name                = local.vnet_name
   resource_group_name = azurerm_resource_group.main.name
   address_space       = var.address_space
-  dns_servers         = ["8.8.8.8"]
   subnet_prefixes     = [var.subnet_fe_prefix, var.subnet_aks_prefix, var.subnet_be_prefix]
   subnet_names        = [local.fe_subnet_name, local.aks_subnet_name, local.be_subnet_name]
 }
@@ -370,10 +369,10 @@ module "aks-gitops" {
 
   gitops_ssh_url       = var.gitops_ssh_url
   gitops_ssh_key       = var.gitops_ssh_key_file
-  gitops_url_branch    = var.gitops_config.branch
-  gitops_path          = var.gitops_config.path
-  gitops_poll_interval = var.gitops_config.interval
-  gitops_label         = var.gitops_config.label
+  gitops_url_branch    = var.gitops_branch
+  gitops_path          = var.gitops_path
+  gitops_poll_interval = "10s"
+  gitops_label         = "flux-sync"
 }
 
 data "azurerm_resource_group" "aks_node_resource_group" {
