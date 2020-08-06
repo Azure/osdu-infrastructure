@@ -456,19 +456,35 @@ resource "azurerm_user_assigned_identity" "osdupodidentity" {
 }
 
 resource "azurerm_role_assignment" "storage" {
+  principal_id         = azurerm_user_assigned_identity.osdupodidentity.principal_id
   scope                = data.terraform_remote_state.data_resources.outputs.storage_account_id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_user_assigned_identity.osdupodidentity.principal_id
 }
 
 resource "azurerm_role_assignment" "cosmos" {
+  principal_id         = azurerm_user_assigned_identity.osdupodidentity.principal_id
   scope                = data.terraform_remote_state.data_resources.outputs.cosmosdb_account_id
   role_definition_name = "Cosmos DB Account Reader Role"
-  principal_id         = azurerm_user_assigned_identity.osdupodidentity.principal_id
 }
 
 resource "azurerm_role_assignment" "kv" {
+  principal_id         = azurerm_user_assigned_identity.osdupodidentity.principal_id
   scope                = module.keyvault.keyvault_id
   role_definition_name = "Reader"
-  principal_id         = azurerm_user_assigned_identity.osdupodidentity.principal_id
+}
+
+// Managed Identity Operator role for AKS to the OSDU Identity
+resource "azurerm_role_assignment" "mi_operator_osdu" {
+  principal_id         = module.aks-gitops.kubelet_object_id
+  scope                = azurerm_user_assigned_identity.osdupodidentity.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+
+module "keyvault_policy" {
+  source             = "../../../../modules/providers/azure/keyvault-policy"
+  vault_id           = module.keyvault.keyvault_id
+  tenant_id          = data.azurerm_client_config.current.tenant_id
+  object_ids         = [azurerm_user_assigned_identity.osdupodidentity.principal_id]
+  secret_permissions = ["get"]
 }
