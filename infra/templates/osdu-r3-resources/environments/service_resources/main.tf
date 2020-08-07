@@ -69,14 +69,14 @@ locals {
   base_name_76 = length(local.base_name) < 77 ? local.base_name : "${substr(local.base_name, 0, 76 - length(local.suffix))}${local.suffix}"
   base_name_83 = length(local.base_name) < 84 ? local.base_name : "${substr(local.base_name, 0, 83 - length(local.suffix))}${local.suffix}"
 
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
-  ad_app_management_name      = "${local.base_name}-tester"
-  ad_app_name      = "${local.base_name}-app"
-  storage_name        = "${replace(local.base_name_21, "-", "")}diag"
-  storage_key_name    = "diagnostics-account-key"
-  ai_name             = "${local.base_name}-ai"
-  ai_key_name         = "appinsights-key"
+  tenant_id              = data.azurerm_client_config.current.tenant_id
+  resource_group_name    = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
+  ad_app_management_name = "${local.base_name}-tester"
+  ad_app_name            = "${local.base_name}-app"
+  storage_name           = "${replace(local.base_name_21, "-", "")}diag"
+  storage_key_name       = "diagnostics-account-key"
+  ai_name                = "${local.base_name}-ai"
+  ai_key_name            = "appinsights-key"
 
   // security.tf
   kv_name       = "${local.base_name_21}-kv"
