@@ -46,48 +46,6 @@ output "agic_identity_principal_id" {
   value       = azurerm_user_assigned_identity.agicidentity.principal_id
 }
 
-
-// AKS Integration Tests Outputs
-output "aks_name" {
-  description = "The Kubernetes Cluster Name"
-  value       = module.aks-gitops.cluster_name
-}
-
-output "aks_principal_id" {
-  description = "AKS Cluster Service Principal Id"
-  value       = module.aks-gitops.cluster_principal_id
-}
-
-output "aks_kubelet_object_id" {
-  description = "The principal object identifier for the aks cluster's kubelet identity"
-  value       = module.aks-gitops.kubelet_object_id
-}
-
-output "akspod_identity_id" {
-  description = "AKS Pod Identity Resource Id"
-  value       = azurerm_user_assigned_identity.podidentity.id
-}
-
-output "akspod_identity_client_id" {
-  description = "AKS Pod Identity Client Id"
-  value       = azurerm_user_assigned_identity.podidentity.client_id
-}
-
-output "aks_node_resource_group_id" {
-  description = "The aks cluster vmss node resource group identifier"
-  value       = data.azurerm_resource_group.aks_node_resource_group.id
-}
-
-output "aks_pod_identity_namespace" {
-  description = "AAD pod identity kubernetes namespace"
-  value       = local.helm_pod_identity_ns
-}
-
-output "aad_osdupod_identity_object_id" {
-  description = "The resource id for the aad pod managed identity"
-  value       = azurerm_user_assigned_identity.osdupodidentity.principal_id
-}
-
 output "storage_account_id" {
   description = "The resource id of the ADLS Gen 2 storage account instance"
   value       = data.terraform_remote_state.data_resources.outputs.storage_account_id
@@ -106,4 +64,54 @@ output "cosmosdb_account_id" {
 output "container_registry_id" {
   description = "The resource id of the ACR container instance"
   value       = data.terraform_remote_state.common_resources.outputs.container_registry_id
+}
+
+output "aks_name" {
+  description = "The Kubernetes Cluster Name"
+  value       = module.aks-gitops.cluster_name
+}
+
+output "aks_principal_id" {
+  description = "AKS Cluster Service Principal Id"
+  value       = module.aks-gitops.cluster_principal_id
+}
+
+output "aks_kubelet_object_id" {
+  description = "The principal object identifier for the aks cluster's kubelet identity"
+  value       = module.aks-gitops.kubelet_object_id
+}
+
+output "aks_node_resource_group_id" {
+  description = "The aks cluster vmss node resource group identifier"
+  value       = data.azurerm_resource_group.aks_node_resource_group.id
+}
+
+output "aks_pod_identity_namespace" {
+  description = "AAD pod identity kubernetes namespace"
+  value       = local.helm_pod_identity_ns
+}
+
+output "aad_pod_identity_id" {
+  description = "AKS Pod Identity Resource Id"
+  value       = azurerm_user_assigned_identity.podidentity.id
+}
+
+output "aad_pod_identity_client_id" {
+  description = "AKS Pod Identity Client Id"
+  value       = azurerm_user_assigned_identity.podidentity.client_id
+}
+
+output "aad_osdu_identity_id" {
+  description = "The resource id for the aad pod managed identity"
+  value       = azurerm_user_assigned_identity.osduidentity.id
+}
+
+output "aad_osdu_identity_client_id" {
+  description = "The resource id for the aad pod managed identity"
+  value       = azurerm_user_assigned_identity.osduidentity.client_id
+}
+
+output "aad_osdu_identity_object_id" {
+  description = "The resource id for the aad pod managed identity"
+  value       = azurerm_user_assigned_identity.osduidentity.principal_id
 }

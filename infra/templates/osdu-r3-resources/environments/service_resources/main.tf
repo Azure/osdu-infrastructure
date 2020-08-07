@@ -69,12 +69,14 @@ locals {
   base_name_76 = length(local.base_name) < 77 ? local.base_name : "${substr(local.base_name, 0, 76 - length(local.suffix))}${local.suffix}"
   base_name_83 = length(local.base_name) < 84 ? local.base_name : "${substr(local.base_name, 0, 83 - length(local.suffix))}${local.suffix}"
 
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
-  storage_name        = "${replace(local.base_name_21, "-", "")}diag"
-  storage_key_name    = "diagnostics-account-key"
-  ai_name             = "${local.base_name}-ai"
-  ai_key_name         = "appinsights-key"
+  tenant_id              = data.azurerm_client_config.current.tenant_id
+  resource_group_name    = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
+  ad_app_management_name = "${local.base_name}-tester"
+  ad_app_name            = "${local.base_name}-app"
+  storage_name           = "${replace(local.base_name_21, "-", "")}diag"
+  storage_key_name       = "diagnostics-account-key"
+  ai_name                = "${local.base_name}-ai"
+  ai_key_name            = "appinsights-key"
 
   // security.tf
   kv_name       = "${local.base_name_21}-kv"
@@ -93,6 +95,17 @@ locals {
   aks_identity_name     = format("%s-pod-identity", local.aks_cluster_name)
   aks_dns_prefix        = local.base_name_60
   osdupod_identity_name = "${local.aks_cluster_name}-osdu-identity"
+
+  rbac_contributor_scopes = concat(
+    # The cosmosdb resource id
+    [data.terraform_remote_state.data_resources.outputs.cosmosdb_account_id],
+
+    # The storage resource id
+    [module.storage_account.id, data.terraform_remote_state.data_resources.outputs.storage_account_id],
+
+    # The Container Registry Id
+    [data.terraform_remote_state.common_resources.outputs.container_registry_id],
+  )
 }
 
 
@@ -101,6 +114,7 @@ locals {
 # Common Resources  (common.tf)
 #-------------------------------
 data "azurerm_client_config" "current" {}
+data "azurerm_subscription" "current" {}
 
 data "terraform_remote_state" "data_resources" {
   backend = "azurerm"
@@ -148,10 +162,65 @@ resource "azurerm_resource_group" "main" {
   }
 }
 
-resource "azurerm_management_lock" "rg_lock" {
-  name       = "osdu_sr_rg_lock"
-  scope      = azurerm_resource_group.main.id
-  lock_level = "CanNotDelete"
+
+#-------------------------------
+# AD Principal and Applications
+#-------------------------------
+module "app_management_service_principal" {
+  source          = "../../../../modules/providers/azure/service-principal"
+  create_for_rbac = true
+  name            = local.ad_app_management_name
+  role            = "Contributor"
+  scopes          = local.rbac_contributor_scopes
+
+  api_permissions = [
+    {
+      name = "Microsoft Graph"
+      app_roles = [
+        "Directory.Read.All"
+      ]
+    }
+  ]
+}
+
+// Add Principal Information to KV
+resource "azurerm_key_vault_secret" "principal_id" {
+  name         = "app-dev-sp-username"
+  value        = module.app_management_service_principal.client_id
+  key_vault_id = module.keyvault.keyvault_id
+}
+
+resource "azurerm_key_vault_secret" "principal_pwd" {
+  name         = "app-dev-sp-password"
+  value        = module.app_management_service_principal.client_secret
+  key_vault_id = module.keyvault.keyvault_id
+}
+
+module "ad_application" {
+  source                     = "../../../../modules/providers/azure/ad-application"
+  name                       = local.ad_app_name
+  oauth2_allow_implicit_flow = true
+
+  reply_urls = [
+    "http://localhost:8080",
+    "http://localhost:8080/auth/callback"
+  ]
+
+  api_permissions = [
+    {
+      name = "Microsoft Graph"
+      oauth2_permissions = [
+        "User.Read"
+      ]
+    }
+  ]
+}
+
+// Add Application Information to KV
+resource "azurerm_key_vault_secret" "application_id" {
+  name         = "aad-client-id"
+  value        = module.ad_application.id
+  key_vault_id = module.keyvault.keyvault_id
 }
 
 
@@ -231,6 +300,12 @@ resource "azurerm_key_vault_certificate" "default" {
   }
 }
 
+// Add Tenant information to KV
+resource "azurerm_key_vault_secret" "tenant_id" {
+  name         = "app-dev-sp-tenant-id"
+  value        = data.azurerm_client_config.current.tenant_id
+  key_vault_id = module.keyvault.keyvault_id
+}
 
 
 #-------------------------------
@@ -449,34 +524,34 @@ provider "helm" {
 # OSDU Identity  (security.tf)
 #-------------------------------
 // Identity for OSDU Pod Identity
-resource "azurerm_user_assigned_identity" "osdupodidentity" {
+resource "azurerm_user_assigned_identity" "osduidentity" {
   name                = local.osdupod_identity_name
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
 }
 
-resource "azurerm_role_assignment" "storage" {
-  principal_id         = azurerm_user_assigned_identity.osdupodidentity.principal_id
+resource "azurerm_role_assignment" "osdu_identity_storage" {
+  principal_id         = azurerm_user_assigned_identity.osduidentity.principal_id
   scope                = data.terraform_remote_state.data_resources.outputs.storage_account_id
   role_definition_name = "Storage Blob Data Contributor"
 }
 
-resource "azurerm_role_assignment" "cosmos" {
-  principal_id         = azurerm_user_assigned_identity.osdupodidentity.principal_id
+resource "azurerm_role_assignment" "osdu_identity_cosmos" {
+  principal_id         = azurerm_user_assigned_identity.osduidentity.principal_id
   scope                = data.terraform_remote_state.data_resources.outputs.cosmosdb_account_id
   role_definition_name = "Cosmos DB Account Reader Role"
 }
 
-resource "azurerm_role_assignment" "kv" {
-  principal_id         = azurerm_user_assigned_identity.osdupodidentity.principal_id
+resource "azurerm_role_assignment" "osdu_identity_kv" {
+  principal_id         = azurerm_user_assigned_identity.osduidentity.principal_id
   scope                = module.keyvault.keyvault_id
   role_definition_name = "Reader"
 }
 
 // Managed Identity Operator role for AKS to the OSDU Identity
-resource "azurerm_role_assignment" "mi_operator_osdu" {
+resource "azurerm_role_assignment" "osdu_identity_mi_operator" {
   principal_id         = module.aks-gitops.kubelet_object_id
-  scope                = azurerm_user_assigned_identity.osdupodidentity.id
+  scope                = azurerm_user_assigned_identity.osduidentity.id
   role_definition_name = "Managed Identity Operator"
 }
 
@@ -485,6 +560,6 @@ module "keyvault_policy" {
   source             = "../../../../modules/providers/azure/keyvault-policy"
   vault_id           = module.keyvault.keyvault_id
   tenant_id          = data.azurerm_client_config.current.tenant_id
-  object_ids         = [azurerm_user_assigned_identity.osdupodidentity.principal_id]
+  object_ids         = [azurerm_user_assigned_identity.osduidentity.principal_id]
   secret_permissions = ["get"]
 }
