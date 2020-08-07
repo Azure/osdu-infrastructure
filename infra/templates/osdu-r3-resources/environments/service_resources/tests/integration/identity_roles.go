@@ -46,7 +46,7 @@ func verifyKubeletMSIRoleAssignments(t *testing.T, output infratests.TerraformOu
 }
 
 func verifyOSDUPodIdentityMSIRoleAssignments(t *testing.T, output infratests.TerraformOutput) {
-	objectID := output["aad_osdupod_identity_object_id"].(string)
+	objectID := output["aad_osdu_identity_object_id"].(string)
 	actual := getActualRoleAssignmentsMap(t, output, objectID)
 	expected := getOSDUPodIdentityExpectedRoleAssignmentsMap(output)
 
