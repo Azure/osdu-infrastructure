@@ -87,10 +87,12 @@ func getAGICExpectedRoleAssignmentsMap(output infratests.TerraformOutput) map[st
 // Constructs the expected kubelet managed identity role assignments based off the Terraform output
 func getKubeletIdentityExpectedRoleAssignmentsMap(output infratests.TerraformOutput) map[string]string {
 	expectedAssignments := map[string]string{}
+	expectedAssignments[output["aks_node_resource_group_id"].(string)] = "Reader"
 	expectedAssignments[output["aks_node_resource_group_id"].(string)] = "Virtual Machine Contributor"
 	expectedAssignments[output["aks_node_resource_group_id"].(string)] = "Managed Identity Operator"
 	expectedAssignments[output["akspod_identity_id"].(string)] = "Managed Identity Operator"
 	expectedAssignments[output["agic_identity_id"].(string)] = "Managed Identity Operator"
+	expectedAssignments[output["aad_osdu_identity_id"].(string)] = "Managed Identity Operator"
 	expectedAssignments[output["container_registry_id"].(string)] = "AcrPull"
 
 	return expectedAssignments
