@@ -14,7 +14,7 @@
 
 
 data "azurerm_resource_group" "main" {
-    name = var.resource_group_name
+  name = var.resource_group_name
 }
 
 /* data "azurerm_virtual_network" "main" {
@@ -29,23 +29,23 @@ data "azurerm_subnet" "main" {
 } */
 
 resource "azurerm_postgresql_server" "main" {
-    name                         = var.name
-    location                     = data.azurerm_resource_group.main.location
-    resource_group_name          = data.azurerm_resource_group.main.name
-    tags                         = var.resource_tags
+  name                = var.name
+  location            = data.azurerm_resource_group.main.location
+  resource_group_name = data.azurerm_resource_group.main.name
+  tags                = var.resource_tags
 
-    administrator_login          = var.admin_user
-    administrator_login_password = var.admin_password
+  administrator_login          = var.admin_user
+  administrator_login_password = var.admin_password
 
-    sku_name                     = var.sku
-    storage_mb                   = var.storage_mb
-    backup_retention_days        = var.backup_retention_days
-    geo_redundant_backup_enabled = var.geo_redundant_backup_enabled
-    auto_grow_enabled            = var.auto_grow_enabled
-    version                      = var.server_version
-    ssl_enforcement_enabled      = var.ssl_enforcement_enabled
+  sku_name                     = var.sku
+  storage_mb                   = var.storage_mb
+  backup_retention_days        = var.backup_retention_days
+  geo_redundant_backup_enabled = var.geo_redundant_backup_enabled
+  auto_grow_enabled            = var.auto_grow_enabled
+  version                      = var.server_version
+  ssl_enforcement_enabled      = var.ssl_enforcement_enabled
 
-    public_network_access_enabled = var.public_network_access
+  public_network_access_enabled = var.public_network_access
 }
 
 resource "azurerm_postgresql_database" "main" {

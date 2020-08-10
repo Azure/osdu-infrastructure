@@ -23,17 +23,47 @@ module "resource_group" {
   location = "eastus2"
 }
 
-module "postgreSQL" {
-  source = "../"
+module "network" {
+  source = "../../network"
 
+  name                = "osdu-module-vnet-${module.resource_group.random}"
   resource_group_name = module.resource_group.name
-  name = "osdu-module-db-${module.resource_group.random}"
-  databases = [ "osdu-module-database" ]
-  admin_user = "test"
-  admin_password = "AzurePassword@123"
+  address_space       = "10.0.1.0/24"
+  dns_servers         = ["8.8.8.8"]
+  subnet_prefixes     = ["10.0.1.0/26"]
+  subnet_names        = ["Web-Tier"]
 
   # Tags
   resource_tags = {
     osdu = "module"
+  }
+
+}
+
+module "postgreSQL" {
+  source = "../"
+
+  resource_group_name = module.resource_group.name
+  name                = "osdu-module-db-${module.resource_group.random}"
+  databases           = ["osdu-module-database"]
+  admin_user          = "test"
+  admin_password      = "AzurePassword@123"
+
+  # Tags
+  resource_tags = {
+    osdu = "module"
+  }
+
+  firewall_rules = [{
+    start_ip = "10.0.0.2"
+    end_ip   = "10.0.0.8"
+  }]
+
+  vnet_rules = [{
+    subnet_id = module.network.subnets[0]
+  }]
+
+  postgresql_configurations = {
+    config = "test"
   }
 }

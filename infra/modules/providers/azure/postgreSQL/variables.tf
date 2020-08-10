@@ -12,29 +12,16 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#Dependent Services (Required)
-
-
-/* variable "virtual_network_name" {
-    description = "Name of the virtual network the VM will use"
-    type = string
-}
-
-variable "subnet_name" {
-    description = "Name of the subnet the virtual network will use"
-    type = string
-} */
-
 # Naming Conventions (required)
 
 variable "name" {
-    description = "The name of the postgresql db being created"
-    type = string
+  description = "The name of the postgresql db being created"
+  type        = string
 }
 
 variable "resource_group_name" {
-    description = "The name of the resource group postgreSQL VM will be created in"
-    type = string
+  description = "The name of the resource group postgreSQL VM will be created in"
+  type        = string
 }
 
 variable "resource_tags" {
@@ -49,62 +36,62 @@ variable "databases" {
 }
 
 variable "admin_user" {
-    description = "The Administrator Login for the PostgreSQL Server. Changing this forces a new resource to be created."
-    type = string
+  description = "The Administrator Login for the PostgreSQL Server. Changing this forces a new resource to be created."
+  type        = string
 }
 
 variable "admin_password" {
-    description = "The Password associated with the administrator_login for the PostgreSQL Server."
-    type = string
+  description = "The Password associated with the administrator_login for the PostgreSQL Server."
+  type        = string
 }
 
 # Configuration Variables (Optional)
 variable "sku" {
-    description = "Name of the sku"
-    type = string
-    default = "GP_Gen5_4"
+  description = "Name of the sku"
+  type        = string
+  default     = "GP_Gen5_4"
 }
 
 variable "storage_mb" {
-    description = "Max storage allowed for a server. Possible values are between 5120 MB(5GB) and 1048576 MB(1TB) for the Basic SKU and between 5120 MB(5GB) and 4194304 MB(4TB)"
-    type = number
-    default = 5120
+  description = "Max storage allowed for a server. Possible values are between 5120 MB(5GB) and 1048576 MB(1TB) for the Basic SKU and between 5120 MB(5GB) and 4194304 MB(4TB)."
+  type        = number
+  default     = 5120
 }
 
 variable "server_version" {
-    description = "Specifies the version of PostgreSQL to use. Valid values are 9.5, 9.6, and 10.0. Changing this forces a new resource to be created."
-    type = string
-    default = "10.0"
+  description = "Specifies the version of PostgreSQL to use. Valid values are 9.5, 9.6, and 10.0. Changing this forces a new resource to be created."
+  type        = string
+  default     = "10.0"
 }
 
 variable "backup_retention_days" {
-    description = "Number of days to retain backup data"
-    type = number
-    default = 7
+  description = "Number of days to retain backup data"
+  type        = number
+  default     = 7
 }
 
 variable "geo_redundant_backup_enabled" {
-    description = "Enable geo-redundancy"
-    type = bool
-    default = true
+  description = "Enable geo-redundancy"
+  type        = bool
+  default     = true
 }
 
 variable "auto_grow_enabled" {
-    description = "Enable auto grow"
-    type = bool
-    default = true
+  description = "Enable auto grow"
+  type        = bool
+  default     = true
 }
 
 variable "ssl_enforcement_enabled" {
-    description = "Enable ssl enforcement"
-    type = bool
-    default = true
+  description = "Enable ssl enforcement"
+  type        = bool
+  default     = true
 }
 
 variable "public_network_access" {
-    description = "Enable or Disable public network access to the VM"
-    type = bool
-    default = false
+  description = "Enable or Disable public network access to the VM"
+  type        = bool
+  default     = false
 }
 
 variable "db_charset" {
