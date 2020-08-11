@@ -139,3 +139,18 @@ variable "gitops_path" {
   description = "(Optional) The path for flux to watch"
   default     = "providers/azure/hld-registry"
 }
+
+variable "elasticsearch_endpoint" {
+  type        = string
+  description = "endpoint for elasticsearch cluster"
+}
+
+variable "elasticsearch_username" {
+  type        = string
+  description = "username for elasticsearch cluster"
+}
+
+variable "elasticsearch_password" {
+  type        = string
+  description = "password for elasticsearch cluster"
+}

@@ -240,6 +240,9 @@ module "keyvault" {
     cosmos-primary-key  = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.primary_master_key
     sb-connection       = data.terraform_remote_state.data_resources.outputs.sb_namespace_default_connection_string
     storage-account-key = data.terraform_remote_state.data_resources.outputs.storage_properties.primary_access_key
+    elastic-endpoint    = var.elasticsearch_endpoint
+    elastic-username    = var.elasticsearch_username
+    elastic-password    = var.elasticsearch_password
   }
 }
 
