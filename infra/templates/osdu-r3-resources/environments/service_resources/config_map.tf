@@ -42,6 +42,8 @@ resource "kubernetes_config_map" "osduconfigmap" {
     ENV_SERVICEBUS_NAMESPACE = data.terraform_remote_state.data_resources.outputs.sb_namespace_name
     ENV_STORAGE_DIAGNOSTICS  = local.storage_name
     ENV_KEYVAULT             = format("https://%s.vault.azure.net/", local.kv_name)
+    ENV_ELASTIC_ENDPOINT     = var.elasticsearch_endpoint
+    ENV_ELASTIC_USERNAME     = var.elasticsearch_username
   }
 
   depends_on = [module.aks-gitops]
