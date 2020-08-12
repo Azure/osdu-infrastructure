@@ -82,6 +82,22 @@ locals {
   kv_name       = "${local.base_name_21}-kv"
   ssl_cert_name = "appgw-ssl-cert"
 
+  rbac_principals = [
+    azurerm_user_assigned_identity.osduidentity.principal_id,
+    module.app_management_service_principal.id
+  ]
+
+  rbac_contributor_scopes = concat(
+    # The cosmosdb resource id
+    [data.terraform_remote_state.data_resources.outputs.cosmosdb_account_id],
+
+    # The storage resource id
+    [module.storage_account.id, data.terraform_remote_state.data_resources.outputs.storage_account_id],
+
+    # The Container Registry Id
+    [data.terraform_remote_state.common_resources.outputs.container_registry_id],
+  )
+
   // network.tf
   vnet_name           = "${local.base_name_60}-vnet"
   fe_subnet_name      = "${local.base_name_21}-fe-subnet"
@@ -96,16 +112,7 @@ locals {
   aks_dns_prefix        = local.base_name_60
   osdupod_identity_name = "${local.aks_cluster_name}-osdu-identity"
 
-  rbac_contributor_scopes = concat(
-    # The cosmosdb resource id
-    [data.terraform_remote_state.data_resources.outputs.cosmosdb_account_id],
 
-    # The storage resource id
-    [module.storage_account.id, data.terraform_remote_state.data_resources.outputs.storage_account_id],
-
-    # The Container Registry Id
-    [data.terraform_remote_state.common_resources.outputs.container_registry_id],
-  )
 }
 
 
@@ -308,6 +315,14 @@ resource "azurerm_key_vault_secret" "tenant_id" {
   name         = "app-dev-sp-tenant-id"
   value        = data.azurerm_client_config.current.tenant_id
   key_vault_id = module.keyvault.keyvault_id
+}
+
+module "keyvault_policy" {
+  source             = "../../../../modules/providers/azure/keyvault-policy"
+  vault_id           = module.keyvault.keyvault_id
+  tenant_id          = data.azurerm_client_config.current.tenant_id
+  object_ids         = local.rbac_principals
+  secret_permissions = ["get"]
 }
 
 
@@ -533,30 +548,33 @@ resource "azurerm_user_assigned_identity" "osduidentity" {
   location            = azurerm_resource_group.main.location
 }
 
-resource "azurerm_role_assignment" "osdu_identity_storage" {
-  principal_id         = azurerm_user_assigned_identity.osduidentity.principal_id
-  scope                = data.terraform_remote_state.data_resources.outputs.storage_account_id
-  role_definition_name = "Storage Blob Data Contributor"
-}
-
-resource "azurerm_role_assignment" "osdu_identity_cosmos" {
-  principal_id         = azurerm_user_assigned_identity.osduidentity.principal_id
-  scope                = data.terraform_remote_state.data_resources.outputs.cosmosdb_account_id
-  role_definition_name = "Cosmos DB Account Reader Role"
-}
-
-resource "azurerm_role_assignment" "osdu_identity_kv" {
-  principal_id         = azurerm_user_assigned_identity.osduidentity.principal_id
-  scope                = module.keyvault.keyvault_id
+resource "azurerm_role_assignment" "kv_roles" {
+  count                = length(local.rbac_principals)
   role_definition_name = "Reader"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.keyvault.keyvault_id
 }
 
-resource "azurerm_role_assignment" "osdu_identity_bus" {
-  principal_id         = azurerm_user_assigned_identity.osduidentity.principal_id
+resource "azurerm_role_assignment" "database_roles" {
+  count                = length(local.rbac_principals)
+  role_definition_name = "Cosmos DB Account Reader Role"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = data.terraform_remote_state.data_resources.outputs.cosmosdb_account_id
+}
+
+resource "azurerm_role_assignment" "storage_roles" {
+  count                = length(local.rbac_principals)
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = data.terraform_remote_state.data_resources.outputs.storage_account_id
+}
+
+resource "azurerm_role_assignment" "service_bus_roles" {
+  count                = length(local.rbac_principals)
+  role_definition_name = "Azure Service Bus Data Sender"
+  principal_id         = local.rbac_principals[count.index]
   scope                = data.terraform_remote_state.data_resources.outputs.sb_namespace_id
-  role_definition_name = "Azure Service Bus Data Owner"
 }
-
 
 // Managed Identity Operator role for AKS to the OSDU Identity
 resource "azurerm_role_assignment" "osdu_identity_mi_operator" {
@@ -566,10 +584,3 @@ resource "azurerm_role_assignment" "osdu_identity_mi_operator" {
 }
 
 
-module "keyvault_policy" {
-  source             = "../../../../modules/providers/azure/keyvault-policy"
-  vault_id           = module.keyvault.keyvault_id
-  tenant_id          = data.azurerm_client_config.current.tenant_id
-  object_ids         = [azurerm_user_assigned_identity.osduidentity.principal_id]
-  secret_permissions = ["get"]
-}
