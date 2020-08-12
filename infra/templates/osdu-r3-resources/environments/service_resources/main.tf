@@ -576,6 +576,13 @@ resource "azurerm_role_assignment" "service_bus_roles" {
   scope                = data.terraform_remote_state.data_resources.outputs.sb_namespace_id
 }
 
+resource "azurerm_role_assignment" "osdu_identity_bus" {
+  principal_id         = azurerm_user_assigned_identity.osduidentity.principal_id
+  scope                = data.terraform_remote_state.data_resources.outputs.sb_namespace_id
+  role_definition_name = "Azure Service Bus Data Owner"
+}
+
+
 // Managed Identity Operator role for AKS to the OSDU Identity
 resource "azurerm_role_assignment" "osdu_identity_mi_operator" {
   principal_id         = module.aks-gitops.kubelet_object_id
