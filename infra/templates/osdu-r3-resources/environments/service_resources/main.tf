@@ -112,7 +112,7 @@ locals {
   aks_dns_prefix        = local.base_name_60
   osdupod_identity_name = "${local.aks_cluster_name}-osdu-identity"
 
-  
+
 }
 
 
