@@ -154,3 +154,78 @@ variable "elasticsearch_password" {
   type        = string
   description = "password for elasticsearch cluster"
 }
+
+variable "redis_cache_tags" {
+  description = "Map of tags to apply to taggable resources in this module. By default the taggable resources are tagged with the name defined above and this map is merged in"
+  type        = map(string)
+  default     = {}
+}
+
+variable "rc_premium_tier_config" {
+  description = "Configures the weekly schedule for server patching (Patch Window lasts for 5 hours). Also enables a single cluster for premium tier and when enabled, the true cache capacity of a redis cluster is capacity * cache_shard_count. 10 is the maximum number of shards/nodes allowed."
+  type = object({
+    server_patch_day  = string
+    server_patch_hour = number
+    cache_shard_count = number
+  })
+  default = {
+    server_patch_day  = "Friday"
+    server_patch_hour = 17
+    cache_shard_count = 0
+  }
+}
+
+variable "rc_memory_features" {
+  description = "Configures memory management for standard & premium tier accounts. All number values are in megabytes. maxmemory_policy_cfg property controls how Redis will select what to remove when maxmemory is reached."
+  type = object({
+    maxmemory_reserved              = number
+    maxmemory_delta                 = number
+    maxmemory_policy                = string
+    maxfragmentationmemory_reserved = number
+  })
+  default = {
+    maxmemory_reserved              = 50
+    maxmemory_delta                 = 50
+    maxmemory_policy                = "volatile-lru"
+    maxfragmentationmemory_reserved = 50
+  }
+}
+
+variable "rc_capacity" {
+  description = "The size of the Redis cache to deploy. When premium account is enabled with clusters, the true capacity of the account cache is capacity * cache_shard_count"
+  type        = number
+  default     = 1
+}
+
+variable "postgresql_resource_tags" {
+  description = "Map of tags to apply to taggable resources in this module. By default the taggable resources are tagged with the name defined above and this map is merged in"
+  type        = map(string)
+  default     = {}
+}
+
+variable "postgresql_databases" {
+  description = "The list of names of the PostgreSQL Database, which needs to be a valid PostgreSQL identifier. Changing this forces a new resource to be created."
+  default     = []
+}
+
+variable "postgresql_admin_user" {
+  description = "The Administrator Login for the PostgreSQL Server. Changing this forces a new resource to be created."
+  type        = string
+}
+
+variable "postgresql_admin_password" {
+  description = "The Password associated with the administrator_login for the PostgreSQL Server."
+  type        = string
+}
+
+variable "postgresql_sku" {
+  description = "Name of the sku"
+  type        = string
+  default     = "GP_Gen5_4"
+}
+
+variable "postgresql_configurations" {
+  description = "A map with PostgreSQL configurations to enable."
+  type        = map(string)
+  default     = {}
+}

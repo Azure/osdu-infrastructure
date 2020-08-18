@@ -78,6 +78,10 @@ locals {
   ai_name                = "${local.base_name}-ai"
   ai_key_name            = "appinsights-key"
 
+  redis_cache_name = "${local.base_name}-redis-cache"
+  //getting weird "not fitting the regex" errors if i do local.base_name
+  postgresql_name = "${local.base_name}-psqldb"
+
   // security.tf
   kv_name       = "${local.base_name_21}-kv"
   ssl_cert_name = "appgw-ssl-cert"
@@ -358,6 +362,71 @@ resource "azurerm_key_vault_secret" "ai" {
   key_vault_id = module.keyvault.keyvault_id
 }
 
+
+
+#-------------------------------
+# Azure Redis Cache (main.tf)
+#-------------------------------
+
+module "redis_cache" {
+  source = "../../../../modules/providers/azure/redis-cache"
+
+  name = local.redis_cache_name
+  resource_group_name = azurerm_resource_group.main.name
+  capacity = var.rc_capacity
+
+  resource_tags = var.redis_cache_tags
+  memory_features = var.rc_memory_features
+  premium_tier_config = var.rc_premium_tier_config
+}
+
+#-------------------------------
+# PostgreSQL (main.tf)
+#-------------------------------
+
+module "postgreSQL" {
+  source = "../../../../modules/providers/azure/postgreSQL"
+
+  resource_group_name = azurerm_resource_group.main.name
+  name                = local.postgresql_name
+  databases           = var.postgresql_databases
+  admin_user          = var.postgresql_admin_user
+  admin_password      = var.postgresql_admin_password
+  sku = var.postgresql_sku
+
+  storage_mb = 5120
+  server_version = "10.0"
+  backup_retention_days = 7
+  geo_redundant_backup_enabled = true
+  auto_grow_enabled = true
+  ssl_enforcement_enabled = true
+
+# Stuff for when we bring it in a network
+  /*
+  public_network_access = false
+  firewall_rule_prefix = var.firewall_rule_prefix
+  firewall_rules = var.firewall_rules
+  vnet_rule_name_prefix = var.vnet_rule_name_prefix
+  vnet_rules = var.vnet_rules 
+  */
+
+
+  resource_tags = var.postgresql_resource_tags
+
+# Stuff for when we bring it in a network
+  /*   
+  firewall_rules = [{
+    start_ip = "10.0.0.2"
+    end_ip   = "10.0.0.8"
+  }]
+
+  vnet_rules = [{
+    subnet_id = module.network.subnets[0]
+  }] 
+  */
+
+  postgresql_configurations = var.postgresql_configurations
+}
 
 
 #-------------------------------

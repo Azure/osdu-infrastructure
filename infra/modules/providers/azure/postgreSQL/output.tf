@@ -12,9 +12,9 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-output "db_name" {
-  description = "The db name"
-  value       = azurerm_postgresql_database.main[0].name
+output "db_names" {
+  description = "The db names as an ordered list"
+  value       = azurerm_postgresql_database.main.*.name
 }
 
 output "server_name" {
@@ -22,9 +22,9 @@ output "server_name" {
   value       = azurerm_postgresql_server.main.name
 }
 
-output "db_id" {
-  description = "The db id"
-  value       = azurerm_postgresql_database.main[0].id
+output "db_ids" {
+  description = "The db ids as an ordered list"
+  value       = azurerm_postgresql_database.main.*.id
 }
 
 output "server_id" {

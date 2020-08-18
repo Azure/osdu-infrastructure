@@ -89,8 +89,8 @@ module "postgreSQL" {
 
 Once the deployments are completed successfully, the output for the current module will be in the format mentioned below:
 
-- `db_name` : The db name.
-- `db_id`: The db Id.
+- `db_names` : List of db names.
+- `db_ids`: List of db ids.
 - `server_name`: The server name.
 - `server_id`: The server id.
 - `server_fqdn`: The server FQDN.
