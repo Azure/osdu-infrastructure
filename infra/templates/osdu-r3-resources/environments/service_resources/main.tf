@@ -79,7 +79,6 @@ locals {
   ai_key_name            = "appinsights-key"
 
   redis_cache_name = "${local.base_name}-redis-cache"
-  //getting weird "not fitting the regex" errors if i do local.base_name
   postgresql_name = "${local.base_name}-psqldb"
 
   // security.tf
