@@ -511,7 +511,7 @@ resource "azurerm_role_assignment" "mi_operator" {
 
 // Hook-up kubectl Provider for Terraform
 provider "kubernetes" {
-  version                = "~> 1.11.3"
+  version                = "~> 1.12.0"
   load_config_file       = false
   host                   = module.aks-gitops.kube_config.0.host
   username               = module.aks-gitops.kube_config.0.username
@@ -520,6 +520,16 @@ provider "kubernetes" {
   client_key             = base64decode(module.aks-gitops.kube_config.0.client_key)
   cluster_ca_certificate = base64decode(module.aks-gitops.kube_config.0.cluster_ca_certificate)
 }
+
+# provider "kubectl" {
+#   load_config_file       = false
+#   host                   = module.aks-gitops.kube_config.0.host
+#   username               = module.aks-gitops.kube_config.0.username
+#   password               = module.aks-gitops.kube_config.0.password
+#   client_certificate     = base64decode(module.aks-gitops.kube_config.0.client_certificate)
+#   client_key             = base64decode(module.aks-gitops.kube_config.0.client_key)
+#   cluster_ca_certificate = base64decode(module.aks-gitops.kube_config.0.cluster_ca_certificate)
+# }
 
 // Hook-up helm Provider for Terraform
 provider "helm" {

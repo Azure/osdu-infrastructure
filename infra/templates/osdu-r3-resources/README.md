@@ -126,7 +126,6 @@ az keyvault secret show --vault-name $AZURE_VAULT -n "${KEY_NAME}-pub" --query v
 
 ## Configure GitOPS + Node SSH keys with Terraform Deployment
 
-
 Download the required keys from the common Key Vault
 
 ```
@@ -144,6 +143,25 @@ Update your `.env` file with the paths to your public and private SSH keys for N
 ```
 TF_VAR_ssh_public_key_file=/home/$USER/.ssh/node-ssh-key.pub
 TF_VAR_gitops_ssh_key_file=/home/$USER/.ssh/gitops-ssh-key
+```
+
+## Download Required Terraform Provider Plugins
+The infastructure currently uses a new release of the [kubernetes provider](https://github.com/hashicorp/terraform-provider-kubernetes-alpha).
+
+For local development install the provider locally.
+
+```bash
+mkdir -p ~/.terraform.d/plugins && \
+    curl -Ls https://api.github.com/repos/gavinbunney/terraform-provider-kubectl/releases/latest \
+    | jq -r ".assets[] | select(.browser_download_url | contains(\"$(uname -s | tr A-Z a-z)\")) | select(.browser_download_url | contains(\"amd64\")) | .browser_download_url" \
+    | xargs -n 1 curl -Lo ~/.terraform.d/plugins/terraform-provider-kubectl.zip && \
+    pushd ~/.terraform.d/plugins/ && \
+    unzip ~/.terraform.d/plugins/terraform-provider-kubectl.zip -d terraform-provider-kubectl-tmp && \
+    mv terraform-provider-kubectl-tmp/terraform-provider-kubectl* . && \
+    chmod +x terraform-provider-kubectl* && \
+    rm -rf terraform-provider-kubectl-tmp && \
+    rm -rf terraform-provider-kubectl.zip && \
+    popd
 ```
 
 # Deployment Steps
