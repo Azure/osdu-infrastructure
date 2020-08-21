@@ -1,0 +1,39 @@
+#  Copyright © Microsoft Corporation
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+
+# Example Value(s)
+#   SUBSCRIPTION_ID=929e9ae0-7bb1-4563-a200-9863fe27cae4
+#   RESOURCE_GROUP_NAME=osdu-r3-danielsr-rn6n-rg
+#   IDENTITY_NAME=osdu-r3-danielsr-rn6n-aks-osdu-identity
+#   IDENTITY_CLIENT_ID=818f456e-a155-4a86-aab2-67a481a4f1d9x
+
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentity
+metadata:
+  name: osdu-identity
+  namespace: osdu
+spec:
+  type: 0
+  resourceID: /subscriptions/{{ SUBSCRIPTION_ID }}/resourcegroups/{{ RESOURCE_GROUP_NAME }}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{{ IDENTITY_NAME }}
+  clientID: {{ IDENTITY_CLIENT_ID }}
+---
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentityBinding
+metadata:
+  name: osdu-identity-binding
+  namespace: osdu
+spec:
+  azureIdentity: osdu-identity
+  selector: osdu-identity
