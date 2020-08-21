@@ -14,8 +14,9 @@ Patterns used leverage Microsoft Projects, for detailed design principals, opera
 Please be aware that branching strategies are aligned with OSDU and the master branch is intended to be used as a [Current Delivery](https://docs.microsoft.com/en-us/azure/devops/learn/what-is-continuous-delivery) mechanism that aligns with master branches for the [OSDU Platform]((https://community.opengroup.org/osdu/platform))
 
 ## Architecture Solutions
+This project is an active project and the master branch is constantly changing to support OSDU features. Rhe master branch is intended to be in sync with the master branches of the OSDU Service branches.
+
 This project holds 2 different Solution Architectures for OSDU on Azure.
-> IMPORTANT: R3 is currently a work in progress.
 
 - [R3 - Azure OSDU AKS Architecture Solution with Elastic Cloud SaaS](infra/templates/osdu-r3-resources)  
 
