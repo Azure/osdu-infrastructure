@@ -43,7 +43,7 @@ spec:
     spec:
       containers:
       - name: search
-        image: community.opengroup.org:5555/osdu/platform/system/search-service/search-service-master:b1ee50e9309fc678735dad3dfb69e50b765482c7
+        image: community.opengroup.org:5555/osdu/platform/system/search-service/search-service-master
         imagePullPolicy: Always
         ports:
         - containerPort: 80

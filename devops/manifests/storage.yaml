@@ -43,7 +43,7 @@ spec:
     spec:
       containers:
       - name: storage
-        image: community.opengroup.org:5555/osdu/platform/system/storage/storage-master:335736658ce46bcbb67a393cab16ddabf9495d2d
+        image: community.opengroup.org:5555/osdu/platform/system/storage/storage-master
         imagePullPolicy: Always
         ports:
         - containerPort: 80

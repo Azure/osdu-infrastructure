@@ -43,7 +43,7 @@ spec:
     spec:
       containers:
       - name: indexer
-        image: community.opengroup.org:5555/osdu/platform/system/indexer-service/indexer-service-master:974f174bf51706cfce998d3031814d10cef54fff
+        image: community.opengroup.org:5555/osdu/platform/system/indexer-service/indexer-service-master
         imagePullPolicy: Always
         ports:
         - containerPort: 80
