@@ -32,16 +32,17 @@ func InspectStorageAccount(storageAccountOutputName string, storageContainerOutp
 		storageAccountName := output[storageAccountOutputName].(string)
 		containerList := output[storageContainerOutputName].(map[string]interface{})
 
-		expectedContainerList := []string{}
-		for name := range containerList {
-			expectedContainerList = append(expectedContainerList, string(name))
-		}
-
 		actualContainerList := []string{}
 		for _, container := range *azure.ListAccountContainers(t, subscription, resourceGroupName, storageAccountName) {
 			actualContainerList = append(actualContainerList, string(*container.Name))
 		}
 
-		assert.ElementsMatch(t, expectedContainerList, actualContainerList, "Container does not exist in the Storage Account")
+		// expectedContainerList := []string{}
+		for name := range containerList {
+			assert.Containsf(t, actualContainerList, string(name), "Container does not exist in the Storage Account")
+			// expectedContainerList = append(expectedContainerList, string(name))
+		}
+
+		// assert.ElementsMatch(t, expectedContainerList, actualContainerList, "Container does not exist in the Storage Account")
 	}
 }
