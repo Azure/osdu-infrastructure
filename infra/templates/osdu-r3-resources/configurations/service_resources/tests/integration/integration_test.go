@@ -21,6 +21,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	appGatewayIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/aks-appgw/tests/integration"
 	aksGitOpsIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/aks-gitops/tests/integration"
+	redisIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/redis-cache/tests/integration"
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
@@ -41,13 +42,15 @@ func TestDataEnvironment(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 23,
+		ExpectedTfOutputCount: 27,
 		TfOutputAssertions: []infratests.TerraformOutputValidation{
 			appGatewayIntegTests.InspectAppGateway("services_resource_group_name", "appgw_name", "keyvault_secret_id"),
 			aksGitOpsIntegTests.BaselineClusterAssertions(kubeConfig, "aks_pod_identity_namespace"),
 			verifyAGICRoleAssignments,
 			// verifyKubeletMSIRoleAssignments,
 			verifyOSDUPodIdentityMSIRoleAssignments,
+			redisIntegTests.InspectProvisionedCache("redis_name", "services_resource_group_name"),
+			redisIntegTests.CheckRedisWriteOperations("redis_hostname", "redis_primary_access_key", "redis_ssl_port"),
 		},
 	}
 	infratests.RunIntegrationTests(&testFixture)

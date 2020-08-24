@@ -78,6 +78,10 @@ locals {
   ai_name                = "${local.base_name}-ai"
   ai_key_name            = "appinsights-key"
 
+  redis_cache_name  = "${local.base_name}-cache"
+  postgresql_name   = "${local.base_name}-pg"
+  postgres_password = coalesce(var.postgres_password, random_password.redis[0].result)
+
   // security.tf
   kv_name       = "${local.base_name_21}-kv"
   ssl_cert_name = "appgw-ssl-cert"
@@ -111,8 +115,6 @@ locals {
   aks_identity_name     = format("%s-pod-identity", local.aks_cluster_name)
   aks_dns_prefix        = local.base_name_60
   osdupod_identity_name = "${local.aks_cluster_name}-osdu-identity"
-
-
 }
 
 
@@ -252,6 +254,7 @@ module "keyvault" {
     elastic-endpoint    = var.elasticsearch_endpoint
     elastic-username    = var.elasticsearch_username
     elastic-password    = var.elasticsearch_password
+    postgres-password   = local.postgres_password
   }
 }
 
@@ -375,6 +378,80 @@ resource "azurerm_key_vault_secret" "ai" {
   key_vault_id = module.keyvault.keyvault_id
 }
 
+
+
+#-------------------------------
+# Azure Redis Cache (main.tf)
+#-------------------------------
+
+module "redis_cache" {
+  source = "../../../../modules/providers/azure/redis-cache"
+
+  name                = local.redis_cache_name
+  resource_group_name = azurerm_resource_group.main.name
+  capacity            = var.redis_capacity
+
+  memory_features     = var.redis_config_memory
+  premium_tier_config = var.redis_config_schedule
+}
+
+resource "azurerm_key_vault_secret" "redis_connection" {
+  name         = "redis-connection"
+  value        = module.app_management_service_principal.client_secret
+  key_vault_id = module.keyvault.keyvault_id
+}
+
+#-------------------------------
+# PostgreSQL (main.tf)
+#-------------------------------
+
+resource "random_password" "redis" {
+  count = var.postgres_password == "" ? 1 : 0
+
+  length           = 8
+  special          = true
+  override_special = "_%@"
+}
+
+module "postgreSQL" {
+  source = "../../../../modules/providers/azure/postgreSQL"
+
+  resource_group_name       = azurerm_resource_group.main.name
+  name                      = local.postgresql_name
+  databases                 = var.postgres_databases
+  admin_user                = var.postgres_username
+  admin_password            = local.postgres_password
+  sku                       = var.postgres_sku
+  postgresql_configurations = var.postgres_configurations
+
+  storage_mb                   = 5120
+  server_version               = "10.0"
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = true
+  auto_grow_enabled            = true
+  ssl_enforcement_enabled      = true
+
+  # Stuff for when we bring it in a network
+  /*
+  public_network_access = false
+  firewall_rule_prefix = var.firewall_rule_prefix
+  firewall_rules = var.firewall_rules
+  vnet_rule_name_prefix = var.vnet_rule_name_prefix
+  vnet_rules = var.vnet_rules 
+  */
+
+  # Stuff for when we bring it in a network
+  /*   
+  firewall_rules = [{
+    start_ip = "10.0.0.2"
+    end_ip   = "10.0.0.8"
+  }]
+
+  vnet_rules = [{
+    subnet_id = module.network.subnets[0]
+  }] 
+  */
+}
 
 
 #-------------------------------

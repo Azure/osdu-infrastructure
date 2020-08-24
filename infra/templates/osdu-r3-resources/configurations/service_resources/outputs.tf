@@ -115,3 +115,20 @@ output "aad_osdu_identity_object_id" {
   description = "The resource id for the aad pod managed identity"
   value       = azurerm_user_assigned_identity.osduidentity.principal_id
 }
+
+output "redis_name" {
+  description = "The name of the redis_cache"
+  value       = module.redis_cache.name
+}
+
+output "redis_hostname" {
+  value = module.redis_cache.hostname
+}
+
+output "redis_primary_access_key" {
+  value = module.redis_cache.primary_access_key
+}
+
+output "redis_ssl_port" {
+  value = module.redis_cache.ssl_port
+}
