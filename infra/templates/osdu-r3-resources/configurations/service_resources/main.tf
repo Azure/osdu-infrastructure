@@ -389,26 +389,34 @@ module "redis_cache" {
 
   name = local.redis_cache_name
   resource_group_name = azurerm_resource_group.main.name
-  capacity = var.rc_capacity
+  capacity = var.redis_capacity
 
-  resource_tags = var.redis_cache_tags
-  memory_features = var.rc_memory_features
-  premium_tier_config = var.rc_premium_tier_config
+  memory_features = var.redis_config_memory
+  premium_tier_config = var.redis_config_schedule
 }
 
 #-------------------------------
 # PostgreSQL (main.tf)
 #-------------------------------
 
+resource "random_password" "redis" {
+  count = var.postgres_password == "" ? 1 : 0
+  
+  length = 8
+  special = true
+  override_special = "_%@"
+}
+
 module "postgreSQL" {
   source = "../../../../modules/providers/azure/postgreSQL"
 
   resource_group_name = azurerm_resource_group.main.name
   name                = local.postgresql_name
-  databases           = var.postgresql_databases
-  admin_user          = var.postgresql_admin_user
-  admin_password      = var.postgresql_admin_password
-  sku = var.postgresql_sku
+  databases           = var.postgres_databases
+  admin_user          = var.postgres_user
+  admin_password      = coalesce(var.postgres_password, random_password.redis[0].result)
+  sku = var.postgres_sku
+  postgresql_configurations = var.postgres_configurations
 
   storage_mb = 5120
   server_version = "10.0"
@@ -426,9 +434,6 @@ module "postgreSQL" {
   vnet_rules = var.vnet_rules 
   */
 
-
-  resource_tags = var.postgresql_resource_tags
-
 # Stuff for when we bring it in a network
   /*   
   firewall_rules = [{
@@ -441,7 +446,7 @@ module "postgreSQL" {
   }] 
   */
 
-  postgresql_configurations = var.postgresql_configurations
+  
 }
 
 
