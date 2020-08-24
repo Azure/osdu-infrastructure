@@ -78,8 +78,8 @@ locals {
   ai_name                = "${local.base_name}-ai"
   ai_key_name            = "appinsights-key"
 
-  redis_cache_name  = "${local.base_name}-redis-cache"
-  postgresql_name   = "${local.base_name}-psqldb"
+  redis_cache_name  = "${local.base_name}-cache"
+  postgresql_name   = "${local.base_name}-pg"
   postgres_password = coalesce(var.postgres_password, random_password.redis[0].result)
 
   // security.tf
@@ -395,6 +395,12 @@ module "redis_cache" {
   premium_tier_config = var.redis_config_schedule
 }
 
+resource "azurerm_key_vault_secret" "redis_connection" {
+  name         = "redis-connection"
+  value        = module.app_management_service_principal.client_secret
+  key_vault_id = module.keyvault.keyvault_id
+}
+
 #-------------------------------
 # PostgreSQL (main.tf)
 #-------------------------------
@@ -405,12 +411,6 @@ resource "random_password" "redis" {
   length           = 8
   special          = true
   override_special = "_%@"
-}
-
-resource "azurerm_key_vault_secret" "postgres_username" {
-  name         = "redis-password"
-  value        = module.app_management_service_principal.client_secret
-  key_vault_id = module.keyvault.keyvault_id
 }
 
 module "postgreSQL" {
@@ -451,8 +451,6 @@ module "postgreSQL" {
     subnet_id = module.network.subnets[0]
   }] 
   */
-
-
 }
 
 
