@@ -71,6 +71,21 @@ variable "container_registry_sku" {
   default     = "Standard"
 }
 
+variable "elasticsearch_endpoint" {
+  type        = string
+  description = "endpoint for elasticsearch cluster"
+}
+
+variable "elasticsearch_username" {
+  type        = string
+  description = "username for elasticsearch cluster"
+}
+
+variable "elasticsearch_password" {
+  type        = string
+  description = "password for elasticsearch cluster"
+}
+
 
 #-------------------------------
 # Private Variables  (common.tf)
@@ -91,12 +106,16 @@ locals {
 
   resource_group_name     = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
   container_registry_name = "${replace(local.base_name_21, "-", "")}cr"
+  kv_name                 = "${local.base_name_21}-kv"
 }
 
 
 #-------------------------------
 # Common Resources  (common.tf)
 #-------------------------------
+
+data "azurerm_client_config" "current" {}
+
 resource "random_string" "workspace_scope" {
   keepers = {
     # Generate a new id each time we switch to a new workspace or app id
@@ -148,6 +167,22 @@ resource "azurerm_management_lock" "acr_lock" {
   lock_level = "CanNotDelete"
 }
 
+
+#-------------------------------+
+# Key Vault  (security.tf)
+#-------------------------------
+module "keyvault" {
+  source = "../../../../modules/providers/azure/keyvault"
+
+  keyvault_name       = local.kv_name
+  resource_group_name = azurerm_resource_group.main.name
+  secrets = {
+    elastic-endpoint     = var.elasticsearch_endpoint
+    elastic-username     = var.elasticsearch_username
+    elastic-password     = var.elasticsearch_password
+    app-dev-sp-tenant-id = data.azurerm_client_config.current.tenant_id
+  }
+}
 
 #-------------------------------
 # Output Variables  (output.tf)

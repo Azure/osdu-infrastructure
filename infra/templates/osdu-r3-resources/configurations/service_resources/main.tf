@@ -235,6 +235,8 @@ resource "azurerm_key_vault_secret" "application_id" {
 #-------------------------------
 # Key Vault  (security.tf)
 #-------------------------------
+# TODO: Remove this section when storing of these secrets is moved to the data partition setup (https://github.com/Azure/osdu-infrastructure/issues/103)
+
 module "keyvault" {
   source = "../../../../modules/providers/azure/keyvault"
 
