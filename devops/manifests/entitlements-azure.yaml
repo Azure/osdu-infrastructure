@@ -1,0 +1,109 @@
+#  Copyright © Microsoft Corporation
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: entitlements-azure
+  namespace: osdu
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+  selector:
+    app: entitlements-azure
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: entitlements-azure
+  namespace: osdu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: entitlements-azure
+  template:
+    metadata:
+      labels:
+        app: entitlements-azure
+        aadpodidbinding: osdu-identity
+    spec:
+      containers:
+      - name: entitlements-service
+        image: community.opengroup.org:5555/osdu/platform/security-and-compliance/entitlements-azure/entitlements-azure-master
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /entitlements/v1/swagger-ui.html
+            port: 80
+        volumeMounts:
+        - name: azure-keyvault
+          mountPath: "/mnt/azure-keyvault"
+          readOnly: true
+        env:
+        - name: spring_application_name
+          value: entitlements-azure
+        - name: server.servlet.contextPath
+          value: /entitlements/v1/
+        - name: server_port
+          value: "80"
+        - name: KEYVAULT_URI
+          valueFrom:
+            configMapKeyRef:
+              name: osdu-svc-properties
+              key: ENV_KEYVAULT
+        - name: AZURE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: clientid
+              key: clientid
+        - name: AZURE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: clientpassword
+              key: clientpassword
+        - name: AZURE_TENANT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: osdu-svc-properties
+              key: ENV_TENANT_ID
+        - name: aad_client_id
+          valueFrom:
+            secretKeyRef:
+              name: appid
+              key: appid
+        - name: appinsights_key
+          valueFrom:
+            secretKeyRef:
+              name: appinsights
+              key: appinsights
+        - name: azure_activedirectory_session_stateless
+          value: "true"
+        - name: azure_activedirectory_AppIdUri
+          value: "api://$(aad_client_id)"
+        - name: cosmosdb_database
+          value: osdu-db
+        - name: service_domain_name
+          value: contoso.com
+      volumes:
+      - name: azure-keyvault
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: azure-keyvault
