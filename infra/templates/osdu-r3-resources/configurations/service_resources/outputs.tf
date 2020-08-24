@@ -118,7 +118,7 @@ output "aad_osdu_identity_object_id" {
 
 output "redis_name" {
   description = "The name of the redis_cache"
-  value = module.redis_cache.name
+  value       = module.redis_cache.name
 }
 
 output "redis_hostname" {

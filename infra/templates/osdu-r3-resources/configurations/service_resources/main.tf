@@ -78,8 +78,8 @@ locals {
   ai_name                = "${local.base_name}-ai"
   ai_key_name            = "appinsights-key"
 
-  redis_cache_name = "${local.base_name}-redis-cache"
-  postgresql_name = "${local.base_name}-psqldb"
+  redis_cache_name  = "${local.base_name}-redis-cache"
+  postgresql_name   = "${local.base_name}-psqldb"
   postgres_password = coalesce(var.postgres_password, random_password.redis[0].result)
 
   // security.tf
@@ -387,11 +387,11 @@ resource "azurerm_key_vault_secret" "ai" {
 module "redis_cache" {
   source = "../../../../modules/providers/azure/redis-cache"
 
-  name = local.redis_cache_name
+  name                = local.redis_cache_name
   resource_group_name = azurerm_resource_group.main.name
-  capacity = var.redis_capacity
+  capacity            = var.redis_capacity
 
-  memory_features = var.redis_config_memory
+  memory_features     = var.redis_config_memory
   premium_tier_config = var.redis_config_schedule
 }
 
@@ -401,9 +401,9 @@ module "redis_cache" {
 
 resource "random_password" "redis" {
   count = var.postgres_password == "" ? 1 : 0
-  
-  length = 8
-  special = true
+
+  length           = 8
+  special          = true
   override_special = "_%@"
 }
 
@@ -416,22 +416,22 @@ resource "azurerm_key_vault_secret" "postgres_username" {
 module "postgreSQL" {
   source = "../../../../modules/providers/azure/postgreSQL"
 
-  resource_group_name = azurerm_resource_group.main.name
-  name                = local.postgresql_name
-  databases           = var.postgres_databases
-  admin_user          = var.postgres_username
-  admin_password      = local.postgres_password
-  sku = var.postgres_sku
+  resource_group_name       = azurerm_resource_group.main.name
+  name                      = local.postgresql_name
+  databases                 = var.postgres_databases
+  admin_user                = var.postgres_username
+  admin_password            = local.postgres_password
+  sku                       = var.postgres_sku
   postgresql_configurations = var.postgres_configurations
 
-  storage_mb = 5120
-  server_version = "10.0"
-  backup_retention_days = 7
+  storage_mb                   = 5120
+  server_version               = "10.0"
+  backup_retention_days        = 7
   geo_redundant_backup_enabled = true
-  auto_grow_enabled = true
-  ssl_enforcement_enabled = true
+  auto_grow_enabled            = true
+  ssl_enforcement_enabled      = true
 
-# Stuff for when we bring it in a network
+  # Stuff for when we bring it in a network
   /*
   public_network_access = false
   firewall_rule_prefix = var.firewall_rule_prefix
@@ -440,7 +440,7 @@ module "postgreSQL" {
   vnet_rules = var.vnet_rules 
   */
 
-# Stuff for when we bring it in a network
+  # Stuff for when we bring it in a network
   /*   
   firewall_rules = [{
     start_ip = "10.0.0.2"
@@ -452,7 +452,7 @@ module "postgreSQL" {
   }] 
   */
 
-  
+
 }
 
 

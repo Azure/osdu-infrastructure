@@ -50,7 +50,7 @@ func TestDataEnvironment(t *testing.T) {
 			// verifyKubeletMSIRoleAssignments,
 			verifyOSDUPodIdentityMSIRoleAssignments,
 			redisIntegTests.InspectProvisionedCache("redis_name", "services_resource_group_name"),
- 			redisIntegTests.CheckRedisWriteOperations("redis_hostname", "redis_primary_access_key", "redis_ssl_port"),
+			redisIntegTests.CheckRedisWriteOperations("redis_hostname", "redis_primary_access_key", "redis_ssl_port"),
 		},
 	}
 	infratests.RunIntegrationTests(&testFixture)

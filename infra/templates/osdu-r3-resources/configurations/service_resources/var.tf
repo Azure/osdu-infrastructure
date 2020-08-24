@@ -193,7 +193,7 @@ variable "redis_capacity" {
 
 variable "postgres_databases" {
   description = "The list of names of the PostgreSQL Database, which needs to be a valid PostgreSQL identifier. Changing this forces a new resource to be created."
-  default     = [
+  default = [
     "airflow"
   ]
 }
