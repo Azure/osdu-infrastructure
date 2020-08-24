@@ -113,6 +113,7 @@ locals {
 #-------------------------------
 # Common Resources  (common.tf)
 #-------------------------------
+
 data "azurerm_client_config" "current" {}
 
 resource "random_string" "workspace_scope" {
@@ -165,6 +166,7 @@ resource "azurerm_management_lock" "acr_lock" {
   scope      = module.container_registry.container_registry_id
   lock_level = "CanNotDelete"
 }
+
 
 #-------------------------------+
 # Key Vault  (security.tf)
