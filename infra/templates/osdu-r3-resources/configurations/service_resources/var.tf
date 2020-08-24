@@ -198,7 +198,7 @@ variable "postgres_databases" {
   ]
 }
 
-variable "postgres_user" {
+variable "postgres_username" {
   description = "The Administrator Login for the PostgreSQL Server. Changing this forces a new resource to be created."
   type        = string
   default     = "osdu_admin"

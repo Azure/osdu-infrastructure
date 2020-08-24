@@ -80,6 +80,7 @@ locals {
 
   redis_cache_name = "${local.base_name}-redis-cache"
   postgresql_name = "${local.base_name}-psqldb"
+  postgres_password = coalesce(var.postgres_password, random_password.redis[0].result)
 
   // security.tf
   kv_name       = "${local.base_name_21}-kv"
@@ -114,8 +115,6 @@ locals {
   aks_identity_name     = format("%s-pod-identity", local.aks_cluster_name)
   aks_dns_prefix        = local.base_name_60
   osdupod_identity_name = "${local.aks_cluster_name}-osdu-identity"
-
-
 }
 
 
@@ -255,6 +254,7 @@ module "keyvault" {
     elastic-endpoint    = var.elasticsearch_endpoint
     elastic-username    = var.elasticsearch_username
     elastic-password    = var.elasticsearch_password
+    postgres-password   = local.postgres_password
   }
 }
 
@@ -407,14 +407,20 @@ resource "random_password" "redis" {
   override_special = "_%@"
 }
 
+resource "azurerm_key_vault_secret" "postgres_username" {
+  name         = "redis-password"
+  value        = module.app_management_service_principal.client_secret
+  key_vault_id = module.keyvault.keyvault_id
+}
+
 module "postgreSQL" {
   source = "../../../../modules/providers/azure/postgreSQL"
 
   resource_group_name = azurerm_resource_group.main.name
   name                = local.postgresql_name
   databases           = var.postgres_databases
-  admin_user          = var.postgres_user
-  admin_password      = coalesce(var.postgres_password, random_password.redis[0].result)
+  admin_user          = var.postgres_username
+  admin_password      = local.postgres_password
   sku = var.postgres_sku
   postgresql_configurations = var.postgres_configurations
 
