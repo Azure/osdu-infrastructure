@@ -73,6 +73,8 @@ Flux requires that the git repository have at least one commit. Initialize the r
 git commit --allow-empty -m "Initializing the Flux Manifest Repository"
 ```
 
+Copy the manifests located in /devops/manifests to the providers/azure/hld-registry directory.
+
 ## Generate an RSA Key Pair to use as the Manifest Repository Deploy Key
 
 Generate the [deploy key](https://developer.github.com/v3/guides/managing-deploy-keys/#deploy-keys) using `ssh-keygen`. The public portion of the key pair will be uploaded to GitHub as a deploy key.
@@ -94,6 +96,7 @@ az keyvault secret show --vault-name $AZURE_VAULT -n "${KEY_NAME}-pub" --query v
 
 
 This will create public and private keys for the Flux repository. We will assign the public key under the following heading: [Adding the Repository Key](#adding-the-repository-key). The private key is stored on the machine originating the deployment.
+
 
 ## Configure Key Access in ADO
 
@@ -148,17 +151,106 @@ TF_VAR_gitops_ssh_key_file=/home/$USER/.ssh/gitops-ssh-key
 
 # Deployment Steps
 
-## Deploy Common Resources
+## Deploy Resources using Azure DevOps Pipelines
+
+__Elastic Search Setup__
+
+Infrastructure assumes bring your own Elastic Search Instance at a version of `6.8.x` and access information must be stored in a Common KeyVault.
+
+
+```bash
+AZURE_VAULT="<your_keyvault>"
+az keyvault secret set --vault-name $AZURE_VAULT --name "elastic-endpoint-osdu-r3-env" --value <your_es_endpoint>
+az keyvault secret set --vault-name $AZURE_VAULT --name "elastic-username-osdu-r3-env" --value <your_es_username>
+az keyvault secret set --vault-name $AZURE_VAULT --name "elastic-password-osdu-r3-env" --value <your_es_password>
+
+# This command will extract all Key Vault Secrets
+for i in `az keyvault secret list --vault-name $AZURE_VAULT --query [].id -otsv`
+do
+   echo "export ${i##*/}=\"$(az keyvault secret show --vault-name $AZURE_VAULT --id $i --query value -otsv)\""
+done
+
+```
+> The Elastic endpoint provided should include `https` and the appropriate port number. A `http` endpoint will not work. 
+
+### Configure Azure DevOps Service Connection
+
+- Configure an [ARM Resources Service Connection](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure?view=azure-devops)
+with name `osdu-infrastructure` for the desired subscription.
+> ADO -> Project Settings -> Service Connection -> New service connection -> Azure Resource Manager -> Service principal (automatic)
+
+  - Scope should be to the desired Subscription but do not apply scope to a Resource Group
+
+- Locate the Service Principal created (<organization-project-subscription>) in Azure Active Directory and elevate the principal capability by adding in 2 API Permissions
+  - Azure Active Directory Graph - Application.ReadWrite.OwnedBy
+  - Microsoft Graph - Application.ReadWrite.OwnedBy
+
+> These 2 API's require `Grant Admin Consent`
+
+
+### Setup ADO required Libraries
+
+- Setup and Configure the ADO Library `Infrastructure Pipeline Variables`
+
+  | Variable | Value |
+  |----------|-------|
+  | AGENT_POOL | Hosted Ubuntu 1604 |
+  | BUILD_ARTIFACT_NAME | osdu-infrastructure |
+  | SERVICE_CONNECTION_NAME | osdu-infrastructure |
+  | TF_VAR_elasticsearch_secrets_keyvault_name | osducommon<your_unique>-kv |
+  | TF_VAR_elasticsearch_secrets_keyvault_resource_group | osdu-common-<your_unique> |
+  | TF_VAR_remote_state_account | osducommon<your_unique> |
+  | TF_VAR_remote_state_container | remote-state-container |
+
+- Setup and Configure the ADO Library `Infrastructure Pipeline Variables - env`
+
+  | Variable | Value |
+  |----------|-------|
+  | ARM_SUBSCRIPTION_ID | <your_subscription_id> |
+  | TF_VAR_aks_agent_vm_count | 3 |
+  | TF_VAR_common_resources_workspace_name | cr-env |
+  | TF_VAR_cosmosdb_replica_location | eastus2 |
+  | TF_VAR_data_resources_workspace_name | dr-env |
+  | TF_VAR_elasticsearch_version | 6.8.12 |
+  | TF_VAR_gitops_branch | master |
+  | TF_VAR_gitops_ssh_url | git@<your_flux_manifest_repo> |
+  | TF_VAR_resource_group_location | centralus |
+
+> You can specify the desired region locations you wish. Change the Elastic version as required.
+
+- Setup and Configure the ADO Library `Infrastructure Pipeline Secrets - env`
+
+  | Variable | Value |
+  |----------|-------|
+  | elastic-endpoint-osdu-r3-env | `*********` |
+  | elastic-username-osdu-r3-env | `*********` |
+  | elastic-password-osdu-r3-env | `*********` |
+
+> This should be linked Secrets from Azure Key Vault `osducommon<your_unique>-kv`
+
+- Setup 2 Secure Files
+  - azure-aks-gitops-ssh-key
+  - azure-aks-node-ssh-key.pub
+
+> These files were created above.
+
+- Add a Pipeline __osdu-infrastructure-r3-common__ -->  `azure-pipeline-common.yml` and execute it.
+
+- Add a Pipeline __osdu-infrastructure-r3-data__ -->  `azure-pipeline-data.yml` and execute it.
+
+- Add a Pipeline __osdu-infrastructure-r3-services__ -->  `azure-pipeline-services.yml` and execute it.
+
+- Once Infrastructure is deployed grant admin_consent to the Service Principal.
+
+
+## Manually Deployment Processes
 
 Follow the directions in the [`common_resources`](./environments/common_resources/README.md) environment.
 
-## Deploy Data Resources
-
 Follow the directions in the [`data_resources`](/environments/data_resources/README.md) environment.
 
-## Deploy Data Resources
-
 Follow the directions in the [`cluster_resources`](./environments/cluster_resources/README.md) environment.
+
 
 ## Interact with the Deployed Cluster
 
@@ -169,28 +261,57 @@ Using the config file output/bedrock_kube_config, one of the first things we can
 ```bash
 KUBECONFIG=./output/bedrock_kube_config kubectl get po --all-namespaces
 
-NAMESPACE     NAME                                    READY   STATUS    RESTARTS   AGE
-default       spartan-app-7dc87b8c45-nrnnn            1/1     Running   0          70s
-flux          flux-5897d4679b-tckth                   1/1     Running   0          2m3s
-flux          flux-memcached-757756884-w5xgz          1/1     Running   0          2m4s
-kube-system   azure-cni-networkmonitor-cl587          1/1     Running   0          3m14s
-kube-system   azure-cni-networkmonitor-pskl2          1/1     Running   0          3m12s
-kube-system   azure-cni-networkmonitor-wgdxb          1/1     Running   0          3m26s
-kube-system   azure-ip-masq-agent-2vdz9               1/1     Running   0          3m26s
-kube-system   azure-ip-masq-agent-ltfsc               1/1     Running   0          3m14s
-kube-system   azure-ip-masq-agent-wbksx               1/1     Running   0          3m12s
-kube-system   azure-npm-5cmx7                         1/1     Running   1          3m26s
-kube-system   azure-npm-jqdch                         1/1     Running   1          3m14s
-kube-system   azure-npm-vhm9h                         1/1     Running   1          3m12s
-kube-system   coredns-6b58b8549f-gg6kr                1/1     Running   0          6m52s
-kube-system   coredns-6b58b8549f-wkmp7                1/1     Running   0          2m32s
-kube-system   coredns-autoscaler-7595c6bd66-bb2kc     1/1     Running   0          6m48s
-kube-system   kube-proxy-b7hsx                        1/1     Running   0          3m12s
-kube-system   kube-proxy-bfsqt                        1/1     Running   0          3m26s
-kube-system   kube-proxy-jsftr                        1/1     Running   0          3m14s
-kube-system   kubernetes-dashboard-69b6c88658-99xdf   1/1     Running   1          6m51s
-kube-system   metrics-server-766dd9f7fd-zs7l2         1/1     Running   1          6m51s
-kube-system   tunnelfront-6988c794b7-z2clv            1/1     Running   0          6m48s
+NAMESPACE      NAME                                                READY   STATUS    RESTARTS   AGE
+agic           agic-ingress-azure-7b88b4b69f-p9n5w                 1/1     Running   0          15d
+cert-manager   jetstack-cert-manager-567bb678c7-sjmct              1/1     Running   0          21h
+cert-manager   jetstack-cert-manager-cainjector-695d847cdd-l2rv6   1/1     Running   0          21h
+cert-manager   jetstack-cert-manager-webhook-5b895bb689-dvwvd      1/1     Running   0          21h
+flux           flux-6899458bb8-qghrq                               1/1     Running   8          15d
+flux           flux-memcached-8647794c5f-slsvr                     1/1     Running   0          15d
+keda           keda-operator-5895ff46b9-fh5xn                      1/1     Running   0          3d3h
+keda           keda-operator-metrics-apiserver-6774776dbc-jwg7q    1/1     Running   0          8d
+kube-system    azure-cni-networkmonitor-745vs                      1/1     Running   0          15d
+kube-system    azure-cni-networkmonitor-9kq6c                      1/1     Running   0          15d
+kube-system    azure-cni-networkmonitor-dt7ch                      1/1     Running   0          15d
+kube-system    azure-ip-masq-agent-6kv6v                           1/1     Running   0          15d
+kube-system    azure-ip-masq-agent-p6zxn                           1/1     Running   0          15d
+kube-system    azure-ip-masq-agent-vw7fr                           1/1     Running   0          15d
+kube-system    azure-npm-f9qz7                                     1/1     Running   0          10d
+kube-system    azure-npm-j6qdv                                     1/1     Running   0          10d
+kube-system    azure-npm-vkghz                                     1/1     Running   0          10d
+kube-system    coredns-869cb84759-69nmv                            1/1     Running   0          15d
+kube-system    coredns-869cb84759-fvpf8                            1/1     Running   0          15d
+kube-system    coredns-autoscaler-5b867494f-wvt6q                  1/1     Running   11         15d
+kube-system    dashboard-metrics-scraper-7dbbb6996d-4v6m4          1/1     Running   0          15d
+kube-system    kube-proxy-4qmfg                                    1/1     Running   0          15d
+kube-system    kube-proxy-b66qd                                    1/1     Running   0          15d
+kube-system    kube-proxy-wwts4                                    1/1     Running   0          15d
+kube-system    kubernetes-dashboard-5596bdb9f-cx4bw                1/1     Running   8          15d
+kube-system    metrics-server-6cd7558856-lvqrg                     1/1     Running   0          15d
+kube-system    omsagent-4g9qf                                      1/1     Running   0          15d
+kube-system    omsagent-j8v77                                      1/1     Running   0          15d
+kube-system    omsagent-rs-764c6f8d8-54fjd                         1/1     Running   0          15d
+kube-system    omsagent-zg2wh                                      1/1     Running   0          15d
+kube-system    tunnelfront-7cfc889c77-gh9jv                        2/2     Running   1          15d
+kvsecrets      kvsecrets-csi-secrets-store-provider-azure-ddnwn    1/1     Running   0          15d
+kvsecrets      kvsecrets-csi-secrets-store-provider-azure-j2m7x    1/1     Running   0          15d
+kvsecrets      kvsecrets-csi-secrets-store-provider-azure-sszrt    1/1     Running   0          15d
+kvsecrets      kvsecrets-secrets-store-csi-driver-92n8k            3/3     Running   0          15d
+kvsecrets      kvsecrets-secrets-store-csi-driver-pnx8x            3/3     Running   0          15d
+kvsecrets      kvsecrets-secrets-store-csi-driver-vmg48            3/3     Running   0          15d
+osdu           default-service-86cd47b748-7mrnw                    1/1     Running   0          14d
+osdu           entitlements-azure-cb59875bc-ncqll                  1/1     Running   0          8d
+osdu           function-debug                                      1/1     Running   0          3d4h
+osdu           indexer-7dfcdfbb-bf7sl                              1/1     Running   0          30h
+osdu           legal-57cbd6cd66-tx6sf                              1/1     Running   0          8d
+osdu           legal-debug                                         1/1     Running   0          9d
+osdu           search-5f59bc7c85-5wc4l                             1/1     Running   0          27h
+osdu           storage-7d794b54cf-2w5cn                            1/1     Running   0          47h
+podidentity    aad-pod-identity-mic-57dbd9f4fb-bd4vr               1/1     Running   12         15d
+podidentity    aad-pod-identity-mic-57dbd9f4fb-zj6lb               1/1     Running   0          15d
+podidentity    aad-pod-identity-nmi-fmjlk                          1/1     Running   0          15d
+podidentity    aad-pod-identity-nmi-qk2t4                          1/1     Running   0          15d
+podidentity    aad-pod-identity-nmi-vtxmg                          1/1     Running   0          15d
 ```
 
 Note that there is also a namespace flux. As previously mentioned, Flux is managing the deployment of all of the resources into the cluster. Taking a look at the description for the flux pod flux-5897d4679b-tckth, we see the following:
@@ -392,6 +513,8 @@ Press CTRL+C to close the tunnel...
 ```
 
 ![image](https://user-images.githubusercontent.com/7635865/74479484-d54d3080-4e74-11ea-8160-ec4e087597ae.png)
+
+
 
 ## Integration Testing
 

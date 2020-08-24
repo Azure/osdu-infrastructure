@@ -41,7 +41,7 @@ trigger:
     include:
     - /devops/infrastructure/*
     - /infra/modules/providers/*
-    - /infra/templates/osdu-r3-resources/environments/service_resources/*
+    - /infra/templates/osdu-r3-resources/configurations/service_resources/*
     - /test-harness/terratest-extensions/*
     exclude:
     - /**/*.md
@@ -55,14 +55,14 @@ pr:
     include:
     - /devops/infrastructure/*
     - /infra/modules/providers/*
-    - /infra/templates/osdu-r3-resources/environments/service_resources/*
+    - /infra/templates/osdu-r3-resources/configurations/service_resources/*
     - /test-harness/terratest-extensions/*
     exclude:
     - /**/*.md
 
 variables:
 - name: 'TF_VERSION'
-  value: '0.12.28'
+  value: '0.12.29'
 - name: 'GO_VERSION'
   value: '1.12.14'
 - name: 'TF_ROOT_DIR'
@@ -77,12 +77,16 @@ stages:
 - template: prepare-stage.yml
   parameters:
     environments:
-    - name: 'dev'
+    - name: 'env1'
       enablePrIsolation: false
       resourceNameIsolationLevel: 8
+    - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+      - name: 'env2'
+        enablePrIsolation: false
+        resourceNameIsolationLevel: 8  
 
     configurations:
     - jobName: service_resources
       terraformWorkspacePrefix: sr
-      terraformTemplatePath: infra/templates/osdu-r3-resources/environments/service_resources
+      terraformTemplatePath: infra/templates/osdu-r3-resources/configurations/service_resources
       deploymentTimeoutInMinutes: 120

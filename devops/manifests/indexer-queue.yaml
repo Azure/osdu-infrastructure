@@ -1,0 +1,82 @@
+#  Copyright © Microsoft Corporation
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+apiVersion: keda.k8s.io/v1alpha1
+kind: ScaledObject
+metadata:
+  name: indexer-queue
+  namespace: osdu
+  labels:
+    deploymentName: indexer-queue
+spec:
+  scaleTargetRef:
+    deploymentName: indexer-queue
+  triggers:
+  - type: azure-servicebus
+    metadata:
+      type: serviceBusTrigger
+      direction: in
+      name: message
+      subscriptionName: recordstopicsubscription
+      topicName: recordstopic
+      connection: SERVICE_BUS
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: indexer-queue
+  namespace: osdu
+  labels:
+    app: indexer-queue
+spec:
+  selector:
+    matchLabels:
+      app: indexer-queue
+  template:
+    metadata:
+      labels:
+        app: indexer-queue
+        aadpodidbinding: osdu-identity
+    spec:
+      containers:
+      - name: indexer-queue
+        image: community.opengroup.org:5555/osdu/platform/system/indexer-queue/indexer-queue-master
+        env:
+        - name: SERVICE_BUS
+          valueFrom:
+            secretKeyRef:
+              name: servicebus
+              key: servicebus
+        - name: storage_account
+          valueFrom:
+            configMapKeyRef:
+              name: osdu-svc-properties
+              key: ENV_STORAGE_DIAGNOSTICS
+        - name: storage_account_key
+          valueFrom:
+            secretKeyRef:
+              name: diagnostics
+              key: diagnostics
+        - name: AzureWebJobsStorage
+          value: DefaultEndpointsProtocol=https;AccountName=$(storage_account);AccountKey=$(storage_account_key);EndpointSuffix=core.windows.net
+        - name: INDEXER_WORKER_URL
+          value: http://indexer/api/indexer/v2/_dps/task-handlers/index-worker
+        - name: AzureFunctionsJobHost__functions__0
+          value: enqueue
+        - name: FUNCTIONS_WORKER_RUNTIME
+          value: java
+        - name: TOPIC_NAME
+          value: recordstopic
+        - name: SUBSCRIPTION_NAME
+          value: recordstopicsubscription

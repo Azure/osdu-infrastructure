@@ -1,0 +1,133 @@
+#  Copyright © Microsoft Corporation
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: search
+  namespace: osdu
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+  selector:
+    app: search
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search
+  namespace: osdu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: search
+  template:
+    metadata:
+      labels:
+        app: search
+        aadpodidbinding: osdu-identity
+    spec:
+      containers:
+      - name: search
+        image: community.opengroup.org:5555/osdu/platform/system/search-service/search-service-master
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /api/search/v2/swagger-ui.html
+            port: 80
+        volumeMounts:
+        - name: azure-keyvault
+          mountPath: "/mnt/azure-keyvault"
+          readOnly: true
+        env:
+        - name: spring_application_name
+          value: search
+        - name: server.servlet.contextPath
+          value: /api/search/v2/
+        - name: server_port
+          value: "80"
+        - name: ACCEPT_HTTP  # TEMPORARY UNTIL HTTPS
+          value: "true"
+        - name: KEYVAULT_URI
+          valueFrom:
+            configMapKeyRef:
+              name: osdu-svc-properties
+              key: ENV_KEYVAULT
+        - name: AZURE_TENANT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: osdu-svc-properties
+              key: ENV_TENANT_ID
+        - name: AZURE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: clientid
+              key: clientid
+        - name: AZURE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: clientpassword
+              key: clientpassword
+        - name: aad_client_id
+          valueFrom:
+            secretKeyRef:
+              name: appid
+              key: appid
+        - name: azure_activedirectory_AppIdUri
+          value: "api://$(aad_client_id)"
+        - name: appinsights_key
+          valueFrom:
+            secretKeyRef:
+              name: appinsights
+              key: appinsights
+        - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+          value: InstrumentationKey=$(appinsights_key)
+        - name: cosmosdb_account
+          valueFrom:
+            configMapKeyRef:
+              name: osdu-svc-properties
+              key: ENV_COSMOSDB_HOST
+        - name: cosmosdb_key
+          valueFrom:
+            secretKeyRef:
+              name: cosmos
+              key: cosmos
+        - name: cosmosdb_database
+          value: osdu-db
+        - name: entitlements_service_endpoint
+          value: http://entitlements-azure/entitlements/v1
+        - name: entitlements_service_api_key
+          value: "OBSOLETE"
+        - name: ENVIRONMENT
+          value: "evt"
+        - name: LOG_PREFIX
+          value: search
+        - name: ELASTIC_CACHE_EXPIRATION
+          value: "1"
+        - name: MAX_CACHE_VALUE_SIZE
+          value: "60"
+        - name: search_service_spring_logging_level
+          value: debug
+      volumes:
+      - name: azure-keyvault
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: azure-keyvault

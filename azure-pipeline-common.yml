@@ -24,10 +24,10 @@
 # Required Group Variables - `Infrastructure Pipeline - {configurations.jobName}`
   # SERVICE_CONNECTION_NAME
   # ARM_SUBSCRIPTION_ID
+  # TF_VAR_resource_group_location
 
 # Required Env Group Variables - `Infrastructure Pipeline - {configurations.jobName} - {env_name}`
-  # TF_VAR_resource_group_location
-  # TF_VAR_cosmosdb_replica_location
+  # TF_VAR_common_resources_workspace_name
   
 
 
@@ -41,30 +41,15 @@ trigger:
     include:
     - /devops/infrastructure/*
     - /infra/modules/providers/*
-    - /infra/templates/osdu-r3-resources/environments/common_resources/*
-    - /infra/templates/osdu-r3-resources/environments/data_resources/*
+    - /infra/templates/osdu-r3-resources/configurations/common_resources/*
     - /test-harness/terratest-extensions/*
     exclude:
     - /**/*.md
 
-pr:
-  autoCancel: true
-  branches:
-    include:
-    - '*'
-  paths:
-    include:
-    - /devops/infrastructure/*
-    - /infra/modules/providers/*
-    - /infra/templates/osdu-r3-resources/environments/common_resources/*
-    - /infra/templates/osdu-r3-resources/environments/data_resources/*
-    - /test-harness/terratest-extensions/*
-    exclude:
-    - /**/*.md
 
 variables:
 - name: 'TF_VERSION'
-  value: '0.12.28'
+  value: '0.12.29'
 - name: 'GO_VERSION'
   value: '1.12.14'
 - name: 'TF_ROOT_DIR'
@@ -76,19 +61,15 @@ variables:
 - group: 'Infrastructure Pipeline Variables'
 
 stages:
-- template: prepare-stage.yml
+- template: devops/infrastructure/prepare-stage.yml
   parameters:
     environments:
-    - name: 'dev'
+    - name: 'env'
       enablePrIsolation: false
-      resourceNameIsolationLevel: 8
+      resourceNameIsolationLevel: 8 
 
     configurations:
     - jobName: common_resources
       terraformWorkspacePrefix: cr
-      terraformTemplatePath: infra/templates/osdu-r3-resources/environments/common_resources
-      deploymentTimeoutInMinutes: 120
-    - jobName: data_resources
-      terraformWorkspacePrefix: dr
-      terraformTemplatePath: infra/templates/osdu-r3-resources/environments/data_resources
+      terraformTemplatePath: infra/templates/osdu-r3-resources/configurations/common_resources
       deploymentTimeoutInMinutes: 120
