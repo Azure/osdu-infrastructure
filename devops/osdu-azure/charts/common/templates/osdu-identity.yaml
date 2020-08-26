@@ -12,13 +12,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-
-# Example Value(s)
-#   SUBSCRIPTION_ID=929e9ae0-7bb1-4563-a200-9863fe27cae4
-#   RESOURCE_GROUP_NAME=osdu-r3-danielsr-rn6n-rg
-#   IDENTITY_NAME=osdu-r3-danielsr-rn6n-aks-osdu-identity
-#   IDENTITY_CLIENT_ID=818f456e-a155-4a86-aab2-67a481a4f1d9x
-
 apiVersion: aadpodidentity.k8s.io/v1
 kind: AzureIdentity
 metadata:
@@ -26,8 +19,8 @@ metadata:
   namespace: osdu
 spec:
   type: 0
-  resourceID: /subscriptions/{{ SUBSCRIPTION_ID }}/resourcegroups/{{ RESOURCE_GROUP_NAME }}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{{ IDENTITY_NAME }}
-  clientID: {{ IDENTITY_CLIENT_ID }}
+  resourceID: "/subscriptions/{{ .Values.global.azure.subscription }}/resourcegroups/{{ .Values.global.azure.resourcegroup }}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{{ .Values.global.azure.identity }}"
+  clientID: "{{ .Values.global.azure.identity_id }}"
 ---
 apiVersion: aadpodidentity.k8s.io/v1
 kind: AzureIdentityBinding

@@ -15,37 +15,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: default-service
+  name: {{ .Release.Name }}-{{ .Chart.Name }}
   namespace: osdu
-  labels:
-    app: default-service
 spec:
   type: ClusterIP
   ports:
-    - port: 80
+  - protocol: TCP
+    port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.port }}
   selector:
-    app: default-service
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: default-service
-  namespace: osdu
-spec:
-  selector:
-    matchLabels:
-      app: default-service
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: default-service
-    spec:
-      containers:
-        - name: default-service
-          image: neilpeterson/aks-helloworld:v1
-          ports:
-            - containerPort: 80
-          env:
-            - name: TITLE
-              value: "Azure OSDU Platform - (AKS)"
+    app: {{ .Release.Name }}-{{ .Chart.Name }}

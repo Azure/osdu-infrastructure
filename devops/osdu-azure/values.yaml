@@ -1,0 +1,6 @@
+global:
+  replicaCount: 2
+  image:
+    branch: master
+  ingress:
+    sslServer: https://acme-staging-v02.api.letsencrypt.org/directory

@@ -12,57 +12,50 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-apiVersion: v1
-kind: Service
-metadata:
-  name: legal
-  namespace: osdu
-spec:
-  type: ClusterIP
-  ports:
-  - port: 80
-  selector:
-    app: legal
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: legal
+  name: {{ .Release.Name }}-{{ .Chart.Name }}
   namespace: osdu
 spec:
-  replicas: 1
+  replicas: {{ .Values.global.replicaCount }}
   selector:
     matchLabels:
-      app: legal
+      app: {{ .Release.Name }}-{{ .Chart.Name }}
   template:
     metadata:
       labels:
-        app: legal
+        app: {{ .Release.Name }}-{{ .Chart.Name }}
         aadpodidbinding: osdu-identity
     spec:
+      volumes:
+      - name: azure-keyvault
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: azure-keyvault
       containers:
-      - name: legal
-        image: community.opengroup.org:5555/osdu/platform/security-and-compliance/legal/legal-master
+      - name: {{ .Release.Name }}-{{ .Chart.Name }}
+        image: {{ .Values.image.repository }}/{{ .Chart.Name }}-{{ .Values.global.image.branch }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         imagePullPolicy: Always
         ports:
-        - containerPort: 80
+        - containerPort: {{ .Values.service.port }}
         readinessProbe:
           httpGet:
-            path: /api/legal/v1/swagger-ui.html
-            port: 80
+            path: {{ .Values.service.probe.path }}
+            port: {{ .Values.service.port }}
         volumeMounts:
         - name: azure-keyvault
           mountPath: "/mnt/azure-keyvault"
           readOnly: true
         env:
         - name: spring_application_name
-          value: legal
+          value: entitlements-azure
         - name: server.servlet.contextPath
-          value: /api/legal/v1/
+          value: /entitlements/v1/
         - name: server_port
-          value: "80"
-        - name: ACCEPT_HTTP  # TEMPORARY UNTIL HTTPS
-          value: "true"
+          value: "{{ .Values.service.port }}"
         - name: KEYVAULT_URI
           valueFrom:
             configMapKeyRef:
@@ -93,40 +86,11 @@ spec:
             secretKeyRef:
               name: appinsights
               key: appinsights
-        - name: servicebus_namespace_name
-          valueFrom:
-            configMapKeyRef:
-              name: osdu-svc-properties
-              key: ENV_SERVICEBUS_NAMESPACE
-        - name: storage_account
-          valueFrom:
-            configMapKeyRef:
-              name: osdu-svc-properties
-              key: ENV_STORAGE_ACCOUNT
         - name: azure_activedirectory_session_stateless
           value: "true"
         - name: azure_activedirectory_AppIdUri
           value: "api://$(aad_client_id)"
         - name: cosmosdb_database
           value: osdu-db
-        - name: LOG_PREFIX
-          value: legal
-        - name: azure_storage_container_name
-          value: legal-service-azure-configuration
-        - name: azure_storage_enable_https
-          value: "true"
-        - name: legal_service_region
-          value: us
-        - name: servicebus_topic_name
-          value: legaltags
-        - name: entitlements_service_endpoint
-          value: http://entitlements-azure/entitlements/v1
-        - name: entitlements_service_api_key
-          value: "OBSOLETE"
-      volumes:
-      - name: azure-keyvault
-        csi:
-          driver: secrets-store.csi.k8s.io
-          readOnly: true
-          volumeAttributes:
-            secretProviderClass: azure-keyvault
+        - name: service_domain_name
+          value: contoso.com
