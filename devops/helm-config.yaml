@@ -1,0 +1,36 @@
+# This file contains the essential configs for the osdu on azure helm chart
+global:
+
+  # Service(s) Replica Count
+  replicaCount: 2
+
+  ################################################################################
+  # Specify the azure environment specific values
+  #
+  azure:
+    tenant: <tenantId>
+    subscription: <subscriptionId>
+    resourcegroup: <resourceGroupName>
+    identity: <osduIdentityName>
+    identity_id: <osduClientId>
+    keyvault: <keyVaultName>
+
+  ################################################################################
+  # Specify the Ingress Settings
+  # DNS Hostname for thet Gateway
+  # Admin Email Address to be notified for SSL expirations
+  # Lets Encrypt SSL Server
+  #     https://acme-staging-v02.api.letsencrypt.org/directory  --> Staging Server
+  #     https://acme-v02.api.letsencrypt.org/directory --> Production Server
+  #
+  ingress:
+    hostname: <hostname.domain.com>
+    admin: <admin@email.com>
+    sslServer: https://acme-staging-v02.api.letsencrypt.org/directory  # Staging
+
+  ################################################################################
+  # Specify the Gitlab branch being used for image creation
+  # ie: community.opengroup.org:5555/osdu/platform/system/storage/{{ .Values.global.branch }}/storage:latest
+  #
+  image:
+    branch: master

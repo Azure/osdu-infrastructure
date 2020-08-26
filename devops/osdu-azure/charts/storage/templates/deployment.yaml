@@ -12,54 +12,48 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: indexer
-  namespace: osdu
-spec:
-  type: ClusterIP
-  ports:
-  - port: 80
-  selector:
-    app: indexer
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: indexer
+  name: {{ .Release.Name }}-{{ .Chart.Name }}
   namespace: osdu
 spec:
-  replicas: 1
+  replicas: {{ .Values.global.replicaCount }}
   selector:
     matchLabels:
-      app: indexer
+      app: {{ .Release.Name }}-{{ .Chart.Name }}
   template:
     metadata:
       labels:
-        app: indexer
+        app: {{ .Release.Name }}-{{ .Chart.Name }}
         aadpodidbinding: osdu-identity
     spec:
+      volumes:
+      - name: azure-keyvault
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: azure-keyvault
       containers:
-      - name: indexer
-        image: community.opengroup.org:5555/osdu/platform/system/indexer-service/indexer-service-master
+      - name: {{ .Release.Name }}-{{ .Chart.Name }}
+        image: {{ .Values.image.repository }}/{{ .Chart.Name }}-{{ .Values.global.image.branch }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         imagePullPolicy: Always
         ports:
-        - containerPort: 80
+        - containerPort: {{ .Values.service.port }}
         readinessProbe:
           httpGet:
-            path: /api/indexer/v2/swagger-ui.html
-            port: 80
+            path: {{ .Values.service.probe.path }}
+            port: {{ .Values.service.port }}
         volumeMounts:
         - name: azure-keyvault
           mountPath: "/mnt/azure-keyvault"
           readOnly: true
         env:
         - name: spring_application_name
-          value: indexer
+          value: storage
         - name: server.servlet.contextPath
-          value: /api/indexer/v2/
+          value: /api/storage/v2/
         - name: server_port
           value: "80"
         - name: ACCEPT_HTTP  # TEMPORARY UNTIL HTTPS
@@ -89,6 +83,10 @@ spec:
             secretKeyRef:
               name: appid
               key: appid
+        - name: azure_activedirectory_session_stateless
+          value: "true"
+        - name: azure_activedirectory_AppIdUri
+          value: "api://$(aad_client_id)"
         - name: appinsights_key
           valueFrom:
             secretKeyRef:
@@ -123,16 +121,19 @@ spec:
             configMapKeyRef:
               name: osdu-svc-properties
               key: ENV_STORAGE_ACCOUNT
+        - name: storage_account_key
+          valueFrom:
+            secretKeyRef:
+              name: storage
+              key: storage
         - name: entitlements_service_endpoint
           value: http://entitlements-azure/entitlements/v1
         - name: entitlements_service_api_key
           value: "OBSOLETE"
-        - name: storage_service_url
-          value: http://storage/api/storage/v2
-      volumes:
-      - name: azure-keyvault
-        csi:
-          driver: secrets-store.csi.k8s.io
-          readOnly: true
-          volumeAttributes:
-            secretProviderClass: azure-keyvault
+        - name: legal_service_endpoint
+          value: http://legal/api/legal/v1
+        - name: legal_service_region
+          value: southcentralus
+        - name: search_service_endpoint
+          value: http://legal/api/legal/v1
+

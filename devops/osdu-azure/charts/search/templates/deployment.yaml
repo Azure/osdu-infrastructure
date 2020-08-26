@@ -12,45 +12,39 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: search
-  namespace: osdu
-spec:
-  type: ClusterIP
-  ports:
-  - port: 80
-  selector:
-    app: search
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: search
+  name: {{ .Release.Name }}-{{ .Chart.Name }}
   namespace: osdu
 spec:
-  replicas: 1
+  replicas: {{ .Values.global.replicaCount }}
   selector:
     matchLabels:
-      app: search
+      app: {{ .Release.Name }}-{{ .Chart.Name }}
   template:
     metadata:
       labels:
-        app: search
+        app: {{ .Release.Name }}-{{ .Chart.Name }}
         aadpodidbinding: osdu-identity
     spec:
+      volumes:
+      - name: azure-keyvault
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: azure-keyvault
       containers:
-      - name: search
-        image: community.opengroup.org:5555/osdu/platform/system/search-service/search-service-master
+      - name: {{ .Release.Name }}-{{ .Chart.Name }}
+        image: {{ .Values.image.repository }}/{{ .Chart.Name }}-{{ .Values.global.image.branch }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         imagePullPolicy: Always
         ports:
-        - containerPort: 80
+        - containerPort: {{ .Values.service.port }}
         readinessProbe:
           httpGet:
-            path: /api/search/v2/swagger-ui.html
-            port: 80
+            path: {{ .Values.service.probe.path }}
+            port: {{ .Values.service.port }}
         volumeMounts:
         - name: azure-keyvault
           mountPath: "/mnt/azure-keyvault"
@@ -124,10 +118,3 @@ spec:
           value: "60"
         - name: search_service_spring_logging_level
           value: debug
-      volumes:
-      - name: azure-keyvault
-        csi:
-          driver: secrets-store.csi.k8s.io
-          readOnly: true
-          volumeAttributes:
-            secretProviderClass: azure-keyvault
