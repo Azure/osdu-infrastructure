@@ -5,7 +5,7 @@ metadata:
   namespace: osdu
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
-    cert-manager.io/cluster-issuer: {{ .Values.global.ingress.sslIssuer }}
+    cert-manager.io/cluster-issuer: letsencrypt
     cert-manager.io/acme-challenge-type: http01
 spec:
   tls:

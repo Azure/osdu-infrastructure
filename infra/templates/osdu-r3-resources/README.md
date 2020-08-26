@@ -73,8 +73,6 @@ Flux requires that the git repository have at least one commit. Initialize the r
 git commit --allow-empty -m "Initializing the Flux Manifest Repository"
 ```
 
-Copy the manifests located in /devops/manifests to the providers/azure/hld-registry directory.
-
 ## Generate an RSA Key Pair to use as the Manifest Repository Deploy Key
 
 Generate the [deploy key](https://developer.github.com/v3/guides/managing-deploy-keys/#deploy-keys) using `ssh-keygen`. The public portion of the key pair will be uploaded to GitHub as a deploy key.
@@ -98,15 +96,6 @@ az keyvault secret show --vault-name $AZURE_VAULT -n "${KEY_NAME}-pub" --query v
 This will create public and private keys for the Flux repository. We will assign the public key under the following heading: [Adding the Repository Key](#adding-the-repository-key). The private key is stored on the machine originating the deployment.
 
 
-## Configure Key Access in ADO
-
-The public key of the [RSA key pair](#create-an-rsa-key-pair-for-a-deploy-key-for-the-flux-repository) previously created needs to be added as a deploy key. Note: _If you do not own the repository, you will have to fork it before proceeding_.
-
-Use the contents of the Secret as shown above.
-
-
-Next, in your Azure DevOPS Project, follow these [steps](https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops&tabs=current-page#step-2--add-the-public-key-to-azure-devops-servicestfs) to add your public SSH key to your ADO environment.
-
 ## Create an RSA Key Pair to use as Node Key
 
 The Terraform scripts use this node key to setup log-in credentials on the nodes in the AKS cluster. We will use this key when setting up the Terraform deployment variables. Generate the Node Key:
@@ -127,8 +116,24 @@ az keyvault secret show --vault-name $AZURE_VAULT -n "${KEY_NAME}-pub" --query v
 ```
 
 
-## Configure GitOPS + Node SSH keys with Terraform Deployment
+### Configure Key Access in Manifest Repository
 
+The public key of the [RSA key pair](#create-an-rsa-key-pair-for-a-deploy-key-for-the-flux-repository) previously created needs to be added as a deploy key. Note: _If you do not own the repository, you will have to fork it before proceeding_.
+
+Use the contents of the Secret as shown above.
+
+
+Next, in your Azure DevOPS Project, follow these [steps](https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops&tabs=current-page#step-2--add-the-public-key-to-azure-devops-servicestfs) to add your public SSH key to your ADO environment.
+
+
+
+# Deployment Steps
+
+## Manual Deployment Process
+Follow these steps if you wish to deploy manually without pipeline support.
+
+
+### Configure GitOPS + Node SSH keys with Terraform Deployment
 
 Download the required keys from the common Key Vault
 
@@ -141,7 +146,6 @@ chmod 644 ~/.ssh/node-ssh-key.pub
 chmod 600 ~/.ssh/gitops-ssh-key
 ```
 
-
 Update your `.env` file with the paths to your public and private SSH keys for Node and GitOPS repo access.
 
 ```
@@ -149,13 +153,41 @@ TF_VAR_ssh_public_key_file=/home/$USER/.ssh/node-ssh-key.pub
 TF_VAR_gitops_ssh_key_file=/home/$USER/.ssh/gitops-ssh-key
 ```
 
-# Deployment Steps
+### Deploy Common Resources
 
-## Deploy Resources using Azure DevOps Pipelines
+Follow the directions in the [`common_resources`](./configurations/common_resources/README.md) environment.
 
-__Elastic Search Setup__
+### Deploy Data Resources
 
-Infrastructure assumes bring your own Elastic Search Instance at a version of `6.8.x` and access information must be stored in a Common KeyVault.
+Follow the directions in the [`data_resources`](./configurations/data_resources/README.md) environment.
+
+### Deploy Service Resources
+
+Follow the directions in the [`service_resources`](./configurations/cluster_resources/README.md) environment.
+
+
+## Pipeline Deployment Process
+Follow these steps if you wish to setup and deploy using ADO Pipelines.
+
+
+### Configure Azure DevOps Service Connection
+
+- Configure an [ARM Resources Service Connection](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure?view=azure-devops)
+with name `osdu-infrastructure` for the desired subscription.
+> ADO -> Project Settings -> Service Connection -> New service connection -> Azure Resource Manager -> Service principal (automatic)
+
+  - Scope should be to the desired Subscription but do not apply scope to a Resource Group
+
+- Locate the Service Principal created (<organization-project-subscription>) in Azure Active Directory and elevate the principal capability by adding in 2 API Permissions
+  - Azure Active Directory Graph - Application.ReadWrite.OwnedBy
+  - Microsoft Graph - Application.ReadWrite.OwnedBy
+
+> These 2 API's require `Grant Admin Consent`
+
+
+### Elastic Search Setup
+
+Infrastructure assumes bring your own Elastic Search Instance at a version of `6.8.x` and access information must be stored in a Common KeyVault for ADO Libraries to access.
 
 
 ```bash
@@ -171,21 +203,8 @@ do
 done
 
 ```
-> The Elastic endpoint provided should include `https` and the appropriate port number. A `http` endpoint will not work. 
+> The Elastic endpoint provided should include `https` and the appropriate port number. A `http` endpoint will only work if services are properly configured to bypass the `https` requirement. 
 
-### Configure Azure DevOps Service Connection
-
-- Configure an [ARM Resources Service Connection](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure?view=azure-devops)
-with name `osdu-infrastructure` for the desired subscription.
-> ADO -> Project Settings -> Service Connection -> New service connection -> Azure Resource Manager -> Service principal (automatic)
-
-  - Scope should be to the desired Subscription but do not apply scope to a Resource Group
-
-- Locate the Service Principal created (<organization-project-subscription>) in Azure Active Directory and elevate the principal capability by adding in 2 API Permissions
-  - Azure Active Directory Graph - Application.ReadWrite.OwnedBy
-  - Microsoft Graph - Application.ReadWrite.OwnedBy
-
-> These 2 API's require `Grant Admin Consent`
 
 
 ### Setup ADO required Libraries
@@ -243,127 +262,146 @@ with name `osdu-infrastructure` for the desired subscription.
 - Once Infrastructure is deployed grant admin_consent to the Service Principal.
 
 
-## Manually Deployment Processes
-
-Follow the directions in the [`common_resources`](./environments/common_resources/README.md) environment.
-
-Follow the directions in the [`data_resources`](/environments/data_resources/README.md) environment.
-
-Follow the directions in the [`cluster_resources`](./environments/cluster_resources/README.md) environment.
-
-
 ## Interact with the Deployed Cluster
 
 After `terraform apply` finishes for the cluster_resources, there is one critical output artifact: the Kubernetes config file for the deployed cluster that is generated and saved in the output directory. The default file is output/bedrock_kube_config. The following steps use this file to interact with the deployed Bedrock AKS cluster.
 
-Using the config file output/bedrock_kube_config, one of the first things we can do is list all pods deployed within the cluster:
+_Alternately context can be set with the following command `az aks get-credentials -g <ResourceGroup> -n <ClusterName>`_
+
+Once the context is properly set, one of the first things we can do is list all namespaces used within the cluster:
 
 ```bash
-KUBECONFIG=./output/bedrock_kube_config kubectl get po --all-namespaces
+$ kubectl get namespaces
 
-NAMESPACE      NAME                                                READY   STATUS    RESTARTS   AGE
-agic           agic-ingress-azure-7b88b4b69f-p9n5w                 1/1     Running   0          15d
-cert-manager   jetstack-cert-manager-567bb678c7-sjmct              1/1     Running   0          21h
-cert-manager   jetstack-cert-manager-cainjector-695d847cdd-l2rv6   1/1     Running   0          21h
-cert-manager   jetstack-cert-manager-webhook-5b895bb689-dvwvd      1/1     Running   0          21h
-flux           flux-6899458bb8-qghrq                               1/1     Running   8          15d
-flux           flux-memcached-8647794c5f-slsvr                     1/1     Running   0          15d
-keda           keda-operator-5895ff46b9-fh5xn                      1/1     Running   0          3d3h
-keda           keda-operator-metrics-apiserver-6774776dbc-jwg7q    1/1     Running   0          8d
-kube-system    azure-cni-networkmonitor-745vs                      1/1     Running   0          15d
-kube-system    azure-cni-networkmonitor-9kq6c                      1/1     Running   0          15d
-kube-system    azure-cni-networkmonitor-dt7ch                      1/1     Running   0          15d
-kube-system    azure-ip-masq-agent-6kv6v                           1/1     Running   0          15d
-kube-system    azure-ip-masq-agent-p6zxn                           1/1     Running   0          15d
-kube-system    azure-ip-masq-agent-vw7fr                           1/1     Running   0          15d
-kube-system    azure-npm-f9qz7                                     1/1     Running   0          10d
-kube-system    azure-npm-j6qdv                                     1/1     Running   0          10d
-kube-system    azure-npm-vkghz                                     1/1     Running   0          10d
-kube-system    coredns-869cb84759-69nmv                            1/1     Running   0          15d
-kube-system    coredns-869cb84759-fvpf8                            1/1     Running   0          15d
-kube-system    coredns-autoscaler-5b867494f-wvt6q                  1/1     Running   11         15d
-kube-system    dashboard-metrics-scraper-7dbbb6996d-4v6m4          1/1     Running   0          15d
-kube-system    kube-proxy-4qmfg                                    1/1     Running   0          15d
-kube-system    kube-proxy-b66qd                                    1/1     Running   0          15d
-kube-system    kube-proxy-wwts4                                    1/1     Running   0          15d
-kube-system    kubernetes-dashboard-5596bdb9f-cx4bw                1/1     Running   8          15d
-kube-system    metrics-server-6cd7558856-lvqrg                     1/1     Running   0          15d
-kube-system    omsagent-4g9qf                                      1/1     Running   0          15d
-kube-system    omsagent-j8v77                                      1/1     Running   0          15d
-kube-system    omsagent-rs-764c6f8d8-54fjd                         1/1     Running   0          15d
-kube-system    omsagent-zg2wh                                      1/1     Running   0          15d
-kube-system    tunnelfront-7cfc889c77-gh9jv                        2/2     Running   1          15d
-kvsecrets      kvsecrets-csi-secrets-store-provider-azure-ddnwn    1/1     Running   0          15d
-kvsecrets      kvsecrets-csi-secrets-store-provider-azure-j2m7x    1/1     Running   0          15d
-kvsecrets      kvsecrets-csi-secrets-store-provider-azure-sszrt    1/1     Running   0          15d
-kvsecrets      kvsecrets-secrets-store-csi-driver-92n8k            3/3     Running   0          15d
-kvsecrets      kvsecrets-secrets-store-csi-driver-pnx8x            3/3     Running   0          15d
-kvsecrets      kvsecrets-secrets-store-csi-driver-vmg48            3/3     Running   0          15d
-osdu           default-service-86cd47b748-7mrnw                    1/1     Running   0          14d
-osdu           entitlements-azure-cb59875bc-ncqll                  1/1     Running   0          8d
-osdu           function-debug                                      1/1     Running   0          3d4h
-osdu           indexer-7dfcdfbb-bf7sl                              1/1     Running   0          30h
-osdu           legal-57cbd6cd66-tx6sf                              1/1     Running   0          8d
-osdu           legal-debug                                         1/1     Running   0          9d
-osdu           search-5f59bc7c85-5wc4l                             1/1     Running   0          27h
-osdu           storage-7d794b54cf-2w5cn                            1/1     Running   0          47h
-podidentity    aad-pod-identity-mic-57dbd9f4fb-bd4vr               1/1     Running   12         15d
-podidentity    aad-pod-identity-mic-57dbd9f4fb-zj6lb               1/1     Running   0          15d
-podidentity    aad-pod-identity-nmi-fmjlk                          1/1     Running   0          15d
-podidentity    aad-pod-identity-nmi-qk2t4                          1/1     Running   0          15d
-podidentity    aad-pod-identity-nmi-vtxmg                          1/1     Running   0          15d
+NAME              STATUS   AGE
+agic              Active   19d
+cert-manager      Active   5d15h
+default           Active   19d
+flux              Active   19d
+keda              Active   12d
+kube-node-lease   Active   19d
+kube-public       Active   19d
+kube-system       Active   19d
+kvsecrets         Active   19d
+osdu              Active   19d
+podidentity       Active   19d
 ```
 
-Note that there is also a namespace flux. As previously mentioned, Flux is managing the deployment of all of the resources into the cluster. Taking a look at the description for the flux pod flux-5897d4679b-tckth, we see the following:
+Or view all the pods running by default within the cluster:
 
 ```bash
-$ KUBECONFIG=./output/bedrock_kube_config kubectl describe po/flux-5897d4679b-tckth --namespace=flux
-Name:               flux-5897d4679b-tckth
-Namespace:          flux
-Priority:           0
-PriorityClassName:  <none>
-Node:               aks-default-30249513-2/10.10.1.66
-Start Time:         Tue, 18 Jun 2019 06:32:49 +0000
-Labels:             app=flux
-                    pod-template-hash=5897d4679b
-                    release=flux
-Annotations:        <none>
-Status:             Running
-IP:                 10.10.1.76
-Controlled By:      ReplicaSet/flux-5897d4679b
+$ kubectl get po --all-namespaces
+
+NAMESPACE      NAME                                                READY   STATUS    RESTARTS   AGE
+agic           agic-ingress-azure-7b88b4b69f-p9n5w                 1/1     Running   0          19d
+cert-manager   jetstack-cert-manager-567bb678c7-sjmct              1/1     Running   0          5d15h
+cert-manager   jetstack-cert-manager-cainjector-695d847cdd-l2rv6   1/1     Running   0          5d15h
+cert-manager   jetstack-cert-manager-webhook-5b895bb689-dvwvd      1/1     Running   0          5d15h
+flux           flux-6899458bb8-qghrq                               1/1     Running   9          19d
+flux           flux-memcached-8647794c5f-slsvr                     1/1     Running   0          19d
+keda           keda-operator-5895ff46b9-fh5xn                      1/1     Running   0          7d20h
+keda           keda-operator-metrics-apiserver-6774776dbc-jwg7q    1/1     Running   0          12d
+kube-system    azure-cni-networkmonitor-745vs                      1/1     Running   0          19d
+kube-system    azure-cni-networkmonitor-9kq6c                      1/1     Running   0          19d
+kube-system    azure-cni-networkmonitor-dt7ch                      1/1     Running   0          19d
+kube-system    azure-ip-masq-agent-6kv6v                           1/1     Running   0          19d
+kube-system    azure-ip-masq-agent-p6zxn                           1/1     Running   0          19d
+kube-system    azure-ip-masq-agent-vw7fr                           1/1     Running   0          19d
+kube-system    azure-npm-f9qz7                                     1/1     Running   0          14d
+kube-system    azure-npm-j6qdv                                     1/1     Running   0          14d
+kube-system    azure-npm-vkghz                                     1/1     Running   0          14d
+kube-system    coredns-869cb84759-69nmv                            1/1     Running   0          19d
+kube-system    coredns-869cb84759-fvpf8                            1/1     Running   0          19d
+kube-system    coredns-autoscaler-5b867494f-wvt6q                  1/1     Running   11         19d
+kube-system    dashboard-metrics-scraper-7dbbb6996d-4v6m4          1/1     Running   0          19d
+kube-system    kube-proxy-4qmfg                                    1/1     Running   0          19d
+kube-system    kube-proxy-b66qd                                    1/1     Running   0          19d
+kube-system    kube-proxy-wwts4                                    1/1     Running   0          19d
+kube-system    kubernetes-dashboard-5596bdb9f-cx4bw                1/1     Running   8          19d
+kube-system    metrics-server-6cd7558856-lvqrg                     1/1     Running   0          19d
+kube-system    omsagent-4g9qf                                      1/1     Running   0          19d
+kube-system    omsagent-j8v77                                      1/1     Running   0          19d
+kube-system    omsagent-rs-764c6f8d8-54fjd                         1/1     Running   0          19d
+kube-system    omsagent-zg2wh                                      1/1     Running   0          19d
+kube-system    tunnelfront-7cfc889c77-gh9jv                        2/2     Running   1          19d
+kvsecrets      kvsecrets-csi-secrets-store-provider-azure-ddnwn    1/1     Running   0          19d
+kvsecrets      kvsecrets-csi-secrets-store-provider-azure-j2m7x    1/1     Running   0          19d
+kvsecrets      kvsecrets-csi-secrets-store-provider-azure-sszrt    1/1     Running   0          19d
+kvsecrets      kvsecrets-secrets-store-csi-driver-92n8k            3/3     Running   0          19d
+kvsecrets      kvsecrets-secrets-store-csi-driver-pnx8x            3/3     Running   0          19d
+kvsecrets      kvsecrets-secrets-store-csi-driver-vmg48            3/3     Running   0          19d
+podidentity    aad-pod-identity-mic-57dbd9f4fb-bd4vr               1/1     Running   12         19d
+podidentity    aad-pod-identity-mic-57dbd9f4fb-zj6lb               1/1     Running   0          19d
+podidentity    aad-pod-identity-nmi-fmjlk                          1/1     Running   0          19d
+podidentity    aad-pod-identity-nmi-qk2t4                          1/1     Running   0          19d
+podidentity    aad-pod-identity-nmi-vtxmg                          1/1     Running   0          19d
+```
+
+Note that there is a namespace flux. As previously mentioned, Flux is managing the deployment of all of the resources into the cluster. Taking a look at the description for the flux pod flux-6899458bb8-qghrq, we see the following:
+
+```bash
+$ kubectl describe po/flux-6899458bb8-qghrq --namespace=flux
+
+Name:         flux-6899458bb8-qghrq
+Namespace:    flux
+Priority:     0
+Node:         aks-default-27739138-vmss000001/10.10.2.35
+Start Time:   Thu, 06 Aug 2020 12:31:42 -0500
+Labels:       app=flux
+              pod-template-hash=6899458bb8
+              release=flux
+Annotations:  <none>
+Status:       Running
+IP:           10.10.2.49
+IPs:
+  IP:           10.10.2.49
+Controlled By:  ReplicaSet/flux-6899458bb8
 Containers:
   flux:
-    Container ID:  docker://cc4cf38387a883f964cc65b9a1dd13439be756be3cf2d84fa1ca2ced69d98c3a
-    Image:         docker.io/weaveworks/flux:1.12.2
-    Image ID:      docker-pullable://weaveworks/flux@sha256:368bc5b219feffb1fe00c73cd0f1be7754591f86e17f57bc20371ecba62f524f
+    Container ID:  docker://f812201502ed64166239537ba34aad9c0dad1f338eefd7a93f83aee02b35d177
+    Image:         docker.io/fluxcd/flux:1.18.0
+    Image ID:      docker-pullable://fluxcd/flux@sha256:8fcf24dccd7774b87a33d87e42fa0d9233b5c11481c8414fe93a8bdc870b4f5b
     Port:          3030/TCP
     Host Port:     0/TCP
     Args:
+      --log-format=fmt
       --ssh-keygen-dir=/var/fluxd/keygen
       --k8s-secret-name=flux-ssh
       --memcached-hostname=flux-memcached
+      --sync-state=git
       --memcached-service=
-      --git-url=git@github.com:jmspring/manifests.git
-      --git-branch=master
-      --git-path=prod
+      --git-url=git@ssh.dev.azure.com:v3/osdu-demo/OSDU_Rx/k8-gitops-manifests
+      --git-branch=dascholl
+      --git-path=providers/azure/hld-registry
+      --git-readonly=false
       --git-user=Weave Flux
       --git-email=support@weave.works
+      --git-verify-signatures=false
       --git-set-author=false
-      --git-poll-interval=5m
+      --git-poll-interval=10s
       --git-timeout=20s
-      --sync-interval=5m
+      --sync-interval=10s
       --git-ci-skip=false
-      --registry-poll-interval=5m
+      --git-label=flux-sync
+      --automation-interval=5m
       --registry-rps=200
       --registry-burst=125
       --registry-trace=false
+      --sync-garbage-collection=true
     State:          Running
-      Started:      Tue, 18 Jun 2019 06:33:18 +0000
+      Started:      Sat, 22 Aug 2020 20:39:16 -0500
+    Last State:     Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Thu, 20 Aug 2020 22:40:42 -0500
+      Finished:     Sat, 22 Aug 2020 20:39:16 -0500
     Ready:          True
-    Restart Count:  0
+    Restart Count:  9
     Requests:
-      cpu:     50m
-      memory:  64Mi
+      cpu:      50m
+      memory:   64Mi
+    Liveness:   http-get http://:3030/api/flux/v6/identity.pub delay=5s timeout=5s period=10s #success=1 #failure=3
+    Readiness:  http-get http://:3030/api/flux/v6/identity.pub delay=5s timeout=5s period=10s #success=1 #failure=3
     Environment:
       KUBECONFIG:  /root/.kubectl/config
     Mounts:
@@ -371,13 +409,13 @@ Containers:
       /etc/kubernetes/azure.json from acr-credentials (ro)
       /root/.kubectl from kubedir (rw)
       /var/fluxd/keygen from git-keygen (rw)
-      /var/run/secrets/kubernetes.io/serviceaccount from flux-token-d2h55 (ro)
+      /var/run/secrets/kubernetes.io/serviceaccount from flux-token-9vg9f (ro)
 Conditions:
   Type              Status
-  Initialized       True
-  Ready             True
-  ContainersReady   True
-  PodScheduled      True
+  Initialized       True 
+  Ready             True 
+  ContainersReady   True 
+  PodScheduled      True 
 Volumes:
   kubedir:
     Type:      ConfigMap (a volume populated by a ConfigMap)
@@ -394,109 +432,135 @@ Volumes:
   acr-credentials:
     Type:          HostPath (bare host directory volume)
     Path:          /etc/kubernetes/azure.json
-    HostPathType:
-  flux-token-d2h55:
+    HostPathType:  
+  flux-token-9vg9f:
     Type:        Secret (a volume populated by a Secret)
-    SecretName:  flux-token-d2h55
+    SecretName:  flux-token-9vg9f
     Optional:    false
 QoS Class:       Burstable
-Node-Selectors:  <none>
+Node-Selectors:  beta.kubernetes.io/os=linux
 Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
                  node.kubernetes.io/unreachable:NoExecute for 300s
-Events:
-  Type    Reason     Age    From                             Message
-  ----    ------     ----   ----                             -------
-  Normal  Scheduled  3m30s  default-scheduler                Successfully assigned flux/flux-5897d4679b-tckth to aks-default-30249513-2
-  Normal  Pulling    3m22s  kubelet, aks-default-30249513-2  pulling image "docker.io/weaveworks/flux:1.12.2"
-  Normal  Pulled     3m12s  kubelet, aks-default-30249513-2  Successfully pulled image "docker.io/weaveworks/flux:1.12.2"
-  Normal  Created    2m57s  kubelet, aks-default-30249513-2  Created container
-  Normal  Started    2m57s  kubelet, aks-default-30249513-2  Started container
+Events:          <none>
 ```
 
 ## Continuous Deployment
 
-Flux automation makes it easy to upgrade services or infrastructure deployed by Bedrock. In this example Flux watches the repo we set up previously under the heading [Set Up Flux Manifest Repository](#set-up-flux-manifest-repository). Now we add a simple Web application to the running deployment by pushing a .yaml manifest to the repo. The .yaml specification describes the service mywebapp and type: a LoadBalancer. It specifies the source the Docker image that contains it: image: andrebriggs/goserver:v1.2 and how many containers to run: replicas: 3. The containers will be accessible through the load balancer.
+Flux automation makes it easy to upgrade services or infrastructure. In this example Flux watches the repo we set up previously under the heading [Set Up Flux Manifest Repository](#set-up-flux-manifest-repository). Now we add a simple Web application to the running deployment by pushing a .yaml manifest to the repo. The .yaml specification describes the default-service and a Deployment. It specifies the source the Docker image that contains it: image: neilpeterson/aks-helloworld:v1 and how many containers to run: replicas: 1. 
 
 When the .yaml file is complete we will push it to the repo, or simply drop it on GitHub. Flux is querying the repo for changes and will deploy the new service replicas as defined by this manifest.
 
-Create the following .yaml file and name it something like myWebApp.yaml. The image for this application is specified by the line: image: andrebriggs/goserver:v1.2.
+Create the following .yaml file and name it default-service.
 
 ```yaml
-# mywebapp services
-##################################################################################################
 apiVersion: v1
 kind: Service
 metadata:
-  name: mywebapp
+  name: default-service
+  namespace: osdu
   labels:
-    app: mywebapp
+    app: default-service
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
-    - port: 8080
-      name: http
+    - port: 80
   selector:
-    app: mywebapp
+    app: default-service
 ---
-apiVersion: extensions/v1beta1 #TODO: Migrate to apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mywebapp-v1
+  name: default-service
+  namespace: osdu
 spec:
-  replicas: 3
-  minReadySeconds: 10 # Wait 2 seconds after each new pod comes up before marked as "ready"
-  strategy:
-    type: RollingUpdate # describe how we do rolling updates
-    rollingUpdate:
-      maxUnavailable: 1 # When updating take one pod down at a time
-      maxSurge: 1 # When updating never have more than one extra pod. If replicas = 2 then never 3 pods when updating
+  selector:
+    matchLabels:
+      app: default-service
+  replicas: 1
   template:
     metadata:
       labels:
-        app: mywebapp
-        version: v1
+        app: default-service
     spec:
       containers:
-        - name: mywebapp
-          image: andrebriggs/goserver:v1.2
-          imagePullPolicy: IfNotPresent
+        - name: default-service
+          image: neilpeterson/aks-helloworld:v1
           ports:
-            - containerPort: 8080
----
-
+            - containerPort: 80
+          env:
+            - name: TITLE
+              value: "Azure OSDU Platform - (AKS)"
 ```
 
-To see the changes as Flux picks them up and deploys them, open a bash command window and navigate to the `bedrock/cluster/environments/azure-simple` directory.
+To see the changes as Flux picks them up and deploys them, you can monitor the logs from the flux container.
 
-Get your Flux pod name by running: `KUBECONFIG=./output/bedrock_kube_config kubectl get pod -n flux`
+```
+$ kubectl logs -f  flux-6899458bb8-qghrq --namespace=flux
+```
 
-Copy the name of the pod (the one that is not memcached).
+Now, push or drop the default-service.yaml file to the empty repo created under the previous heading [Set Up Flux Manifest Repository](#set-up-flux-manifest-repository). You can click `Upload files` on the GitHub repo page and drop the .yaml file:
 
-Then run the command: `KUBECONFIG=./output/bedrock_kube_config kubectl logs -f <Flux-pod-name> --namespace=flux`. This will display a running log of the deployment.
+Flux has connected to the repo and created the new service and deployment: `"kubectl apply -f -" took=1.591333771s err=null output="service/default-service created\ndeployment.apps/default-service created"`.
 
-Now, push or drop the myWebApp.yaml file to the empty repo created under the previous heading [Set Up Flux Manifest Repository](#set-up-flux-manifest-repository). You can click `Upload files` on the GitHub repo page and drop the .yaml file:
-
-In this output, Flux has found the repo `bedrock-deploy-demo` and created the new service: `"kubectl apply -f -" took=1.263687361s err=null output="service/mywebapp created\ndeployment.extensions/mywebapp-v1 created"`.
-
-Open another bash window. When the new service is running, use `KUBECONFIG=./output/bedrock_kube_config kubectl get po --all-namespaces` to find the new namespaces in the deployment.
-
-Then run `KUBECONFIG=./output/bedrock_kube_config kubectl get svc --all-namespaces`. The output will include the `EXTERNAL-IP` address and `PORT` of the `mywebapp` load balancer:
+Now you can view the service deployed in the `osdu` namespace.
 
 ```bash
-$ KUBECONFIG=./output/bedrock_kube_config kubectl get svc --all-namespaces
-NAMESPACE     NAME                   TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)          AGE
-default       kubernetes             ClusterIP      10.0.0.1       <none>           443/TCP          44m
-default       mywebapp               LoadBalancer   10.0.96.208    http://168.61.208.215/   8080:30197/TCP   23m
-flux          flux                   ClusterIP      10.0.139.133   <none>           3030/TCP         34m
-flux          flux-memcached         ClusterIP      10.0.246.230   <none>           11211/TCP        34m
-kube-system   kube-dns               ClusterIP      10.0.0.10      <none>           53/UDP,53/TCP    44m
-kube-system   kubernetes-dashboard   ClusterIP      10.0.222.104   <none>           80/TCP           44m
-kube-system   metrics-server         ClusterIP      10.0.189.185   <none>           443/TCP          44m
+$ kubectl get services --namespace=osdu
+
+NAME              TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+default-service   ClusterIP   10.0.212.75   <none>        80/TCP    117s
+
+
+$ kubectl get deployments --namespace=osdu
+
+NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+default-service   1/1     1            1           2m11s
+
+
+$ kubectl get pods --namespace=osdu
+
+NAME                               READY   STATUS    RESTARTS   AGE
+default-service-86cd47b748-sc7bv   1/1     Running   0          2m19s
 ```
 
-The EXTERNAL-IP, in this case is: http://168.61.208.215/. Append the port and use http://http://168.61.208.215:8080 to run the service in a browser.
+Finally we can connect directly to the pod and validate the service is properly running.
 
-![image](https://user-images.githubusercontent.com/7635865/74478125-55be6200-4e72-11ea-957f-dab2c663034a.png)
+```bash
+$ kubectl port-forward default-service-86cd47b748-sc7bv 8080:80
+
+Forwarding from 127.0.0.1:8080 -> 80
+Forwarding from [::1]:8080 -> 80
+```
+
+View the service in a browser http://localhost:8080
+
+> To delete the service take the default-service.yaml and remove it from the manfiest repo and flux will perform the uninstall.
+
+
+## Manually Install OSDU on Azure using a Helm Chart
+
+Perform the following procedure from the `devops` directory.
+
+1. Download [helm-config.yaml](https://raw.githubusercontent.com/Azure/osdu-infrastructure/master/devops/helm-config.yaml), which will configure OSDU on Azure.
+
+```bash
+wget https://raw.githubusercontent.com/Azure/osdu-infrastructure/master/devops/helm-config.yaml -O config.yaml
+```
+
+2. Edit the newly downloaded [helm-config.yaml](https://raw.githubusercontent.com/Azure/osdu-infrastructure/master/devops/helm-config.yaml) and fill out the sections `azure` and `ingress`.
+
+3. Install the osdu on azure charts.
+
+```bash
+# Full Install
+helm install -f config.yaml osdu-current osdu-azure
+```
+
+4. Uninstall the osdu on azure charts.
+
+```
+helm uninstall osdu-current
+```
 
 ## Kubernetes Portal Dashboard
 
@@ -516,7 +580,7 @@ Press CTRL+C to close the tunnel...
 
 
 
-## Integration Testing
+## Infrastructure Integration Testing
 
 Please confirm that you've completed the `terraform apply` step before running the integration tests as we're validating the active terraform workspace.
 
@@ -526,7 +590,7 @@ Integration tests can be run using the following command:
 go test -v $(go list ./... | grep "integration")
 ```
 
-## Terraform Destroy 
+## Infrastructure Terraform Destroy 
 
 Optionally execute the following command to teardown your deployment and delete your resources.
 

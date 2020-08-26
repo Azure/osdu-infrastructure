@@ -12,18 +12,18 @@ wget https://raw.githubusercontent.com/Azure/osdu-infrastructure/master/devops/h
 
 ```bash
 # Full Install
-helm install -f config.yaml osdu-latest osdu-azure
+helm install -f config.yaml osdu-current osdu-azure
 ```
 
 _Alternately you can install each chart individually_
 
 ```bash
 # Targeted Install
-helm install -f helm-config.yaml osdu-common-latest osdu-azure/charts/common
-helm install -f helm-config.yaml entitlements-azure-latest osdu-azure/charts/entitlements-azure
-helm install -f helm-config.yaml legal-latest osdu-azure/charts/legal
-helm install -f helm-config.yaml storage-latest osdu-azure/charts/storage
-helm install -f helm-config.yaml indexer-queue-latest osdu-azure/charts/indexer-queue
-helm install -f helm-config.yaml indexer-latest osdu-azure/charts/indexer
-helm install -f helm-config.yaml search-latest osdu-azure/charts/search
+helm install -f helm-config.yaml osdu-common-current osdu-azure/charts/common
+helm install -f helm-config.yaml entitlements-azure-current osdu-azure/charts/entitlements-azure
+helm install -f helm-config.yaml legal-current osdu-azure/charts/legal
+helm install -f helm-config.yaml storage-current osdu-azure/charts/storage
+helm install -f helm-config.yaml indexer-queue-current osdu-azure/charts/indexer-queue
+helm install -f helm-config.yaml indexer-current osdu-azure/charts/indexer
+helm install -f helm-config.yaml search-current osdu-azure/charts/search
 ```

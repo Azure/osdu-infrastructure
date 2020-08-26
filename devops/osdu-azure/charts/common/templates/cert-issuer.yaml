@@ -15,7 +15,7 @@
 apiVersion: cert-manager.io/v1alpha2
 kind: ClusterIssuer
 metadata:
-  name: {{ .Values.global.ingress.sslIssuer }}
+  name: letsencrypt
 spec:
   acme:
 
