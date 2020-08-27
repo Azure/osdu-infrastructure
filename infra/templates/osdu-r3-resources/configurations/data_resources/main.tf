@@ -52,6 +52,17 @@ provider "random" {
   version = "~> 2.3"
 }
 
+// Hook-up kubectl Provider for Terraform
+provider "kubernetes" {
+  version                = "~> 1.11.3"
+  load_config_file       = false
+  host                   = data.terraform_remote_state.service_resources.outputs.aks_kube_config.0.host
+  username               = data.terraform_remote_state.service_resources.outputs.aks_kube_config.0.username
+  password               = data.terraform_remote_state.service_resources.outputs.aks_kube_config.0.password
+  client_certificate     = base64decode(data.terraform_remote_state.service_resources.outputs.aks_kube_config.0.client_certificate)
+  client_key             = base64decode(data.terraform_remote_state.service_resources.outputs.aks_kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(data.terraform_remote_state.service_resources.outputs.aks_kube_config.0.cluster_ca_certificate)
+}
 
 #-------------------------------
 # Application Variables  (variables.tf)
@@ -123,6 +134,36 @@ variable "sb_sku" {
   type        = string
   default     = "Standard"
   description = "The SKU of the namespace. The options are: `Basic`, `Standard`, `Premium`."
+}
+
+variable "common_resources_workspace_name" {
+  description = "(Required) The workspace name for the common_resources repository terraform environment / template to reference for this template."
+  type        = string
+}
+
+variable "service_resources_workspace_name" {
+  description = "(Required) The workspace name for the service_resources terraform environment / template to reference for this template."
+  type        = string
+}
+
+variable "remote_state_account" {
+  description = "Remote Terraform State Azure storage account name. This is typically set as an environment variable and used for the initial terraform init."
+  type        = string
+}
+
+variable "remote_state_container" {
+  description = "Remote Terraform State Azure storage container name. This is typically set as an environment variable and used for the initial terraform init."
+  type        = string
+}
+
+variable "elasticsearch_endpoint" {
+  type        = string
+  description = "endpoint for elasticsearch cluster"
+}
+
+variable "elasticsearch_username" {
+  type        = string
+  description = "username for elasticsearch cluster"
 }
 
 variable "sb_topics" {
@@ -213,12 +254,57 @@ locals {
   storage_name        = "${replace(local.base_name_21, "-", "")}sa"
   cosmosdb_name       = "${local.base_name}-db"
   sb_namespace        = "${local.base_name_21}-bus"
+
+  rbac_principals = [
+    data.terraform_remote_state.service_resources.outputs.aad_osdu_identity_object_id,
+    data.terraform_remote_state.service_resources.outputs.app_management_service_principal_id
+  ]
+
+  rbac_contributor_scopes = concat(
+    # The cosmosdb resource id
+    [module.cosmosdb_account.account_id],
+
+    # The storage resource id
+    [module.storage_account.id],
+
+    # The Container Registry Id
+    [data.terraform_remote_state.common_resources.outputs.container_registry_id],
+  )
+
+  key_vault_ids = [
+    data.terraform_remote_state.common_resources.outputs.keyvault_id,
+    data.terraform_remote_state.service_resources.outputs.keyvault_id
+  ]
 }
 
 
 #-------------------------------
 # Common Resources  (common.tf)
 #-------------------------------
+
+data "azurerm_client_config" "current" {}
+data "azurerm_subscription" "current" {}
+
+data "terraform_remote_state" "service_resources" {
+  backend = "azurerm"
+
+  config = {
+    storage_account_name = var.remote_state_account
+    container_name       = var.remote_state_container
+    key                  = format("terraform.tfstateenv:%s", var.service_resources_workspace_name)
+  }
+}
+
+data "terraform_remote_state" "common_resources" {
+  backend = "azurerm"
+
+  config = {
+    storage_account_name = var.remote_state_account
+    container_name       = var.remote_state_container
+    key                  = format("terraform.tfstateenv:%s", var.common_resources_workspace_name)
+  }
+}
+
 resource "random_string" "workspace_scope" {
   keepers = {
     # Generate a new id each time we switch to a new workspace or app id
@@ -304,6 +390,69 @@ module "service_bus" {
   topics = var.sb_topics
 }
 
+
+#-------------------------------
+# OSDU Identity  (security.tf)
+#-------------------------------
+resource "azurerm_role_assignment" "database_roles" {
+  count                = length(local.rbac_principals)
+  role_definition_name = "Cosmos DB Account Reader Role"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.cosmosdb_account.account_id
+}
+
+resource "azurerm_role_assignment" "storage_roles" {
+  count                = length(local.rbac_principals)
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.storage_account.id
+}
+
+resource "azurerm_role_assignment" "service_bus_roles" {
+  count                = length(local.rbac_principals)
+  role_definition_name = "Azure Service Bus Data Sender"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.service_bus.namespace_id
+}
+
+#-------------------------------
+# Key Vault Secrets 
+#-------------------------------
+
+resource "azurerm_key_vault_secret" "cosmos_connection" {
+  count        = length(local.key_vault_ids)
+  name         = "cosmos-connection"
+  value        = module.cosmosdb_account.properties.cosmosdb.connection_strings[0]
+  key_vault_id = local.key_vault_ids[count.index]
+}
+
+resource "azurerm_key_vault_secret" "cosmos_endpoint" {
+  count        = length(local.key_vault_ids)
+  name         = "cosmos-endpoint"
+  value        = module.cosmosdb_account.properties.cosmosdb.endpoint
+  key_vault_id = local.key_vault_ids[count.index]
+}
+
+resource "azurerm_key_vault_secret" "cosmos_primary_key" {
+  count        = length(local.key_vault_ids)
+  name         = "cosmos-primary-key"
+  value        = module.cosmosdb_account.properties.cosmosdb.primary_master_key
+  key_vault_id = local.key_vault_ids[count.index]
+}
+
+resource "azurerm_key_vault_secret" "sb_connection" {
+  count        = length(local.key_vault_ids)
+  name         = "sb-connection"
+  value        = module.service_bus.service_bus_namespace_default_primary_key
+  key_vault_id = local.key_vault_ids[count.index]
+}
+
+resource "azurerm_key_vault_secret" "storage_account_key" {
+  count        = length(local.key_vault_ids)
+  name         = "storage-account-key"
+  value        = module.storage_account.primary_access_key
+  key_vault_id = local.key_vault_ids[count.index]
+}
 
 #-------------------------------
 # Output Variables  (output.tf)

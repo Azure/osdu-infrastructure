@@ -20,8 +20,6 @@ resource "kubernetes_namespace" "osdu" {
   metadata {
     name = local.osdu_ns
   }
-
-  depends_on = [module.aks-gitops]
 }
 
 
@@ -35,17 +33,14 @@ resource "kubernetes_config_map" "osduconfigmap" {
     ENV_UNIQUE               = local.base_name_21
     ENV_TENANT_ID            = data.azurerm_client_config.current.tenant_id
     ENV_SUBSCRIPTION_NAME    = data.azurerm_subscription.current.display_name
-    ENV_STORAGE_ACCOUNT      = data.terraform_remote_state.data_resources.outputs.storage_account
+    ENV_STORAGE_ACCOUNT      = module.storage_account.name
     ENV_REGISTRY             = data.terraform_remote_state.common_resources.outputs.container_registry_name
-    ENV_COSMOSDB             = data.terraform_remote_state.data_resources.outputs.cosmosdb_account_name
-    ENV_COSMOSDB_HOST        = format("https://%s.documents.azure.com:443", data.terraform_remote_state.data_resources.outputs.cosmosdb_account_name)
-    ENV_SERVICEBUS_NAMESPACE = data.terraform_remote_state.data_resources.outputs.sb_namespace_name
+    ENV_COSMOSDB             = module.cosmosdb_account.account_name
+    ENV_COSMOSDB_HOST        = format("https://%s.documents.azure.com:443", module.cosmosdb_account.account_name)
+    ENV_SERVICEBUS_NAMESPACE = module.service_bus.namespace_name
     ENV_STORAGE_DIAGNOSTICS  = local.storage_name
-    ENV_KEYVAULT             = format("https://%s.vault.azure.net/", local.kv_name)
+    ENV_KEYVAULT             = format("https://%s.vault.azure.net/", data.terraform_remote_state.service_resources.outputs.keyvault_name)
     ENV_ELASTIC_ENDPOINT     = var.elasticsearch_endpoint
     ENV_ELASTIC_USERNAME     = var.elasticsearch_username
-    ENV_POSTGRES_USERNAME    = var.postgres_username
   }
-
-  depends_on = [module.aks-gitops]
 }

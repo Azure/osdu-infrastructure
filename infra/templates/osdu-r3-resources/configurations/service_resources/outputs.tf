@@ -46,29 +46,24 @@ output "agic_identity_principal_id" {
   value       = azurerm_user_assigned_identity.agicidentity.principal_id
 }
 
-output "storage_account_id" {
-  description = "The resource id of the ADLS Gen 2 storage account instance"
-  value       = data.terraform_remote_state.data_resources.outputs.storage_account_id
-}
-
 output "keyvault_id" {
   description = "The resource id for Key Vault"
   value       = module.keyvault.keyvault_id
 }
 
-output "cosmosdb_account_id" {
-  description = "The resource id of the CosmosDB instance"
-  value       = data.terraform_remote_state.data_resources.outputs.cosmosdb_account_id
-}
-
-output "container_registry_id" {
-  description = "The resource id of the ACR container instance"
-  value       = data.terraform_remote_state.common_resources.outputs.container_registry_id
+output "keyvault_name" {
+  description = "Key Vault's name"
+  value       = module.keyvault.keyvault_name
 }
 
 output "aks_name" {
   description = "The Kubernetes Cluster Name"
   value       = module.aks-gitops.cluster_name
+}
+
+output "aks_kube_config" {
+  description = "The Kubernetes Cluster config"
+  value       = module.aks-gitops.kube_config
 }
 
 output "aks_principal_id" {
@@ -114,6 +109,11 @@ output "aad_osdu_identity_client_id" {
 output "aad_osdu_identity_object_id" {
   description = "The resource id for the aad pod managed identity"
   value       = azurerm_user_assigned_identity.osduidentity.principal_id
+}
+
+output "app_management_service_principal_id" {
+  description = "The resource id for the app management managed identity"
+  value       = module.app_management_service_principal.id
 }
 
 output "redis_name" {

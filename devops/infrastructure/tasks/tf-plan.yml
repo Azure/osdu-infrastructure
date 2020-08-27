@@ -38,7 +38,7 @@ steps:
       TF_VAR_cosmosdb_replica_location: $(TF_VAR_cosmosdb_replica_location)
       TF_VAR_resource_group_location: $(TF_VAR_resource_group_location)
       TF_VAR_common_resources_workspace_name: $(TF_VAR_common_resources_workspace_name)
-      TF_VAR_data_resources_workspace_name: $(TF_VAR_data_resources_workspace_name)
+      TF_VAR_service_resources_workspace_name: $(TF_VAR_service_resources_workspace_name)
       TF_VAR_gitops_ssh_url: $(TF_VAR_gitops_ssh_url)
       TF_VAR_gitops_url_branch: $(TF_VAR_gitops_url_branch)
       TF_VAR_aks_agent_vm_count: $(TF_VAR_aks_agent_vm_count)

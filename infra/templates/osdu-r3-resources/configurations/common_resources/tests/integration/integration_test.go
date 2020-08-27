@@ -38,7 +38,7 @@ func TestDataEnvironment(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 3,
+		ExpectedTfOutputCount: 5,
 		TfOutputAssertions: []infratests.TerraformOutputValidation{
 			containerRegistryIntegTests.InspectContainerRegistryOutputs(subscription, "common_resource_group_name", "container_registry_name"),
 		},

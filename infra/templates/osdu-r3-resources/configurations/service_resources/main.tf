@@ -92,13 +92,6 @@ locals {
   ]
 
   rbac_contributor_scopes = concat(
-    # The cosmosdb resource id
-    [data.terraform_remote_state.data_resources.outputs.cosmosdb_account_id],
-
-    # The storage resource id
-    [module.storage_account.id, data.terraform_remote_state.data_resources.outputs.storage_account_id],
-
-    # The Container Registry Id
     [data.terraform_remote_state.common_resources.outputs.container_registry_id],
   )
 
@@ -125,15 +118,7 @@ locals {
 data "azurerm_client_config" "current" {}
 data "azurerm_subscription" "current" {}
 
-data "terraform_remote_state" "data_resources" {
-  backend = "azurerm"
 
-  config = {
-    storage_account_name = var.remote_state_account
-    container_name       = var.remote_state_container
-    key                  = format("terraform.tfstateenv:%s", var.data_resources_workspace_name)
-  }
-}
 
 data "terraform_remote_state" "common_resources" {
   backend = "azurerm"
@@ -246,15 +231,10 @@ module "keyvault" {
   resource_group_name = azurerm_resource_group.main.name
 
   secrets = {
-    cosmos-connection   = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.connection_strings[0]
-    cosmos-endpoint     = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.endpoint
-    cosmos-primary-key  = data.terraform_remote_state.data_resources.outputs.cosmosdb_properties.cosmosdb.primary_master_key
-    sb-connection       = data.terraform_remote_state.data_resources.outputs.sb_namespace_default_connection_string
-    storage-account-key = data.terraform_remote_state.data_resources.outputs.storage_properties.primary_access_key
-    elastic-endpoint    = var.elasticsearch_endpoint
-    elastic-username    = var.elasticsearch_username
-    elastic-password    = var.elasticsearch_password
-    postgres-password   = local.postgres_password
+    elastic-endpoint  = var.elasticsearch_endpoint
+    elastic-username  = var.elasticsearch_username
+    elastic-password  = var.elasticsearch_password
+    postgres-password = local.postgres_password
   }
 }
 
@@ -636,27 +616,6 @@ resource "azurerm_role_assignment" "kv_roles" {
   role_definition_name = "Reader"
   principal_id         = local.rbac_principals[count.index]
   scope                = module.keyvault.keyvault_id
-}
-
-resource "azurerm_role_assignment" "database_roles" {
-  count                = length(local.rbac_principals)
-  role_definition_name = "Cosmos DB Account Reader Role"
-  principal_id         = local.rbac_principals[count.index]
-  scope                = data.terraform_remote_state.data_resources.outputs.cosmosdb_account_id
-}
-
-resource "azurerm_role_assignment" "storage_roles" {
-  count                = length(local.rbac_principals)
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = local.rbac_principals[count.index]
-  scope                = data.terraform_remote_state.data_resources.outputs.storage_account_id
-}
-
-resource "azurerm_role_assignment" "service_bus_roles" {
-  count                = length(local.rbac_principals)
-  role_definition_name = "Azure Service Bus Data Sender"
-  principal_id         = local.rbac_principals[count.index]
-  scope                = data.terraform_remote_state.data_resources.outputs.sb_namespace_id
 }
 
 // Managed Identity Operator role for AKS to the OSDU Identity

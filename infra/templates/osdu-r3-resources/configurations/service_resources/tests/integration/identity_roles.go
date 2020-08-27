@@ -101,9 +101,7 @@ func getKubeletIdentityExpectedRoleAssignmentsMap(output infratests.TerraformOut
 // Constructs the expected app gw controller identity role assignments based off the Terraform output
 func getOSDUPodIdentityExpectedRoleAssignmentsMap(output infratests.TerraformOutput) map[string]string {
 	expectedAssignments := map[string]string{}
-	expectedAssignments[output["storage_account_id"].(string)] = "Storage Blob Data Contributor"
 	expectedAssignments[output["keyvault_id"].(string)] = "Reader"
-	expectedAssignments[output["cosmosdb_account_id"].(string)] = "Cosmos DB Account Reader Role"
 
 	return expectedAssignments
 }
