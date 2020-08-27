@@ -43,6 +43,7 @@ steps:
       TF_VAR_gitops_url_branch: $(TF_VAR_gitops_url_branch)
       TF_VAR_aks_agent_vm_count: $(TF_VAR_aks_agent_vm_count)
       TF_VAR_flux_recreate: $(TF_VAR_flux_recreate)
+      TF_VAR_gitops_branch: $(TF_VAR_gitops_branch)
       TF_VAR_ssh_public_key_file: $(aksPublicAgentKeySecureDownload.secureFilePath)
       TF_VAR_gitops_ssh_key_file: $(aksPrivateGitopsKeySecureDownload.secureFilePath)
       TF_VAR_elasticsearch_username: $(elastic-username-${{ parameters.terraformWorkspacePrefix }}-${{ parameters.environmentName }})

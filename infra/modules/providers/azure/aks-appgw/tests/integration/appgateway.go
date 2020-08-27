@@ -49,20 +49,11 @@ func checkAvailablePorts(t *testing.T, appGatewayProperties *network.Application
 	require.True(t, foundPort, "Failed to find a frontendPort with port 443")
 }
 
-func checkSSLCertificates(t *testing.T, appGatewayProperties *network.ApplicationGatewayPropertiesFormat, keyvaultSecretID string) {
-	certs := appGatewayProperties.SslCertificates
-	require.Equal(t, 1, len(*certs))
-	cert := (*certs)[0]
-	require.Equal(t, "Succeeded", *cert.ProvisioningState)
-	require.Equal(t, keyvaultSecretID, *cert.KeyVaultSecretID)
-}
-
 // InspectAppGateway - Runs a suite of test assertions to validate properties for an application gateway
 func InspectAppGateway(resourceGroupNameOutput string, appGatewayNameOutput string, keyvaultIDOutput string) func(t *testing.T, output infratests.TerraformOutput) {
 	return func(t *testing.T, output infratests.TerraformOutput) {
 		appGatewayName := output[appGatewayNameOutput].(string)
 		resourceGroupName := output[resourceGroupNameOutput].(string)
-		keyvaultSecretID := output[keyvaultIDOutput].(string)
 
 		appGateway, err := azure.GetAppGatewayProperties(subscription, resourceGroupName, appGatewayName)
 		if err != nil {
@@ -73,6 +64,5 @@ func InspectAppGateway(resourceGroupNameOutput string, appGatewayNameOutput stri
 
 		checkMinCapactiy(t, appGatewayProperties)
 		checkOWASPRuleset(t, appGatewayProperties)
-		checkSSLCertificates(t, appGatewayProperties, keyvaultSecretID)
 	}
 }

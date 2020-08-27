@@ -37,10 +37,11 @@ func redisAzureClientE(subscriptionID string) (*redis.Client, error) {
 
 func redisClientE(hostname string, accessKey string) (*redis7Api.Client, error) {
 	client := redis7Api.NewClient(&redis7Api.Options{
-		Addr:      hostname,
-		Password:  accessKey,
-		TLSConfig: &tls.Config{},
-		DB:        0,
+		Addr:        hostname,
+		Password:    accessKey,
+		DB:          0,
+		TLSConfig:   &tls.Config{},
+		DialTimeout: 10000000000,
 	})
 
 	healthCheck := client.Ping()
