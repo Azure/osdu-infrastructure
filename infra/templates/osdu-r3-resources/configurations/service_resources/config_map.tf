@@ -19,6 +19,9 @@ locals {
 resource "kubernetes_namespace" "osdu" {
   metadata {
     name = local.osdu_ns
+    labels = {
+      "istio-injection" = "enabled"
+    }
   }
 
   depends_on = [module.aks-gitops]
