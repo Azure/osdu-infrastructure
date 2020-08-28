@@ -157,14 +157,13 @@ TF_VAR_gitops_ssh_key_file=/home/$USER/.ssh/gitops-ssh-key
 
 Follow the directions in the [`common_resources`](./configurations/common_resources/README.md) environment.
 
-### Deploy Data Resources
-
-Follow the directions in the [`data_resources`](./configurations/data_resources/README.md) environment.
-
 ### Deploy Service Resources
 
 Follow the directions in the [`service_resources`](./configurations/cluster_resources/README.md) environment.
 
+### Deploy Data Resources
+
+Follow the directions in the [`data_resources`](./configurations/data_resources/README.md) environment.
 
 ## Pipeline Deployment Process
 Follow these steps if you wish to setup and deploy using ADO Pipelines.
@@ -255,9 +254,9 @@ done
 
 - Add a Pipeline __osdu-infrastructure-r3-common__ -->  `azure-pipeline-common.yml` and execute it.
 
-- Add a Pipeline __osdu-infrastructure-r3-data__ -->  `azure-pipeline-data.yml` and execute it.
-
 - Add a Pipeline __osdu-infrastructure-r3-services__ -->  `azure-pipeline-services.yml` and execute it.
+
+- Add a Pipeline __osdu-infrastructure-r3-data__ -->  `azure-pipeline-data.yml` and execute it.
 
 - Once Infrastructure is deployed grant admin_consent to the Service Principal.
 

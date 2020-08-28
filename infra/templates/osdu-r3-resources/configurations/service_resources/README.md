@@ -29,7 +29,6 @@ export ARM_ACCESS_KEY=""
 # Instance Variables
 export TF_VAR_resource_group_location="centralus"
 export TF_VAR_common_resources_workspace_name="${USER}cr"
-export TF_VAR_data_sources_workspace_name="${USER}ds"
 ```
 
 2. Execute the following command to configure your local Azure CLI.
