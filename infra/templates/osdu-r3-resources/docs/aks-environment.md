@@ -58,7 +58,7 @@ The graphic below outlines the topology of the terraform templates that will dep
 ## Terraform Template Environment Dependencies
 
 ```
-└── environments
+└── configurations
     ├── common_resources
     │   ├── main.tf
     │   └── terraform.tfvars
@@ -66,7 +66,7 @@ The graphic below outlines the topology of the terraform templates that will dep
     │   ├── main.tf
     │   ├── terraform.tfvars
     │   └── variables.tf
-    ├── cluster_resources
+    ├── service_resources
     │   ├── agic.tf
     │   ├── aks.tf
     │   ├── backend.tf
@@ -81,14 +81,14 @@ The graphic below outlines the topology of the terraform templates that will dep
 ```
 ### data_resources
 
-The [cluster_resources](../environments/cluster_resources/variables.tf) environment relies on the resources from the [data_resources](../environments/data_resources/variables.tf) environment as the data storage reference for blob storage and COSMOS. 
+The [data_resources](../configurations/data_resources/) environment relies on the resources from the [service_resources](../configurations/service_resources/) environment as the setup needs to support adding new partitions.
 
 ### common_resources
 
-The [cluster_resources](../environments/cluster_resources/variables.tf) environment relies on the resources from the [common_resources](../environments/common_resources/variables.tf) environment to source all docker images deployed to the AKS cluster.
+The [service_resources](../configurations/service_resources/) environment relies on the resources from the [common_resources](../configurations/common_resources/) environment to source all docker images deployed to the AKS cluster.
 
 ## Template Inputs
-Supported arguments for the aks environment are available in [variables.tf](../environments/cluster_resources/variables.tf).
+Supported arguments for the aks environment are available in [variables.tf](../configurations/service_resources/).
 
 ### Credential Management
 
