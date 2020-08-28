@@ -19,7 +19,7 @@ locals {
 resource "kubernetes_namespace" "osdu" {
   metadata {
     name = local.osdu_ns
-	labels = {
+    labels = {
       "istio-injection" = "enabled"
     }
   }
