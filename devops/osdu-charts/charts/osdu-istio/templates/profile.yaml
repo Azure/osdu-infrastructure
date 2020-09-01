@@ -12,9 +12,23 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-apiVersion: v2
-name: search-service
-appVersion: "latest"
-description: Helm Chart for installing search service.
-version: 0.1.0
-type: application
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+  name: istio-default
+spec:
+  profile: default
+  addonComponents:
+    grafana:
+      enabled: true
+    kiali:
+      # Enable the Kiali deployment for a service mesh observability dashboard
+      enabled: true
+    tracing:
+      # Enable the Jaeger deployment for tracing
+      enabled: true
+  values:
+    global:
+      proxy:
+        logLevel: info

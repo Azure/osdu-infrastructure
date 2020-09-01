@@ -21,22 +21,22 @@ spec:
               servicePort: 80
             path: /*
           - backend:
-              serviceName: {{ .Release.Name }}-entitlements-azure
+              serviceName: entitlements-azure
               servicePort: 80
             path: /entitlements/v1/*
           - backend:
-              serviceName: {{ .Release.Name }}-legal
+              serviceName: legal
               servicePort: 80
             path: /api/legal/v1/*
           - backend:
-              serviceName: {{ .Release.Name }}-storage
+              serviceName: storage
               servicePort: 80
             path: /api/storage/v2/*
           - backend:
-              serviceName: {{ .Release.Name }}-indexer-service
+              serviceName: indexer-service
               servicePort: 80
             path: /api/indexer/v2/*
           - backend:
-              serviceName: {{ .Release.Name }}-search-service
+              serviceName: search-service
               servicePort: 80
             path: /api/search/v2/*
