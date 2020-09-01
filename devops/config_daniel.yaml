@@ -5,15 +5,22 @@ global:
   replicaCount: 2
 
   ################################################################################
+  # Specify the Gitlab branch used for image creation
+  # ie: community.opengroup.org:5555/osdu/platform/system/storage/{{ .Values.global.branch }}/storage:latest
+  #
+  image:
+    branch: master
+
+  ################################################################################
   # Specify the azure environment specific values
   #
   azure:
-    tenant: <tenantId>
-    subscription: <subscriptionId>
-    resourcegroup: <resourceGroupName>
-    identity: <osduIdentityName>
-    identity_id: <osduClientId>
-    keyvault: <keyVaultName>
+    tenant: 72f988bf-86f1-41af-91ab-2d7cd011db47
+    subscription: 929e9ae0-7bb1-4563-a200-9863fe27cae4
+    resourcegroup: osdu-r3-danielsr-rn6n-rg
+    identity: osdu-r3-danielsr-rn6n-aks-osdu-identity
+    identity_id: 818f456e-a155-4a86-aab2-67a481a4f1d9
+    keyvault: osdu-r3-danielsr-rn6n-kv
 
   ################################################################################
   # Specify the Ingress Settings
@@ -24,16 +31,9 @@ global:
   #     https://acme-v02.api.letsencrypt.org/directory --> Production Server
   #
   ingress:
-    hostname: <hostname.domain.com>
-    admin: <admin@email.com>
-    sslServer: https://acme-staging-v02.api.letsencrypt.org/directory  # Staging
-
-  ################################################################################
-  # Specify the Gitlab branch being used for image creation
-  # ie: community.opengroup.org:5555/osdu/platform/system/storage/{{ .Values.global.branch }}/storage:latest
-  #
-  image:
-    branch: master
+    hostname: osdu-daniel.msft-osdu-test.org
+    admin: daniel.scholl@microsoft.com
+    sslServer: https://acme-v02.api.letsencrypt.org/directory
 
   ################################################################################
   # Specify the istio specific values
