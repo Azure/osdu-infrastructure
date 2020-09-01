@@ -40,5 +40,5 @@ global:
   # based64 encoded username and password
   #
   istio:
-    username: YWRtaW4=
-    password: YWRtaW4=
+    username: <base64_encoded>
+    password: <base64_encoded>
