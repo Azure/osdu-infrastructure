@@ -34,3 +34,11 @@ global:
   #
   image:
     branch: master
+
+  ################################################################################
+  # Specify the istio specific values
+  # based64 encoded username and password
+  #
+  istio:
+    username: <base64_encoded>
+    password: <base64_encoded>

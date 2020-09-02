@@ -12,12 +12,23 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-config:
-  name: entitlements-azure
-image:
-  repository: community.opengroup.org:5555/osdu/platform/security-and-compliance/entitlements-azure
-service:
-  type: ClusterIP
-  port: 80
-  probe:
-    path: /entitlements/v1/swagger-ui.html
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: legal-jwt-authz
+  namespace: osdu
+spec:
+  selector:
+    matchLabels:
+      app: legal
+  action: DENY
+  rules:
+    - from:
+        - source:
+            notRequestPrincipals: ["*"]
+      to:
+        - operation:
+            notPaths: ["/", "*/index.html", "*/v2/api-docs", "*/configuration/ui",
+                       "*/configuration/security", "*/swagger", "*/swagger-ui.html",
+                       "*/swagger-resources","/api/legal/v1/swagger-resources/*",
+                       "/api/legal/v1/webjars/*"]

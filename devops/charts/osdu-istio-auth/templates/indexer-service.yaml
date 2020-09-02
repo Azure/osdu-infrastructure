@@ -15,12 +15,12 @@
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
-  name: storage-jwt-authz
+  name: indexer-jwt-authz
   namespace: osdu
 spec:
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-storage
+      app: indexer-service
   action: DENY
   rules:
     - from:
@@ -29,6 +29,7 @@ spec:
       to:
         - operation:
             notPaths: ["/","*/v2/api-docs","*/swagger-resources","*/swagger",
-                       "/api/storage/v2/swagger-resources/*","*/swagger-ui.html",
-                       "/api/storage/v2/webjars/*","*/index.html",
-                       "*/configuration/security","*/configuration/ui"]
+                       "/api/indexer/v2/swagger-resources/*","*/swagger-ui.html",
+                       "/api/indexer/v2/webjars/*","*/index.html",
+                       "*/index-worker", "*/_dps/task-handlers", "/api/indexer/v2/_dps/task-handlers/*",
+                       "*/reindex","*/configuration/security"]

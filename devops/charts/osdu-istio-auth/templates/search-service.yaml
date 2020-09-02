@@ -15,12 +15,12 @@
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
-  name: entitlements-jwt-authz
+  name: search-jwt-authz
   namespace: osdu
 spec:
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-entitlements-azure
+      app: search-service
   action: DENY
   rules:
     - from:
@@ -28,6 +28,7 @@ spec:
             notRequestPrincipals: ["*"]
       to:
         - operation:
-            notPaths: ["/","*/v2/api-docs","*/swagger-resources",
-                       "/entitlements/v1/swagger-resources/*","*/swagger-ui.html",
-                       "/entitlements/v1/webjars/*"]
+            notPaths: ["/","*/v2/api-docs","*/swagger-resources","*/swagger",
+                       "/api/search/v2/swagger-resources/*","*/swagger-ui.html",
+                       "/api/search/v2/webjars/*","*/index.html",
+                       "*/configuration/security","*/configuration/ui"]
