@@ -12,12 +12,23 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-config:
-  name: entitlements-azure
-image:
-  repository: community.opengroup.org:5555/osdu/platform/security-and-compliance/entitlements-azure
-service:
-  type: ClusterIP
-  port: 80
-  probe:
-    path: /entitlements/v1/swagger-ui.html
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+  name: istio-default
+spec:
+  profile: default
+  addonComponents:
+    grafana:
+      enabled: true
+    kiali:
+      # Enable the Kiali deployment for a service mesh observability dashboard
+      enabled: true
+    tracing:
+      # Enable the Jaeger deployment for tracing
+      enabled: true
+  values:
+    global:
+      proxy:
+        logLevel: info

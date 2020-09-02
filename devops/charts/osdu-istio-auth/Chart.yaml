@@ -13,8 +13,8 @@
 #  limitations under the License.
 
 apiVersion: v2
-name: indexer-service
+name: istio
 appVersion: "latest"
-description: Helm Chart for installing indexer service.
+description: Helm Chart for installing istio auth on osdu services.
 version: 0.1.0
 type: application

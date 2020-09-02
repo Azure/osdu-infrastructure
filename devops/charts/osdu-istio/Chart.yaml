@@ -12,12 +12,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-config:
-  name: storage
-image:
-  repository: community.opengroup.org:5555/osdu/platform/system/storage
-service:
-  type: ClusterIP
-  port: 80
-  probe:
-    path: /api/storage/v2/swagger-ui.html
+apiVersion: v2
+name: istio
+appVersion: "latest"
+description: Helm Chart for installing istio for osdu on azure.
+version: 0.1.0
+type: application

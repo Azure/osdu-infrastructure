@@ -12,16 +12,23 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-apiVersion: v1
-kind: Service
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
 metadata:
-  name: {{ .Release.Name }}-{{ .Chart.Name }}
+  name: search-jwt-authz
   namespace: osdu
 spec:
-  type: ClusterIP
-  ports:
-  - protocol: TCP
-    port: {{ .Values.service.port }}
-    targetPort: {{ .Values.service.port }}
   selector:
-    app: {{ .Release.Name }}-{{ .Chart.Name }}
+    matchLabels:
+      app: search-service
+  action: DENY
+  rules:
+    - from:
+        - source:
+            notRequestPrincipals: ["*"]
+      to:
+        - operation:
+            notPaths: ["/","*/v2/api-docs","*/swagger-resources","*/swagger",
+                       "/api/search/v2/swagger-resources/*","*/swagger-ui.html",
+                       "/api/search/v2/webjars/*","*/index.html",
+                       "*/configuration/security","*/configuration/ui"]

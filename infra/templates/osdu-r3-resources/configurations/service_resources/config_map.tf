@@ -19,6 +19,9 @@ locals {
 resource "kubernetes_namespace" "osdu" {
   metadata {
     name = local.osdu_ns
+    labels = {
+      "istio-injection" = "enabled"
+    }
   }
 
   depends_on = [module.aks-gitops]
@@ -47,5 +50,5 @@ resource "kubernetes_config_map" "osduconfigmap" {
     ENV_POSTGRES_USERNAME    = var.postgres_username
   }
 
-  depends_on = [module.aks-gitops]
+  depends_on = [kubernetes_namespace.osdu]
 }

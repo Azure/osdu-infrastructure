@@ -12,9 +12,23 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-apiVersion: v2
-name: osdu-azure
-appVersion: "latest"
-description: Helm chart to install osdu-on-azure.
-version: 0.1.0
-type: application
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: legal-jwt-authz
+  namespace: osdu
+spec:
+  selector:
+    matchLabels:
+      app: legal
+  action: DENY
+  rules:
+    - from:
+        - source:
+            notRequestPrincipals: ["*"]
+      to:
+        - operation:
+            notPaths: ["/", "*/index.html", "*/v2/api-docs", "*/configuration/ui",
+                       "*/configuration/security", "*/swagger", "*/swagger-ui.html",
+                       "*/swagger-resources","/api/legal/v1/swagger-resources/*",
+                       "/api/legal/v1/webjars/*"]

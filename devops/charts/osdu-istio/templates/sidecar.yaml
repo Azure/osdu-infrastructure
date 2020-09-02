@@ -12,12 +12,26 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-config:
-  name: search
-image:
-  repository: community.opengroup.org:5555/osdu/platform/system/search-service
-service:
-  type: ClusterIP
-  port: 80
-  probe:
-    path: /api/search/v2/swagger-ui.html
+apiVersion: networking.istio.io/v1beta1
+kind: Sidecar
+metadata:
+  name: istio-sidecar
+  namespace: osdu
+spec:
+  egress:
+  - hosts:
+    - "osdu/*"
+    - "istio-system/*"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kiali
+  namespace: istio-system
+  labels:
+    app: kiali
+type: Opaque
+data:
+  username: "{{ .Values.global.istio.username }}"
+  passphrase: "{{ .Values.global.istio.password }}"

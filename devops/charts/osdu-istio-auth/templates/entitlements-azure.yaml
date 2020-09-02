@@ -12,12 +12,22 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-config:
-  name: indexer
-image:
-  repository: community.opengroup.org:5555/osdu/platform/system/indexer-service
-service:
-  type: ClusterIP
-  port: 80
-  probe:
-    path: /api/indexer/v2/swagger-ui.html
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: entitlements-jwt-authz
+  namespace: osdu
+spec:
+  selector:
+    matchLabels:
+      app: entitlements-azure
+  action: DENY
+  rules:
+    - from:
+        - source:
+            notRequestPrincipals: ["*"]
+      to:
+        - operation:
+            notPaths: ["/","*/v2/api-docs","*/swagger-resources",
+                       "/entitlements/v1/swagger-resources/*","*/swagger-ui.html",
+                       "/entitlements/v1/webjars/*"]
