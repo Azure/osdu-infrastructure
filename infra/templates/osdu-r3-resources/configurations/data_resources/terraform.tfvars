@@ -90,45 +90,6 @@ cosmos_sql_collections = [
 # Service Bus Settings
 sb_topics = [
   {
-    name                         = "recordstopic"
-    default_message_ttl          = "PT30M" //ISO 8601 format
-    enable_partitioning          = false
-    requires_duplicate_detection = true
-    support_ordering             = true
-    authorization_rules = [
-      {
-        policy_name = "policy"
-        claims = {
-          listen = true
-          send   = true
-          manage = false
-        }
-      }
-    ]
-    subscriptions = [
-      {
-        name                                 = "recordstopicsubscription"
-        max_delivery_count                   = 5
-        lock_duration                        = "PT5M" //ISO 8601 format
-        forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
-        dead_lettering_on_message_expiration = true
-        filter_type                          = null
-        sql_filter                           = null
-        action                               = ""
-      },
-      {
-        name                                 = "wkssubscription"
-        max_delivery_count                   = 5
-        lock_duration                        = "PT5M" //ISO 8601 format
-        forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
-        dead_lettering_on_message_expiration = true
-        filter_type                          = null
-        sql_filter                           = null
-        action                               = ""
-      }
-    ]
-  },
-  {
     name                         = "legaltags"
     default_message_ttl          = "PT30M" //ISO 8601 format
     enable_partitioning          = false
@@ -215,6 +176,45 @@ sb_topics = [
     subscriptions = [
       {
         name                                 = "indexing-progresssubscription"
+        max_delivery_count                   = 5
+        lock_duration                        = "PT5M" //ISO 8601 format
+        forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
+        dead_lettering_on_message_expiration = true
+        filter_type                          = null
+        sql_filter                           = null
+        action                               = ""
+      }
+    ]
+  },
+  {
+    name                         = "recordstopic"
+    default_message_ttl          = "PT30M" //ISO 8601 format
+    enable_partitioning          = false
+    requires_duplicate_detection = true
+    support_ordering             = true
+    authorization_rules = [
+      {
+        policy_name = "policy"
+        claims = {
+          listen = true
+          send   = true
+          manage = false
+        }
+      }
+    ]
+    subscriptions = [
+      {
+        name                                 = "recordstopicsubscription"
+        max_delivery_count                   = 5
+        lock_duration                        = "PT5M" //ISO 8601 format
+        forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
+        dead_lettering_on_message_expiration = true
+        filter_type                          = null
+        sql_filter                           = null
+        action                               = ""
+      },
+      {
+        name                                 = "wkssubscription"
         max_delivery_count                   = 5
         lock_duration                        = "PT5M" //ISO 8601 format
         forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
