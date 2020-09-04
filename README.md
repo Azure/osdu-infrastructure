@@ -18,7 +18,7 @@ This project is an active project and the master branch is constantly changing t
 
 This project holds 3 different Solution Architectures for OSDU on Azure.
 
-- [MVP - Azure OSDU R3 MVP Architecture Solution](infra/templates/osdu-mvp)  
+- [R3 MVP - Azure OSDU R3 MVP Architecture Solution](infra/templates/osdu-r3-mvp)  
 
   _central-resources_
 

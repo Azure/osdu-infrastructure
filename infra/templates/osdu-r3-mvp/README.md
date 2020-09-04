@@ -1,8 +1,8 @@
-# Azure OSDU MVP Architecture supporting Data Partitions
+# Azure OSDU R3 MVP Architecture supporting Data Partitions
 
-The `osdu` - MVP Architecture solution template is intended to provision Managed Kubernetes resources like AKS and other core OSDU cloud managed services like Cosmos, Blob Storage and Keyvault. 
+The `osdu` - R3 MVP Architecture solution template is intended to provision Managed Kubernetes resources like AKS and other core OSDU cloud managed services like Cosmos, Blob Storage and Keyvault. 
 
-We decided to create another configuration file that will support data partitions due to the complexity of migrating the osdu-r3-resources architecture without a lot of breaking changes.
+We decided to create another configuration that will support data partitions due to the complexity of migrating the osdu-r3-resources architecture to support data partitions without incurring a lot of breaking changes.
 
 
 
