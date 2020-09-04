@@ -4,7 +4,18 @@ The `osdu` - R3 MVP Architecture solution template is intended to provision Mana
 
 We decided to create another configuration that will support data partitions due to the complexity of migrating the osdu-r3-resources architecture to support data partitions without incurring a lot of breaking changes.
 
+## Use-Case
 
+
+
+## Scenarios this template should avoid
+
+
+
+
+## Cloud Resource Architecture
+
+![Architecture](./docs/images/architecture.png "Architecture")
 
 
 
