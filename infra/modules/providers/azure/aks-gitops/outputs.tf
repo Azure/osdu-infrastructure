@@ -52,3 +52,10 @@ output "kubelet_object_id" {
   value = module.aks.kubelet_object_id
 }
 
+output "log_workspace_id" {
+  value = module.aks.log_workspace_id
+}
+
+output "log_workspace_key" {
+  value = module.aks.log_workspace_key
+}

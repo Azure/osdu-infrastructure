@@ -48,6 +48,7 @@ resource "kubernetes_config_map" "osduconfigmap" {
     ENV_ELASTIC_ENDPOINT     = var.elasticsearch_endpoint
     ENV_ELASTIC_USERNAME     = var.elasticsearch_username
     ENV_POSTGRES_USERNAME    = var.postgres_username
+    ENV_LOG_WORKSPACE_ID     = module.aks-gitops.log_workspace_id
   }
 
   depends_on = [kubernetes_namespace.osdu]

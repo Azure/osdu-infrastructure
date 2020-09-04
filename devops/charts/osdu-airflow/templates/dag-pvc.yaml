@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: airflowdagpv
+  labels:
+    usage: airflow-dag
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadOnlyMany
+  azureFile:
+    secretName: airflow-dag-share
+    shareName: airflowdags
+  volumeMode: Filesystem
+  mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+  - uid=1000
+  - gid=1000
+  - mfsymlinks
+  - nobrl
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: airflowdagpvc
+  # Set this annotation to NOT let Kubernetes automatically create
+  # a persistent volume for this volume claim.
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ""
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 5Gi
+  selector:
+    matchLabels:
+      usage: airflow-dag

@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: post-install-job-config
+data:
+  requirements.txt: |
+    flask-bcrypt
+    psycopg2-binary
+  create_default_user.py: |
+    import os
+    import time
+    import sys
+    from flask_bcrypt import generate_password_hash
+    import psycopg2
+
+    PY3 = sys.version_info[0] == 3
+
+    def main():
+        server = os.environ.get('DATABASE_HOST','')
+        database = os.environ.get('DATABASE_DB','')
+        database_login_name = os.environ.get('DATABASE_USER','')
+        database_login_pass = os.environ.get('DATABASE_USER_PASS','')
+        airflow_admin =os.environ.get('AIRFLOW_ADMIN','')
+        airflow_pass =os.environ.get('AIRFLOW_ADMIN_PASS','')
+        retry = 6
+        retry_window = 10
+        if not airflow_admin or not airflow_pass or not server or not database or not database_login_name or not database_login_pass:
+            print('missed required environment variables')
+            sys.exit(2)
+
+        while retry>0:
+            time.sleep(retry_window)
+            if check(server,database,database_login_name,database_login_pass,"database") and check(server,database,database_login_name,database_login_pass,"table"):
+                create_user(server,database,database_login_name,database_login_pass,airflow_admin,airflow_pass)
+                break
+            else:
+                retry -= 1
+                print(f'wait {retry_window}s for retry') 
+        return
+
+
+    def create_user(server,database,db_login_name,db_login_pass,airflow_admin,airflow_pass):
+        conn_string = "host={0} user={1} dbname={2} password={3} sslmode={4}".format(server, db_login_name, database, db_login_pass, 'require')
+        password_hash = generate_password_hash(airflow_pass,12)
+        if PY3:
+            password_hash = str(password_hash,'utf-8')
+        conn = None
+        try:
+            conn = psycopg2.connect(conn_string)
+            cursor = conn.cursor()
+            cursor.execute("insert into users(username,email,password,superuser) values(%s,%s,%s,%s) on CONFLICT(username) DO NOTHING;",(airflow_admin,'',password_hash,True))
+            conn.commit()
+            cursor.close()
+            print(f'default user {airflow_admin} was created')
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+        finally:
+            if conn is not None:
+                conn.close()
+
+    def check(server,database,db_login_name,db_login_pass,check_type="database"):
+        conn_string = None
+        connection = None
+        query_string = None
+        object_exists = False
+        if check_type =="database":
+            conn_string = "host={0} user={1} dbname=postgres password={2} sslmode={3}".format(server, db_login_name, db_login_pass, 'require')
+            query_string = f"select exists(select * from pg_database where datname='{database}')" 
+        else:
+            conn_string = "host={0} user={1} dbname={2} password={3} sslmode={4}".format(server, db_login_name, database, db_login_pass, 'require')
+            query_string = "select exists(select * from information_schema.tables where table_name='users')"
+        try:
+            connection = psycopg2.connect(conn_string)
+        except (Exception,psycopg2.DatabaseError) as error:
+            print(error)
+            sys.exit(1)
+        if connection is not None:
+            connection.autocommit = True
+            cur = connection.cursor()
+            cur.execute(query_string)
+            object_exists = cur.fetchone()[0]
+            connection.close()
+        return object_exists     
+
+    if __name__ == "__main__":
+        main()
+

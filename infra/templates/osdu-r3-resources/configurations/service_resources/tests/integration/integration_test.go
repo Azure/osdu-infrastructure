@@ -42,7 +42,7 @@ func TestDataEnvironment(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 27,
+		ExpectedTfOutputCount: 28,
 		TfOutputAssertions: []infratests.TerraformOutputValidation{
 			appGatewayIntegTests.InspectAppGateway("services_resource_group_name", "appgw_name", "keyvault_secret_id"),
 			aksGitOpsIntegTests.BaselineClusterAssertions(kubeConfig, "aks_pod_identity_namespace"),

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airflow-appinsight-statsd-config
+data:
+  appinsightsconfig.js: |
+    {
+        backends: ["appinsights-statsd"],
+        aiInstrumentationKey: process.env.APPLICATION_INSIGHTS_INSTRUMENTATION_KEY,
+        aiPrefix: "osdu_airflow",
+        aiRoleName: "airflow",
+        aiRoleInstance: process.env.HOSTNAME,
+        aiTrackStatsDMetrics: true,
+        log: {
+            backend: "syslog",
+            level: ""
+        },
+        debug: false
+    }

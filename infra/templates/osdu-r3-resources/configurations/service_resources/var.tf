@@ -221,3 +221,15 @@ variable "postgres_configurations" {
   type        = map(string)
   default     = {}
 }
+
+# variable "airflow_fernet_key" {
+#   description = "Airflow metadata database encryption key"
+#   type        = string
+#   default     = ""
+# }
+
+variable "airflow_admin_password" {
+  description = "Airflow admin password"
+  type        = string
+  default     = ""
+}

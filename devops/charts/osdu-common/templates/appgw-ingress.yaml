@@ -40,3 +40,7 @@ spec:
               serviceName: search-service
               servicePort: 80
             path: /api/search/v2/*
+          - backend:
+              serviceName: file-service
+              servicePort: 80
+            path: /api/file/v2/*

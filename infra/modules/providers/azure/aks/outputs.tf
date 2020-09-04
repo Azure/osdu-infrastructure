@@ -58,3 +58,11 @@ output "kubelet_client_id" {
 output "node_resource_group" {
   value = azurerm_kubernetes_cluster.main.node_resource_group
 }
+
+output "log_workspace_id" {
+  value = azurerm_log_analytics_workspace.main.workspace_id
+}
+
+output "log_workspace_key" {
+  value = azurerm_log_analytics_workspace.main.primary_shared_key
+}

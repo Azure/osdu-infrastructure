@@ -132,3 +132,7 @@ output "redis_primary_access_key" {
 output "redis_ssl_port" {
   value = module.redis_cache.ssl_port
 }
+
+output "postgresql_hostname" {
+  value = module.postgreSQL.server_fqdn
+}

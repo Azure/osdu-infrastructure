@@ -1,0 +1,116 @@
+appinsightstatsd:
+  aadpodidbinding: "osdu-identity"  
+airflowLogin:
+  name: admin
+airflow:
+  airflow:
+    image:
+      repository: apache/airflow
+      tag: 1.10.12-python3.6
+      ## values: Always or IfNotPresent
+      pullPolicy: IfNotPresent
+      pullSecret: ""
+    config:
+      AIRFLOW__SCHEDULER__STATSD_ON: "True"
+      AIRFLOW__SCHEDULER__STATSD_HOST: "appinsights-statsd"
+      AIRFLOW__SCHEDULER__STATSD_PORT: 8125
+      AIRFLOW__SCHEDULER__STATSD_PREFIX: "osdu_airflow"
+      ## Enable for Debug purpose
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "False"
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "False"
+      AIRFLOW__WEBSERVER__AUTHENTICATE: "True"
+      AIRFLOW__WEBSERVER__AUTH_BACKEND: "airflow.contrib.auth.backends.password_auth"
+      AIRFLOW__API__AUTH_BACKEND: "airflow.contrib.auth.backends.password_auth"
+      AIRFLOW__CORE__REMOTE_LOGGING: "True"
+      AIRFLOW__CORE__REMOTE_LOG_CONN_ID: "az_log"
+      AIRFLOW__CORE__REMOTE_BASE_LOG_FOLDER: "wasb-airflowlog"
+      AIRFLOW__CORE__LOGGING_CONFIG_CLASS: "log_config.DEFAULT_LOGGING_CONFIG"
+      AIRFLOW__CORE__LOG_FILENAME_TEMPLATE: "{{ run_id }}/{{ ti.dag_id }}/{{ ti.task_id }}/{{ ts }}/{{ try_number }}.log"
+      AIRFLOW__CELERY__SSL_ACTIVE: "True"
+      AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX: "True"
+    extraEnv:
+    - name: AIRFLOW__CORE__FERNET_KEY
+      valueFrom:
+        secretKeyRef:
+          name: airflow-fernet-key
+          key: airflow-fernet-key
+    - name: AIRFLOW_CONN_AZ_LOG
+      valueFrom:
+        secretKeyRef:
+          name: airflow-remote-log-connection
+          key: airflow-remote-log-connection
+    extraConfigmapMounts:
+        - name: remote-log-config
+          mountPath: /opt/airflow/config
+          configMap: airflow-remote-log-config
+          readOnly: true
+    extraPipPackages: [
+        "flask-bcrypt",
+        "apache-airflow[statsd]",
+        "apache-airflow[kubernetes]",
+        "apache-airflow-backport-providers-microsoft-azure"
+    ]
+    extraVolumeMounts:
+        - name: airflow-kubernetes-config
+          mountPath: "/home/airflow/.kube"
+    extraVolumes:
+        - name: airflow-kubernetes-config
+          secret:
+            secretName: airflow-kubernetes-config
+            items:
+            - key: airflow-kubernetes-config
+              path: config
+  dags:
+    installRequirements: true
+    persistence:
+      enabled: true
+      existingClaim: airflowdagpvc
+  scheduler:
+    podLabels:
+      aadpodidbinding: "osdu-identity"
+    variables: |
+      {}
+  web:
+    podLabels:
+      aadpodidbinding: "osdu-identity"
+    baseUrl: "http://localhost/airflow"
+  ingress:
+    enabled: true
+    web:
+      annotations:
+        kubernetes.io/ingress.class: azure/application-gateway
+        cert-manager.io/cluster-issuer: letsencrypt
+        cert-manager.io/acme-challenge-type: http01
+      path: "/airflow"
+      host: osdu-weisun.msft-osdu-test.org
+      livenessPath: "/airflow/health"
+      tls:
+        enabled: true
+        secretName: osdu-certificate
+      precedingPaths:
+        - path: "/airflow/*"
+          serviceName: airflow-web
+          servicePort: 8080
+  workers:
+    podLabels:
+      aadpodidbinding: "osdu-identity"             
+  flower:
+    enabled: false
+  postgresql:
+    enabled: false
+  externalDatabase:
+    type: postgres
+    user: osdu_admin@<postgresql database server name>
+    passwordSecret: "postgres-password"
+    passwordSecretKey: "postgres-password"
+    host: <postgresql database host>
+    port: 5432
+    properties: "?sslmode=require"
+    database: airflow
+  redis:
+    enabled: false
+  externalRedis:
+    host: <redis host>
+    port: 6380
+    passwordSecret: "redis-password"
+    passwordSecretKey: "redis-password"

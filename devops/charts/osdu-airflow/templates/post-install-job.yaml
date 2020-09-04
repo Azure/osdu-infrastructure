@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-setup-default-user"
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+      name: "{{ .Release.Name }}"
+      labels:
+        app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+        app.kubernetes.io/instance: {{ .Release.Name | quote }}
+        helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        aadpodidbinding: "osdu-identity"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: post-install-job
+        image: python:3.6.12-slim-buster
+        command: ['sh','-c','pip install --user -r /post-install-scripts/requirements.txt && python /post-install-scripts/create_default_user.py']
+        volumeMounts:
+        - name: config-volume
+          mountPath: /post-install-scripts
+        - name: azure-keyvault
+          mountPath: "/mnt/azure-keyvault"
+          readOnly: true
+        env:
+        - name: DATABASE_USER
+          value: {{ .Values.airflow.externalDatabase.user }}
+        - name: DATABASE_HOST
+          value: {{ .Values.airflow.externalDatabase.host }}
+        - name: DATABASE_DB
+          value: {{ .Values.airflow.externalDatabase.database }}
+        - name: DATABASE_USER_PASS
+          valueFrom:
+            secretKeyRef:
+              name: postgres-password
+              key: postgres-password
+        - name: AIRFLOW_ADMIN
+          value: {{ .Values.airflowLogin.name }}
+        - name: AIRFLOW_ADMIN_PASS
+          valueFrom:
+            secretKeyRef:
+              name: airflow-admin-password
+              key: airflow-admin-password
+      volumes:
+      - name: config-volume
+        configMap:
+          name: post-install-job-config
+      - name: azure-keyvault
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: azure-keyvault           

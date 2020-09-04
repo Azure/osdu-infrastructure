@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-log-processor
+  namespace: osdu
+  labels:
+    app: airflow-log-processor
+spec:
+  selector:
+    matchLabels:
+      app: airflow-log-processor
+  template:
+    metadata:
+      labels:
+        app: airflow-log-processor
+        aadpodidbinding: "osdu-identity"
+    spec:
+      containers:
+      - name: airflow-log-processor
+        image: binroon/airflow-logs-to-workspace
+        imagePullPolicy: Always
+        env:
+          - name: AzureFunctionsJobHost__functions__0
+            value: queueTrigger
+          - name: FUNCTIONS_WORKER_RUNTIME
+            value: dotnet
+          - name: AzureLogWorkspaceLogName
+            value: airflow_dag
+          - name: AzureLogWorkspaceCustomerId
+            valueFrom:
+              configMapKeyRef:
+                name: osdu-svc-properties
+                key: ENV_LOG_WORKSPACE_ID
+          - name: AzureLogWorkspaceSharedKey
+            valueFrom:
+              secretKeyRef:
+                name: airflow-log-workspace-key
+                key: airflow-log-workspace-key
+          - name: AzureWebJobsStorage
+            valueFrom:
+              secretKeyRef:
+                name: airflow-log-storage-connectionstring
+                key: airflow-log-storage-connectionstring
+        
+---
+apiVersion: keda.k8s.io/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: azure-queue-auth
+  namespace: osdu
+spec:
+  podIdentity:
+    provider: azure
+
+---
+apiVersion: keda.k8s.io/v1alpha1
+kind: ScaledObject
+metadata:
+  name: azure-queue-scaledobject
+  namespace: osdu
+spec:
+  scaleTargetRef:
+    deploymentName: azurequeue-function
+  triggers:
+  - type: azure-queue
+    metadata:
+      # Required
+      queueName: airflowlogqueue
+      # Optional
+      queueLength: "5" # default 5
+    authenticationRef:
+        name: azure-queue-auth # authenticationRef would need either podIdentity or define a connection parameter

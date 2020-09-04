@@ -16,6 +16,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: default-service
+  labels:
+    aadpodidbinding: "osdu-identity"
   namespace: osdu
 spec:
   selector:
@@ -35,3 +37,8 @@ spec:
           env:
             - name: TITLE
               value: "Azure OSDU Platform - (AKS)"
+            - name: APPLICATION_INSIGHTS_INSTRUMENTATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: appinsights
+                  key: appinsights

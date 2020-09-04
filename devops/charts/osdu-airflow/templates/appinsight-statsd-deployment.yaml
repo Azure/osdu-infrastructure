@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appinsights-statsd
+  labels:
+    app: appinsights-statsd          
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: appinsights-statsd
+  template:
+    metadata:
+      labels:
+        app: appinsights-statsd
+        aadpodidbinding: "osdu-identity"
+    spec:
+      containers:
+      - name: appinsights-statsd
+        image: binroon/appinsights-statsd:latest
+        imagePullPolicy: Always
+        command: ["node"]
+        args: ["/usr/src/app/statsd/stats.js", "/usr/src/app/statsd/backends/config/appinsightsconfig.js"]
+        volumeMounts:
+          - name: config-volume
+            mountPath: /usr/src/app/statsd/backends/config
+        env:
+          - name: APPLICATION_INSIGHTS_INSTRUMENTATION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: appinsights
+                key: appinsights
+        ports:
+          - containerPort: 8125
+            protocol: UDP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+      volumes:
+        - name: config-volume
+          configMap: 
+            name: airflow-appinsight-statsd-config

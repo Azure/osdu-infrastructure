@@ -395,9 +395,9 @@ module "redis_cache" {
   premium_tier_config = var.redis_config_schedule
 }
 
-resource "azurerm_key_vault_secret" "redis_connection" {
-  name         = "redis-connection"
-  value        = module.app_management_service_principal.client_secret
+resource "azurerm_key_vault_secret" "redis_password" {
+  name         = "redis-password"
+  value        = module.redis_cache.primary_access_key
   key_vault_id = module.keyvault.keyvault_id
 }
 
@@ -455,6 +455,11 @@ module "postgreSQL" {
     subnet_id = module.network.subnets[0]
   }] 
   */
+  public_network_access = true
+  firewall_rules = [{
+    start_ip = "0.0.0.0"
+    end_ip   = "0.0.0.0"
+  }]
 }
 
 
