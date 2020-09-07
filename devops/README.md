@@ -19,7 +19,7 @@ BRANCH="master"
 TAG="latest"
 
 # Extract manifests from the common osdu chart.
-helm template osdu-flux ${INFRA_SRC}/devops/charts/common -f ${INFRA_SRC}/devops/config.yaml > ${FLUX_SRC}/providers/azure/hld-registry/azure-common.yaml
+helm template osdu-flux ${INFRA_SRC}/devops/charts/osdu-common -f ${INFRA_SRC}/devops/config.yaml > ${FLUX_SRC}/providers/azure/hld-registry/azure-common.yaml
 
 # Extract manifests from each service chart.
 for SERVICE in entitlements-azure legal storage indexer-service indexer-queue search-service ;
