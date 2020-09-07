@@ -24,11 +24,6 @@ variable "randomization_level" {
   default     = 4
 }
 
-variable "data_resources_workspace_name" {
-  description = "(Required) The workspace name for the data_resources terraform environment / template to reference for this template."
-  type        = string
-}
-
 variable "remote_state_account" {
   description = "Remote Terraform State Azure storage account name. This is typically set as an environment variable and used for the initial terraform init."
   type        = string

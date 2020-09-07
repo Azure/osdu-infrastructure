@@ -31,6 +31,8 @@ export ARM_ACCESS_KEY=""
 # Instance Variables
 export TF_VAR_resource_group_location="centralus"
 export TF_VAR_cosmosdb_replica_location="eastus2"  # Region Pair Location
+export TF_VAR_common_resources_workspace_name="${USER}cr"
+export TF_VAR_service_resources_workspace_name="${USER}sr"
 ```
 
 2. Execute the following command to configure your local Azure CLI.

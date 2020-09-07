@@ -39,7 +39,6 @@ Cloud administrators who are versed with both Cobalt templating and Kubernetes.
 ![image](../../../docs/osdu/images/service_principal.png)
 1. Enroll as an Azure subscriber. The free trial subscription does not support enough cores to run this tutorial.
 1. Terraform `common_resources` environment module is [provisoned](environments/common_resources/README.md) to your Azure Environment
-1. Terraform `data_resources` environment module is [provisoned](environments/data_resources/README.md) to your Azure Environment
 1. Install the required common tools (kubectl, helm, and terraform). See also [Required Tools](https://github.com/microsoft/bedrock/tree/master/cluster). Note: this tutorial currently uses [Terraform 0.12.28](https://releases.hashicorp.com/terraform/0.12.28/).
 
 ## Cost
@@ -161,14 +160,13 @@ TF_VAR_gitops_ssh_key_file=/home/$USER/.ssh/gitops-ssh-key
 
 Follow the directions in the [`common_resources`](./configurations/common_resources/README.md) environment.
 
-### Deploy Data Resources
-
-Follow the directions in the [`data_resources`](./configurations/data_resources/README.md) environment.
-
 ### Deploy Service Resources
 
 Follow the directions in the [`service_resources`](./configurations/cluster_resources/README.md) environment.
 
+### Deploy Data Resources
+
+Follow the directions in the [`data_resources`](./configurations/data_resources/README.md) environment.
 
 ## Pipeline Deployment Process
 Follow these steps if you wish to setup and deploy using ADO Pipelines.
@@ -259,9 +257,9 @@ done
 
 - Add a Pipeline __osdu-infrastructure-r3-common__ -->  `azure-pipeline-common.yml` and execute it.
 
-- Add a Pipeline __osdu-infrastructure-r3-data__ -->  `azure-pipeline-data.yml` and execute it.
-
 - Add a Pipeline __osdu-infrastructure-r3-services__ -->  `azure-pipeline-services.yml` and execute it.
+
+- Add a Pipeline __osdu-infrastructure-r3-data__ -->  `azure-pipeline-data.yml` and execute it.
 
 - Once Infrastructure is deployed grant admin_consent to the Service Principal.
 
