@@ -16,9 +16,18 @@ Please be aware that branching strategies are aligned with OSDU and the master b
 ## Architecture Solutions
 This project is an active project and the master branch is constantly changing to support OSDU features. Rhe master branch is intended to be in sync with the master branches of the OSDU Service branches.
 
-This project holds 2 different Solution Architectures for OSDU on Azure.
+This project holds 3 different Solution Architectures for OSDU on Azure.
 
-- [R3 - Azure OSDU AKS Architecture Solution with Elastic Cloud SaaS](infra/templates/osdu-r3-resources)  
+- [R3 MVP - Azure OSDU R3 MVP Architecture Solution](infra/templates/osdu-r3-mvp)  
+
+  _central-resources_
+
+  _service-resources_  
+
+  _data-partition_  
+
+
+- [R3 AKS - Azure OSDU AKS Architecture Solution](infra/templates/osdu-r3-resources)  
 
   _common-resources_  
   [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infrastructure-r3-cr?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1186&branchName=master)
@@ -30,7 +39,7 @@ This project holds 2 different Solution Architectures for OSDU on Azure.
   [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infrastructure-r3-dr?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1190&branchName=master) 
 
 
-- [R2 - Azure OSDU AppService Architecture Solution with Elastic Cloud SaaS](infra/templates/osdu-r2-resources)
+- [R2 - Azure OSDU AppService Architecture Solution](infra/templates/osdu-r2-resources)
 
   _osdu-r2-resources_  
   [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/osdu-infrastructure-integration?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=892&branchName=master) 
