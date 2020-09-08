@@ -26,7 +26,7 @@ func appendServicebusTests(t *testing.T, description infratests.ResourceDescript
 		"dead_lettering_on_message_expiration": true
 	}`)
 
-	description["module.service_bus.azurerm_servicebus_subscription.subscription[4]"] = asMap(t, `{
+	description["module.service_bus.azurerm_servicebus_subscription.subscription[5]"] = asMap(t, `{
 		"name":                                 "indexing-progresssubscription",
 		"dead_lettering_on_message_expiration": true,
 		"max_delivery_count":                   5
