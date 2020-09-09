@@ -119,7 +119,7 @@ locals {
   container_registry_name = "${replace(local.base_name_21, "-", "")}cr"
   osdupod_identity_name   = "${local.base_name}-osdu-identity"
   ai_name                 = "${local.base_name}-ai"
-  ai_key_name            = "appinsights-key"
+  ai_key_name             = "appinsights-key"
 }
 
 #-------------------------------
@@ -196,7 +196,7 @@ module "storage_account" {
   kind                = "StorageV2"
   replication_type    = "LRS"
 
-  resource_tags          = var.resource_tags
+  resource_tags = var.resource_tags
 }
 
 // Add the Storage Key to the Vault
@@ -225,7 +225,7 @@ module "container_registry" {
   container_registry_sku           = var.container_registry_sku
   container_registry_admin_enabled = false
 
-  resource_tags          = var.resource_tags
+  resource_tags = var.resource_tags
 }
 
 resource "azurerm_management_lock" "acr_lock" {
@@ -244,9 +244,9 @@ module "app_insights" {
 
   appinsights_name                 = local.ai_name
   service_plan_resource_group_name = azurerm_resource_group.main.name
-  appinsights_application_type = "other"
+  appinsights_application_type     = "other"
 
-  resource_tags          = var.resource_tags
+  resource_tags = var.resource_tags
 }
 
 // Add the App Insights Key to the Vault
@@ -266,7 +266,7 @@ resource "azurerm_user_assigned_identity" "osduidentity" {
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
 
-  tags                = var.resource_tags
+  tags = var.resource_tags
 }
 
 
