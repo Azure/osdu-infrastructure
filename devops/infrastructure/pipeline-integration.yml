@@ -38,33 +38,27 @@
   # elastic-endpoint-ado-{env_name}
 
 # Deploy and validate infra changes once changes have been merged into
-# trigger:
-#   batch: true
-#   branches:
-#     include:
-#     - master
-#   paths:
-#     include:
-#     - /devops/infrastructure/*
-#     - /infra/modules/providers/*
-#     - /infra/templates/osdu-r2-resources/*
-#     - /test-harness/terratest-extensions/*
-#     exclude:
-#     - /**/*.md
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - /infra/templates/osdu-r2-resources/*
+    exclude:
+    - /**/*.md
 
-# pr:
-#   autoCancel: true
-#   branches:
-#     include:
-#     - '*'
-#   paths:
-#     include:
-#     - /devops/infrastructure/*
-#     - /infra/modules/providers/*
-#     - /infra/templates/osdu-r2-resources/*
-#     - /test-harness/terratest-extensions/*
-#     exclude:
-#     - /**/*.md
+pr:
+  autoCancel: true
+  branches:
+    include:
+    - '*'
+  paths:
+    include:
+    - /infra/templates/osdu-r2-resources/*
+    exclude:
+    - /**/*.md
 
 variables:
 - name: 'TF_VERSION'
