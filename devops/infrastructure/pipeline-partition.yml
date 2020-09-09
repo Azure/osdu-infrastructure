@@ -82,11 +82,11 @@ stages:
       resourceNameIsolationLevel: 8  
 
     configurations:
-    - jobName: data-partition-1
+    - jobName: data_partition_1
       terraformWorkspacePrefix: dp1
       terraformTemplatePath: infra/templates/osdu-r3-mvp/data-partition
       deploymentTimeoutInMinutes: 120
-    # - jobName: data-partition-2
-    #   terraformWorkspacePrefix: dp2
-    #   terraformTemplatePath: infra/templates/osdu-r3-mvp/data-partition
-    #   deploymentTimeoutInMinutes: 120
+    - jobName: data_partition_2
+      terraformWorkspacePrefix: dp2
+      terraformTemplatePath: infra/templates/osdu-r3-mvp/data-partition
+      deploymentTimeoutInMinutes: 120
