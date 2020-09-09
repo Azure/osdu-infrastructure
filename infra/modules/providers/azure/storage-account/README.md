@@ -37,6 +37,8 @@ module "storage_account" {
 
   name                = "mystorageaccount"
   container_names     = ["test"]
+  share_names         = ["share"]
+  queue_names         = ["queue"]
   resource_group_name = azurerm_resource_group.sample.name
 }
 ```
@@ -47,7 +49,8 @@ module "storage_account" {
 |---|---|---|
 | `azurerm_storage_account` | [storage account](https://www.terraform.io/docs/providers/azurerm/r/storage_account.html) | This resource will be declared within the module. |
 | `azurerm_storage_container` | [storage container](https://www.terraform.io/docs/providers/azurerm/r/storage_container.html) | This resource will be declared within the module. |
-
+| `azurerm_storage_share` | [storage share](https://www.terraform.io/docs/providers/azurerm/r/storage_share.html) | This resource will be declared within the module. |
+| `azurerm_storage_queue` | [storage queue](https://www.terraform.io/docs/providers/azurerm/r/storage_queue.html) | This resource will be declared within the module. |
 
 ### Input Variables
 
