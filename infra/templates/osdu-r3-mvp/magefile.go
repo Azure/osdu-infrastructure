@@ -15,13 +15,8 @@ import (
 
 // A build step that runs all tests.
 func All() {
-	mg.Deps(TestCentralResources)
-}
-
-// Execute Tests for OSDU MVP Central Resources.
-func TestCentralResources() {
-	mg.Deps(CentralUnitTest)
-	mg.Deps(CentralIntegrationTest)
+	mg.Deps(CentralTests)
+	mg.Deps(ServiceTests)
 }
 
 // Execute Unit Tests for OSDU MVP Central Resources.
@@ -36,6 +31,32 @@ func CentralIntegrationTest() error {
 	mg.Deps(Check)
 	fmt.Println("INFO: Running integration tests...")
 	return FindAndRunTests("central_resources/tests/integration")
+}
+
+// Execute Tests for OSDU MVP Central Resources.
+func CentralTests() {
+	mg.Deps(CentralUnitTest)
+	mg.Deps(CentralIntegrationTest)
+}
+
+// Execute Unit Tests for OSDU MVP Service Resources.
+func ServiceUnitTest() error {
+	mg.Deps(Check)
+	fmt.Println("INFO: Running unit tests...")
+	return FindAndRunTests("service_resources/tests/unit")
+}
+
+// Execute Integration Tests for OSDU MVP Service Resources.
+func ServiceIntegrationTest() error {
+	mg.Deps(Check)
+	fmt.Println("INFO: Running integration tests...")
+	return FindAndRunTests("service_resources/tests/integration")
+}
+
+// Execute Tests for OSDU MVP Service Resources.
+func ServiceTests() {
+	mg.Deps(ServiceUnitTest)
+	mg.Deps(ServiceIntegrationTest)
 }
 
 // Validate both Terraform code and Go code.

@@ -302,3 +302,8 @@ output "container_registry_name" {
   description = "The name of the container registry."
   value       = module.container_registry.container_registry_name
 }
+
+output "keyvault_id" {
+  description = "The resource id for Key Vault"
+  value       = module.keyvault.keyvault_id
+}
