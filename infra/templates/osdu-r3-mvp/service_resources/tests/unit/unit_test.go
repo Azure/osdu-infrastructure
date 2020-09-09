@@ -19,31 +19,39 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
-	containerRegistryIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/container-registry/tests/integration"
-	storageIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/storage-account/tests/integration"
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
-var subscription = os.Getenv("ARM_SUBSCRIPTION_ID")
 var tfOptions = &terraform.Options{
 	TerraformDir: "../../",
+	Upgrade:      true,
+	Vars: map[string]interface{}{
+		"resource_group_location": region,
+		"prefix":                  prefix,
+	},
 	BackendConfig: map[string]interface{}{
 		"storage_account_name": os.Getenv("TF_VAR_remote_state_account"),
 		"container_name":       os.Getenv("TF_VAR_remote_state_container"),
 	},
 }
 
-// Runs a suite of test assertions to validate that a provisioned data source environment
-// is fully functional.
-func TestDataEnvironment(t *testing.T) {
-	testFixture := infratests.IntegrationTestFixture{
-		GoTest:                t,
-		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 7,
-		TfOutputAssertions: []infratests.TerraformOutputValidation{
-			containerRegistryIntegTests.InspectContainerRegistryOutputs(subscription, "central_resource_group_name", "container_registry_name"),
-			storageIntegTests.InspectStorageAccount("diag_storage_account", "diag_storage_containers", "central_resource_group_name"),
-		},
+func TestTemplate(t *testing.T) {
+	expectedAppDevResourceGroup := asMap(t, `{
+		"location": "`+region+`"
+	}`)
+
+	resourceDescription := infratests.ResourceDescription{
+		"azurerm_resource_group.main": expectedAppDevResourceGroup,
 	}
-	infratests.RunIntegrationTests(&testFixture)
+
+	testFixture := infratests.UnitTestFixture{
+		GoTest:                          t,
+		TfOptions:                       tfOptions,
+		Workspace:                       workspace,
+		PlanAssertions:                  nil,
+		ExpectedResourceCount:           9,
+		ExpectedResourceAttributeValues: resourceDescription,
+	}
+
+	infratests.RunUnitTests(&testFixture)
 }

@@ -12,23 +12,25 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-/*
-.Synopsis
-   Terraform Variable Configuration
-.DESCRIPTION
-   This file holds the Default Variable Configuration
-*/
+package test
 
-prefix = "osdu-mvp"
+import (
+	"encoding/json"
+	"github.com/gruntwork-io/terratest/modules/random"
+	"strings"
+	"testing"
+)
 
-resource_tags = {
-  environment = "personal"
+// these are useful values used in many test
+var region = "centralus"
+var prefix = "osdu-testing" + strings.ToLower(random.UniqueId())
+var workspace = "osdu-testing-" + strings.ToLower(random.UniqueId())
+
+// helper function to parse blocks of JSON into a generic Go map
+func asMap(t *testing.T, jsonString string) map[string]interface{} {
+	var theMap map[string]interface{}
+	if err := json.Unmarshal([]byte(jsonString), &theMap); err != nil {
+		t.Fatal(err)
+	}
+	return theMap
 }
-
-# Storage Settings
-storage_shares = [
-  "airflowdags"
-]
-storage_queues = [
-  "airflowlogqueue"
-]
