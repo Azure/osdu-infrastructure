@@ -19,8 +19,6 @@ func All() {
 	mg.Deps(ServiceTests)
 }
 
-
-
 // Execute Unit Tests for OSDU MVP Central Resources.
 func CentralUnitTest() error {
 	mg.Deps(Check)
