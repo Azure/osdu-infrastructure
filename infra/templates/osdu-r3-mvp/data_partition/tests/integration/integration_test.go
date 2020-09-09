@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	cosmosIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/cosmosdb/tests/integration"
 	storageIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/storage-account/tests/integration"
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
@@ -38,9 +39,10 @@ func TestDataEnvironment(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 5,
+		ExpectedTfOutputCount: 7,
 		TfOutputAssertions: []infratests.TerraformOutputValidation{
 			storageIntegTests.InspectStorageAccount("storage_account", "storage_containers", "data_partition_group_name"),
+			cosmosIntegTests.InspectProvisionedCosmosDBAccount("data_partition_group_name", "cosmosdb_account_name", "cosmosdb_properties"),
 		},
 	}
 	infratests.RunIntegrationTests(&testFixture)

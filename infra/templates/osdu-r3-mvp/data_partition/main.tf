@@ -97,6 +97,43 @@ variable "storage_containers" {
   type        = list(string)
 }
 
+variable "cosmosdb_replica_location" {
+  description = "The name of the Azure region to host replicated data. i.e. 'East US' 'East US 2'. More locations can be found at https://azure.microsoft.com/en-us/global-infrastructure/locations/"
+  type        = string
+}
+
+variable "cosmosdb_consistency_level" {
+  description = "The level of consistency backed by SLAs for Cosmos database. Developers can chose from five well-defined consistency levels on the consistency spectrum."
+  type        = string
+  default     = "Session"
+}
+
+variable "cosmosdb_automatic_failover" {
+  description = "Determines if automatic failover is enabled for CosmosDB."
+  type        = bool
+  default     = true
+}
+
+variable "cosmos_databases" {
+  description = "The list of Cosmos DB SQL Databases."
+  type = list(object({
+    name       = string
+    throughput = number
+  }))
+  default = []
+}
+
+variable "cosmos_sql_collections" {
+  description = "The list of cosmos collection names to create. Names must be unique per cosmos instance."
+  type = list(object({
+    name               = string
+    database_name      = string
+    partition_key_path = string
+    throughput         = number
+  }))
+  default = []
+}
+
 
 #-------------------------------
 # Private Variables  (common.tf)
@@ -120,6 +157,10 @@ locals {
   storage_name         = "${replace(local.base_name_21, "-", "")}sa"
   storage_account_name = format("%s-storage", local.partition)
   storage_key_name     = format("%s-key", local.storage_account_name)
+  cosmosdb_name        = "${local.base_name}-db"
+  cosmos-connection    = format("%s-cosmos-connection", local.partition)
+  cosmos-endpoint      = format("%s-cosmos-endpoint", local.partition)
+  cosmos-primary-key   = format("%s-cosmos-primary-key", local.partition)
 }
 
 
@@ -209,6 +250,46 @@ resource "azurerm_key_vault_secret" "storage_key" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
+#-------------------------------
+# CosmosDB
+#-------------------------------
+module "cosmosdb_account" {
+  source                   = "../../../modules/providers/azure/cosmosdb"
+  name                     = local.cosmosdb_name
+  resource_group_name      = azurerm_resource_group.main.name
+  primary_replica_location = var.cosmosdb_replica_location
+  automatic_failover       = var.cosmosdb_automatic_failover
+  consistency_level        = var.cosmosdb_consistency_level
+  databases                = var.cosmos_databases
+  sql_collections          = var.cosmos_sql_collections
+}
+
+resource "azurerm_management_lock" "db_lock" {
+  name       = "osdu_ds_db_lock"
+  scope      = module.cosmosdb_account.properties.cosmosdb.id
+  lock_level = "CanNotDelete"
+}
+
+// Add the CosmosDB Connection to the Vault
+resource "azurerm_key_vault_secret" "cosmos_connection" {
+  name         = local.cosmos-connection
+  value        = module.cosmosdb_account.properties.cosmosdb.connection_strings[0]
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+// Add the CosmosDB Endpoint to the Vault
+resource "azurerm_key_vault_secret" "cosmos_endpoint" {
+  name         = local.cosmos-endpoint
+  value        = module.cosmosdb_account.properties.cosmosdb.endpoint
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+// Add the CosmosDB Key to the Vault
+resource "azurerm_key_vault_secret" "cosmos_key" {
+  name         = local.cosmos-primary-key
+  value        = module.cosmosdb_account.properties.cosmosdb.primary_master_key
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
 
 #-------------------------------
 # Output Variables  (output.tf)
@@ -236,4 +317,14 @@ output "storage_account_id" {
 output "storage_containers" {
   description = "Map of storage account containers."
   value       = module.storage_account.containers
+}
+
+output "cosmosdb_account_name" {
+  description = "The name of the CosmosDB account."
+  value       = module.cosmosdb_account.account_name
+}
+
+output "cosmosdb_properties" {
+  description = "Properties of the deployed CosmosDB account."
+  value       = module.cosmosdb_account.properties
 }
