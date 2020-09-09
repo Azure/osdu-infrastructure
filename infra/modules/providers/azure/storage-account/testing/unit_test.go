@@ -56,8 +56,8 @@ func TestTemplate(t *testing.T) {
 		ExpectedResourceAttributeValues: infratests.ResourceDescription{
 			"module.storage_account.azurerm_storage_account.main":      expectedResult,
 			"module.storage_account.azurerm_storage_container.main[0]": expectedContainer,
-			"module.storage_account.azurerm_storage_share.main[0]": expectedShare,
-			"module.storage_account.azurerm_storage_queue.main[0]": expectedQueue,
+			"module.storage_account.azurerm_storage_share.main[0]":     expectedShare,
+			"module.storage_account.azurerm_storage_queue.main[0]":     expectedQueue,
 		},
 	}
 
