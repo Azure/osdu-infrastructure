@@ -80,8 +80,9 @@ locals {
   resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
 
   // airflow.tf
-  storage_name      = "${replace(local.base_name_21, "-", "")}dag"
-  storage_key_name  = "dag-account-key"
+  storage_name      = "${replace(local.base_name_21, "-", "")}af"
+  storage_account_name  = "airflow-storage"
+  storage_key_name      = "${local.storage_account_name}-key"
   redis_cache_name  = "${local.base_name}-cache"
   postgresql_name   = "${local.base_name}-pg"
   postgres_password = coalesce(var.postgres_password, random_password.redis[0].result)
@@ -162,8 +163,15 @@ module "storage_account" {
   resource_tags = var.resource_tags
 }
 
+// Add the Storage Account Name to the Vault
+resource "azurerm_key_vault_secret" "storage_name" {
+  name         = local.storage_account_name
+  value        = module.storage_account.name
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
 // Add the Storage Key to the Vault
-resource "azurerm_key_vault_secret" "storage" {
+resource "azurerm_key_vault_secret" "storage_key" {
   name         = local.storage_key_name
   value        = module.storage_account.primary_access_key
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
