@@ -40,3 +40,7 @@ spec:
               serviceName: search-service
               servicePort: 80
             path: /api/search/v2/*
+          - backend:
+              serviceName: schema
+              servicePort: 80
+            path: /api/schema-service/v1/*
