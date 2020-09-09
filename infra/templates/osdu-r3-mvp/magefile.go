@@ -38,8 +38,6 @@ func CentralIntegrationTest() error {
 	return FindAndRunTests("central_resources/tests/integration")
 }
 
-
-
 // Validate both Terraform code and Go code.
 func Check() {
 	mg.Deps(LintTF)
