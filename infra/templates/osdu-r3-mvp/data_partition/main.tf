@@ -116,10 +116,10 @@ locals {
   base_name_76 = length(local.base_name) < 77 ? local.base_name : "${substr(local.base_name, 0, 76 - length(local.suffix))}${local.suffix}"
   base_name_83 = length(local.base_name) < 84 ? local.base_name : "${substr(local.base_name, 0, 83 - length(local.suffix))}${local.suffix}"
 
-  resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
-  storage_name      = "${replace(local.base_name_21, "-", "")}sa"
-  storage_account_name  = format("%s-storage", local.partition)
-  storage_key_name  = format("%s-key", local.storage_account_name)
+  resource_group_name  = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
+  storage_name         = "${replace(local.base_name_21, "-", "")}sa"
+  storage_account_name = format("%s-storage", local.partition)
+  storage_key_name     = format("%s-key", local.storage_account_name)
 }
 
 
@@ -160,7 +160,7 @@ resource "azurerm_resource_group" "main" {
   name     = local.resource_group_name
   location = var.resource_group_location
 
-  tags     = var.resource_tags
+  tags = var.resource_tags
 
   lifecycle {
     ignore_changes = [tags]
