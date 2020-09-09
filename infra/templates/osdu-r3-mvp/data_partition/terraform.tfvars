@@ -21,6 +21,10 @@
 
 prefix = "osdu-mvp"
 
+resource_tags = {
+  contact = "pipeline"
+}
+
 storage_containers = [
   "legal-service-azure-configuration",
   "opendes",

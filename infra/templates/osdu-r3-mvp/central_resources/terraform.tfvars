@@ -22,7 +22,7 @@
 prefix = "osdu-mvp"
 
 resource_tags = {
-  environment = "personal"
+  contact = "pipeline"
 }
 
 # Storage Settings

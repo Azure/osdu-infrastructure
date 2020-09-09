@@ -86,7 +86,7 @@ stages:
       terraformWorkspacePrefix: dp1
       terraformTemplatePath: infra/templates/osdu-r3-mvp/data-partition
       deploymentTimeoutInMinutes: 120
-    - jobName: data-partition-2
-      terraformWorkspacePrefix: dp2
-      terraformTemplatePath: infra/templates/osdu-r3-mvp/data-partition
-      deploymentTimeoutInMinutes: 120
+    # - jobName: data-partition-2
+    #   terraformWorkspacePrefix: dp2
+    #   terraformTemplatePath: infra/templates/osdu-r3-mvp/data-partition
+    #   deploymentTimeoutInMinutes: 120
