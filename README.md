@@ -19,7 +19,7 @@ This project is an active project and the master branch changes frequently to su
 
 - [R3 MVP - Azure OSDU R3 MVP Architecture Solution](infra/templates/osdu-r3-mvp)  
 
-  _central-resources_
+  _central-resources_  
   [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infra-mvp-cr?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1206&branchName=master)
 
   _service-resources_  
