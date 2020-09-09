@@ -39,6 +39,28 @@ output "containers" {
   }
 }
 
+output "shares" {
+  description = "Map of shares."
+  value = {
+    for c in azurerm_storage_share.main :
+    c.name => {
+      id   = c.id
+      name = c.name
+    }
+  }
+}
+
+output "queues" {
+  description = "Map of queues."
+  value = {
+    for c in azurerm_storage_queue.main :
+    c.name => {
+      id   = c.id
+      name = c.name
+    }
+  }
+}
+
 output "properties" {
   description = "Properties of the deployed Storage Account."
   value = {
