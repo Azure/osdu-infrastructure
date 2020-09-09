@@ -115,7 +115,8 @@ locals {
   resource_group_name     = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
   kv_name                 = "${local.base_name_21}-kv"
   storage_name            = "${replace(local.base_name_21, "-", "")}diag"
-  storage_key_name        = "diagnostics-account-key"
+  storage_account_name    = "diagnostics-account"
+  storage_key_name        = "${local.storage_account_name}-key"
   container_registry_name = "${replace(local.base_name_21, "-", "")}cr"
   osdupod_identity_name   = "${local.base_name}-osdu-identity"
   ai_name                 = "${local.base_name}-ai"

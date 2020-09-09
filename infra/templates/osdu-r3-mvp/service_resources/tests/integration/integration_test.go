@@ -38,7 +38,7 @@ func TestDataEnvironment(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 5,
+		ExpectedTfOutputCount: 7,
 		TfOutputAssertions: []infratests.TerraformOutputValidation{
 			storageIntegTests.InspectStorageAccount("storage_account", "storage_containers", "services_resource_group_name"),
 		},

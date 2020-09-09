@@ -46,3 +46,13 @@ output "storage_containers" {
   description = "Map of storage account containers."
   value       = module.storage_account.containers
 }
+
+output "storage_shares" {
+  description = "Map of storage account shares."
+  value       = module.storage_account.shares
+}
+
+output "storage_queues" {
+  description = "Map of storage account queues."
+  value       = module.storage_account.queues
+}

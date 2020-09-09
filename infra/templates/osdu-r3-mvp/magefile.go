@@ -17,6 +17,7 @@ import (
 func All() {
 	mg.Deps(CentralTests)
 	mg.Deps(ServiceTests)
+	mg.Deps(PartitionTests)
 }
 
 // Execute Unit Tests for OSDU MVP Central Resources.
@@ -57,6 +58,26 @@ func ServiceIntegrationTest() error {
 func ServiceTests() {
 	mg.Deps(ServiceUnitTest)
 	mg.Deps(ServiceIntegrationTest)
+}
+
+// Execute Unit Tests for OSDU MVP Partition Resources.
+func PartitionUnitTest() error {
+	mg.Deps(Check)
+	fmt.Println("INFO: Running unit tests...")
+	return FindAndRunTests("data_partition/tests/unit")
+}
+
+// Execute Integration Tests for OSDU MVP Partition Resources.
+func PartitionIntegrationTest() error {
+	mg.Deps(Check)
+	fmt.Println("INFO: Running integration tests...")
+	return FindAndRunTests("data_partition/tests/integration")
+}
+
+// Execute Tests for OSDU MVP Partition Resources.
+func PartitionTests() {
+	mg.Deps(PartitionUnitTest)
+	mg.Deps(PartitionIntegrationTest)
 }
 
 // Validate both Terraform code and Go code.

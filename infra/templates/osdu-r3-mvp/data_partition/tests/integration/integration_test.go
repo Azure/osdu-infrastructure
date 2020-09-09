@@ -19,39 +19,29 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	storageIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/storage-account/tests/integration"
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
+var subscription = os.Getenv("ARM_SUBSCRIPTION_ID")
 var tfOptions = &terraform.Options{
 	TerraformDir: "../../",
-	Upgrade:      true,
-	Vars: map[string]interface{}{
-		"resource_group_location": region,
-		"prefix":                  prefix,
-	},
 	BackendConfig: map[string]interface{}{
 		"storage_account_name": os.Getenv("TF_VAR_remote_state_account"),
 		"container_name":       os.Getenv("TF_VAR_remote_state_container"),
 	},
 }
 
-func TestTemplate(t *testing.T) {
-	expectedAppDevResourceGroup := asMap(t, `{
-		"location": "`+region+`"
-	}`)
-
-	resourceDescription := infratests.ResourceDescription{
-		"azurerm_resource_group.main": expectedAppDevResourceGroup,
+// Runs a suite of test assertions to validate that a provisioned data source environment
+// is fully functional.
+func TestDataEnvironment(t *testing.T) {
+	testFixture := infratests.IntegrationTestFixture{
+		GoTest:                t,
+		TfOptions:             tfOptions,
+		ExpectedTfOutputCount: 5,
+		TfOutputAssertions: []infratests.TerraformOutputValidation{
+			storageIntegTests.InspectStorageAccount("storage_account", "storage_containers", "data_partition_group_name"),
+		},
 	}
-
-	testFixture := infratests.UnitTestFixture{
-		GoTest:                          t,
-		TfOptions:                       tfOptions,
-		Workspace:                       workspace,
-		PlanAssertions:                  nil,
-		ExpectedResourceCount:           10,
-		ExpectedResourceAttributeValues: resourceDescription,
-	}
-
-	infratests.RunUnitTests(&testFixture)
+	infratests.RunIntegrationTests(&testFixture)
 }
