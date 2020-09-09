@@ -38,10 +38,7 @@ This project is an active project and the master branch changes frequently to su
   [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infrastructure-r3-sr?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1191&branchName=master)
 
 - [R2 - Azure OSDU AppService Architecture Solution](infra/templates/osdu-r2-resources)
-> Retired, no longer maintained _9/1_
-
-  _osdu-r2-resources_  
-  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/osdu-infrastructure-integration?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=892&branchName=master) 
+  > Retired, no longer maintained _9/1_
 
 
 
