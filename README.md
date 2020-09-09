@@ -23,6 +23,7 @@ This project is an active project and the master branch changes frequently to su
   [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infra-mvp-cr?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1206&branchName=master)
 
   _service-resources_  
+  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infra-mvp-services?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1207&branchName=master)
 
   _data-partition_  
 
