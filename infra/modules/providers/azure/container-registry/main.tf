@@ -24,7 +24,7 @@ resource "azurerm_container_registry" "container_registry" {
   location            = data.azurerm_resource_group.container_registry.location
   sku                 = var.container_registry_sku
   admin_enabled       = var.container_registry_admin_enabled
-  tags                = var.container_registry_tags
+  tags                = var.resource_tags
 
   # This dynamic block configures a default DENY action to all incoming traffic
   # in the case that one of the following hold true:
