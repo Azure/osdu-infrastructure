@@ -262,6 +262,8 @@ module "cosmosdb_account" {
   consistency_level        = var.cosmosdb_consistency_level
   databases                = var.cosmos_databases
   sql_collections          = var.cosmos_sql_collections
+
+  resource_tags = var.resource_tags
 }
 
 resource "azurerm_management_lock" "db_lock" {

@@ -85,7 +85,8 @@ locals {
   storage_key_name     = "${local.storage_account_name}-key"
   redis_cache_name     = "${local.base_name}-cache"
   postgresql_name      = "${local.base_name}-pg"
-  postgres_password    = coalesce(var.postgres_password, random_password.redis[0].result)
+  postgres_password    = coalesce(var.postgres_password, random_password.postgres[0].result)
+  airflow_admin_password = coalesce(var.airflow_admin_password, random_password.airflow_admin_password[0].result)
 
   // network.tf
   vnet_name           = "${local.base_name_60}-vnet"
@@ -181,7 +182,7 @@ resource "azurerm_key_vault_secret" "storage_key" {
 #-------------------------------
 # PostgreSQL (main.tf)
 #-------------------------------
-resource "random_password" "redis" {
+resource "random_password" "postgres" {
   count = var.postgres_password == "" ? 1 : 0
 
   length           = 8
@@ -191,4 +192,96 @@ resource "random_password" "redis" {
   min_lower        = 1
   min_numeric      = 1
   min_special      = 1
+}
+
+module "postgreSQL" {
+  source = "../../../modules/providers/azure/postgreSQL"
+
+  resource_group_name       = azurerm_resource_group.main.name
+  name                      = local.postgresql_name
+  databases                 = var.postgres_databases
+  admin_user                = var.postgres_username
+  admin_password            = local.postgres_password
+  sku                       = var.postgres_sku
+  postgresql_configurations = var.postgres_configurations
+
+  storage_mb                   = 5120
+  server_version               = "10.0"
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = true
+  auto_grow_enabled            = true
+  ssl_enforcement_enabled      = true
+
+  resource_tags = var.resource_tags
+}
+
+resource "azurerm_key_vault_secret" "postgres_password" {
+  name         = "postgres-password"
+  value        = local.postgres_password
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+
+#-------------------------------
+# Azure Redis Cache (main.tf)
+#-------------------------------
+
+module "redis_cache" {
+  source = "../../../modules/providers/azure/redis-cache"
+
+  name                = local.redis_cache_name
+  resource_group_name = azurerm_resource_group.main.name
+  capacity            = var.redis_capacity
+
+  memory_features     = var.redis_config_memory
+  premium_tier_config = var.redis_config_schedule
+
+  resource_tags = var.resource_tags
+}
+
+resource "azurerm_key_vault_secret" "redis_password" {
+  name         = "redis-password"
+  value        = module.redis_cache.primary_access_key
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+
+#-------------------------------
+# Airflow (main.tf)
+#-------------------------------
+
+resource "random_password" "airflow_admin_password" {
+  count = var.airflow_admin_password == "" ? 1 : 0
+
+  length           = 8
+  special          = true
+  override_special = "_%@"
+  min_upper        = 1
+  min_lower        = 1
+  min_numeric      = 1
+  min_special      = 1
+}
+
+resource "random_string" "airflow_fernete_key_rnd" {
+  keepers = {
+    postgresql_name = local.postgresql_name
+  }
+  length      = 32
+  special     = true
+  min_upper   = 1
+  min_lower   = 1
+  min_numeric = 1
+  min_special = 1
+}
+
+resource "azurerm_key_vault_secret" "airflow_fernet_key_secret" {
+  name         = "airflow-fernet-key"
+  value        = base64encode(random_string.airflow_fernete_key_rnd.result)
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+resource "azurerm_key_vault_secret" "airflow_admin_password" {
+  name         = "airflow-admin-password"
+  value        = local.airflow_admin_password
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
