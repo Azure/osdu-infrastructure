@@ -179,6 +179,28 @@ module "keyvault" {
   resource_tags = var.resource_tags
 }
 
+resource "azurerm_monitor_diagnostic_setting" "kv_diagnostics" {
+  name               = "kv_diagnostics"
+  target_resource_id = module.keyvault.keyvault_id
+  log_analytics_workspace_id = module.log_analytics.id
+
+  log {
+    category = "AuditEvent"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+}
+
 resource "azurerm_management_lock" "kv_lock" {
   name       = "osdu_cr_kv_lock"
   scope      = module.keyvault.keyvault_id
@@ -186,8 +208,10 @@ resource "azurerm_management_lock" "kv_lock" {
 }
 
 
+
+
 #-------------------------------
-# Storage
+# Diagnostics Storage
 #-------------------------------
 module "storage_account" {
   source = "../../../modules/providers/azure/storage-account"
@@ -200,6 +224,7 @@ module "storage_account" {
 
   resource_tags = var.resource_tags
 }
+
 
 // Add the Storage Key to the Vault
 resource "azurerm_key_vault_secret" "storage" {
@@ -215,6 +240,8 @@ resource "azurerm_management_lock" "storage_lock" {
 }
 
 
+
+
 #-------------------------------
 # Container Registry
 #-------------------------------
@@ -228,6 +255,38 @@ module "container_registry" {
   container_registry_admin_enabled = false
 
   resource_tags = var.resource_tags
+}
+
+resource "azurerm_monitor_diagnostic_setting" "acr_diagnostics" {
+  name               = "acr_diagnostics"
+  target_resource_id = module.container_registry.container_registry_id
+  log_analytics_workspace_id = module.log_analytics.id
+
+  log {
+    category = "ContainerRegistryRepositoryEvents"
+    enabled  = true
+
+    retention_policy {
+      enabled = true
+    }
+  }
+
+  log {
+    category = "ContainerRegistryLoginEvents"
+    enabled  = true
+
+    retention_policy {
+      enabled = true
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = true
+    }
+  }
 }
 
 resource "azurerm_management_lock" "acr_lock" {
@@ -348,4 +407,9 @@ output "container_registry_name" {
 output "keyvault_id" {
   description = "The resource id for Key Vault"
   value       = module.keyvault.keyvault_id
+}
+
+output "log_analytics_id" {
+  description = "The resource id for Log Analytics"
+  value       = module.log_analytics.id
 }
