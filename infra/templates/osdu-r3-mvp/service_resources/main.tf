@@ -303,6 +303,21 @@ module "network" {
   resource_tags = var.resource_tags
 }
 
+resource "azurerm_monitor_diagnostic_setting" "vnet_diagnostics" {
+  name                       = "gw_diagnostics"
+  target_resource_id         = module.appgateway.id
+  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = true
+    }
+  }
+}
+
 # Create a Default SSL Certificate.
 resource "azurerm_key_vault_certificate" "default" {
   count = var.ssl_certificate_file == "" ? 1 : 0
@@ -373,4 +388,43 @@ module "appgateway" {
   ssl_certificate_name = local.ssl_cert_name
 
   resource_tags = var.resource_tags
+}
+
+resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
+  name                       = "gw_diagnostics"
+  target_resource_id         = module.appgateway.id
+  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+
+  log {
+    category = "ApplicationGatewayAccessLog"
+
+    retention_policy {
+      enabled = true
+    }
+  }
+
+  log {
+    category = "ApplicationGatewayPerformanceLog"
+
+    retention_policy {
+      enabled = true
+    }
+  }
+
+  log {
+    category = "ApplicationGatewayFirewallLog"
+
+    retention_policy {
+      enabled = true
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = true
+    }
+  }
 }
