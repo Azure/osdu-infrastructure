@@ -136,3 +136,9 @@ variable "postgres_configurations" {
   type        = map(string)
   default     = {}
 }
+
+variable "airflow_admin_password" {
+  description = "Airflow admin password"
+  type        = string
+  default     = ""
+}

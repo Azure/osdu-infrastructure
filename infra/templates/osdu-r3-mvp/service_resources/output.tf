@@ -56,3 +56,20 @@ output "storage_queues" {
   description = "Map of storage account queues."
   value       = module.storage_account.queues
 }
+
+output "redis_name" {
+  description = "The name of the redis_cache"
+  value       = module.redis_cache.name
+}
+
+output "redis_hostname" {
+  value = module.redis_cache.hostname
+}
+
+output "redis_primary_access_key" {
+  value = module.redis_cache.primary_access_key
+}
+
+output "redis_ssl_port" {
+  value = module.redis_cache.ssl_port
+}
