@@ -121,6 +121,7 @@ locals {
   osdupod_identity_name   = "${local.base_name}-osdu-identity"
   ai_name                 = "${local.base_name}-ai"
   ai_key_name             = "appinsights-key"
+  logs_name               = "${local.base_name}-logs"
 }
 
 #-------------------------------
@@ -236,7 +237,6 @@ resource "azurerm_management_lock" "acr_lock" {
 }
 
 
-
 #-------------------------------
 # Application Insights (main.tf)
 #-------------------------------
@@ -255,6 +255,47 @@ resource "azurerm_key_vault_secret" "insights" {
   name         = local.ai_key_name
   value        = module.app_insights.app_insights_instrumentation_key
   key_vault_id = module.keyvault.keyvault_id
+}
+
+
+#-------------------------------
+# Log Analytics (main.tf)
+#-------------------------------
+module "log_analytics" {
+  source = "../../../modules/providers/azure/log-analytics"
+
+  name                = local.logs_name
+  resource_group_name = azurerm_resource_group.main.name
+
+  solutions = [
+    {
+      solution_name = "ContainerInsights",
+      publisher     = "Microsoft",
+      product       = "OMSGallery/ContainerInsights",
+    },
+    {
+      solution_name = "KeyVaultAnalytics",
+      publisher     = "Microsoft",
+      product       = "OMSGallery/KeyVaultAnalytics",
+    },
+    {
+      solution_name = "AzureAppGatewayAnalytics",
+      publisher     = "Microsoft",
+      product       = "OMSGallery/AzureAppGatewayAnalytics",
+    },
+    {
+      solution_name = "NetworkMonitoring",
+      publisher     = "Microsoft",
+      product       = "OMSGallery/NetworkMonitoring",
+    },
+    {
+      solution_name = "Security",
+      publisher     = "Microsoft",
+      product       = "OMSGallery/Security",
+    }
+  ]
+
+  resource_tags = var.resource_tags
 }
 
 

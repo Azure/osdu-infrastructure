@@ -1,4 +1,4 @@
-//  Copyright © Microsoft Corporation
+//  Copyright ï¿½ Microsoft Corporation
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ variable "action_group_short_name" {
 variable "resource_ids" {
   description = "Resource Ids to be monitored."
   type        = list(string)
+  default     = []
 }
 
 variable "metric_alert_name" {

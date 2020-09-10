@@ -15,42 +15,46 @@
 package test
 
 import (
-	"os"
+	"encoding/json"
 	"testing"
 
+	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
+var name = "logs-"
+var location = "eastus"
+var count = 5
+
 var tfOptions = &terraform.Options{
-	TerraformDir: "../../",
+	TerraformDir: "./",
 	Upgrade:      true,
-	Vars: map[string]interface{}{
-		"resource_group_location": region,
-		"prefix":                  prefix,
-	},
-	BackendConfig: map[string]interface{}{
-		"storage_account_name": os.Getenv("TF_VAR_remote_state_account"),
-		"container_name":       os.Getenv("TF_VAR_remote_state_container"),
-	},
+}
+
+func asMap(t *testing.T, jsonString string) map[string]interface{} {
+	var theMap map[string]interface{}
+	if err := json.Unmarshal([]byte(jsonString), &theMap); err != nil {
+		t.Fatal(err)
+	}
+	return theMap
 }
 
 func TestTemplate(t *testing.T) {
-	expectedAppDevResourceGroup := asMap(t, `{
-		"location": "`+region+`"
+
+	expectedResult := asMap(t, `{
+		"retention_in_days": 30
 	}`)
 
-	resourceDescription := infratests.ResourceDescription{
-		"azurerm_resource_group.main": expectedAppDevResourceGroup,
-	}
-
 	testFixture := infratests.UnitTestFixture{
-		GoTest:                          t,
-		TfOptions:                       tfOptions,
-		Workspace:                       workspace,
-		PlanAssertions:                  nil,
-		ExpectedResourceCount:           30,
-		ExpectedResourceAttributeValues: resourceDescription,
+		GoTest:                t,
+		TfOptions:             tfOptions,
+		Workspace:             name + random.UniqueId(),
+		PlanAssertions:        nil,
+		ExpectedResourceCount: count,
+		ExpectedResourceAttributeValues: infratests.ResourceDescription{
+			"module.log_analytics.azurerm_log_analytics_workspace.main": expectedResult,
+		},
 	}
 
 	infratests.RunUnitTests(&testFixture)
