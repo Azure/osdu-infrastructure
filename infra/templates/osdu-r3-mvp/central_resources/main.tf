@@ -341,11 +341,6 @@ module "log_analytics" {
       solution_name = "AzureAppGatewayAnalytics",
       publisher     = "Microsoft",
       product       = "OMSGallery/AzureAppGatewayAnalytics",
-    },
-    {
-      solution_name = "Security",
-      publisher     = "Microsoft",
-      product       = "OMSGallery/Security",
     }
   ]
 
