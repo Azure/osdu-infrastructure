@@ -31,9 +31,9 @@ module "log_analytics" {
 
   solutions = [
     {
-        solution_name = "ContainerInsights",
-        publisher = "Microsoft",
-        product = "OMSGallery/ContainerInsights",
+      solution_name = "ContainerInsights",
+      publisher     = "Microsoft",
+      product       = "OMSGallery/ContainerInsights",
     }
   ]
 

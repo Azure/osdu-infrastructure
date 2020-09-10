@@ -27,14 +27,14 @@ resource "azurerm_log_analytics_workspace" "main" {
 }
 
 resource "azurerm_security_center_workspace" "main" {
-  count        = length(var.security_center_subscription)
+  count = length(var.security_center_subscription)
 
   scope        = "/subscriptions/${element(var.security_center_subscription, count.index)}"
   workspace_id = azurerm_log_analytics_workspace.main.id
 }
 
 resource "azurerm_log_analytics_solution" "main" {
-  count                 = length(var.solutions)
+  count = length(var.solutions)
 
   solution_name         = var.solutions[count.index].solution_name
   resource_group_name   = data.azurerm_resource_group.main.name

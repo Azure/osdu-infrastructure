@@ -23,11 +23,11 @@ module "resource_group" {
 }
 
 module "app_monitoring" {
-  source                            = "../"
+  source = "../"
 
-  resource_group_name               = module.resource_group.name
-  action_group_name                 = var.action_group_name
-  
+  resource_group_name = module.resource_group.name
+  action_group_name   = var.action_group_name
+
   # action_group_email_receiver       = "${var.action_group_email_receiver}"
   # metric_alert_name                 = "${var.metric_alert_name}"
   # metric_alert_frequency            = "${var.metric_alert_frequency}"

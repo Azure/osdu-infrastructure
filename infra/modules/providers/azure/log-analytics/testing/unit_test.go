@@ -46,8 +46,6 @@ func TestTemplate(t *testing.T) {
 		"retention_in_days": 30
 	}`)
 
-	
-
 	testFixture := infratests.UnitTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,

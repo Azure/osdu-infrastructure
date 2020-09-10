@@ -264,34 +264,34 @@ resource "azurerm_key_vault_secret" "insights" {
 module "log_analytics" {
   source = "../../../modules/providers/azure/log-analytics"
 
-  name                 = local.logs_name
+  name                = local.logs_name
   resource_group_name = azurerm_resource_group.main.name
 
   solutions = [
     {
-        solution_name = "ContainerInsights",
-        publisher = "Microsoft",
-        product = "OMSGallery/ContainerInsights",
+      solution_name = "ContainerInsights",
+      publisher     = "Microsoft",
+      product       = "OMSGallery/ContainerInsights",
     },
     {
-        solution_name = "KeyVaultAnalytics",
-        publisher = "Microsoft",
-        product = "OMSGallery/KeyVaultAnalytics",
+      solution_name = "KeyVaultAnalytics",
+      publisher     = "Microsoft",
+      product       = "OMSGallery/KeyVaultAnalytics",
     },
     {
-        solution_name = "AzureAppGatewayAnalytics",
-        publisher = "Microsoft",
-        product = "OMSGallery/AzureAppGatewayAnalytics",
+      solution_name = "AzureAppGatewayAnalytics",
+      publisher     = "Microsoft",
+      product       = "OMSGallery/AzureAppGatewayAnalytics",
     },
     {
-        solution_name = "NetworkMonitoring",
-        publisher = "Microsoft",
-        product = "OMSGallery/NetworkMonitoring",
+      solution_name = "NetworkMonitoring",
+      publisher     = "Microsoft",
+      product       = "OMSGallery/NetworkMonitoring",
     },
     {
-        solution_name = "Security",
-        publisher = "Microsoft",
-        product = "OMSGallery/Security",
+      solution_name = "Security",
+      publisher     = "Microsoft",
+      product       = "OMSGallery/Security",
     }
   ]
 
