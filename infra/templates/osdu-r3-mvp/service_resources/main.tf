@@ -95,6 +95,7 @@ locals {
   be_subnet_name      = "${local.base_name_21}-be-subnet"
   app_gw_name         = "${local.base_name_60}-gw"
   appgw_identity_name = format("%s-agic-identity", local.app_gw_name)
+  ssl_cert_name       = "appgw-ssl-cert"
 
   // cluster.tf
   aks_cluster_name  = "${local.base_name_21}-aks"
@@ -284,4 +285,92 @@ resource "azurerm_key_vault_secret" "airflow_admin_password" {
   name         = "airflow-admin-password"
   value        = local.airflow_admin_password
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+
+#-------------------------------
+# Network (main.tf)
+#-------------------------------
+module "network" {
+  source = "../../../modules/providers/azure/network"
+
+  name                = local.vnet_name
+  resource_group_name = azurerm_resource_group.main.name
+  address_space       = var.address_space
+  subnet_prefixes     = [var.subnet_fe_prefix, var.subnet_aks_prefix, var.subnet_be_prefix]
+  subnet_names        = [local.fe_subnet_name, local.aks_subnet_name, local.be_subnet_name]
+
+  resource_tags = var.resource_tags
+}
+
+# Create a Default SSL Certificate.
+resource "azurerm_key_vault_certificate" "default" {
+  count = var.ssl_certificate_file == "" ? 1 : 0
+
+  name         = local.ssl_cert_name
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      # Server Authentication = 1.3.6.1.5.5.7.3.1
+      # Client Authentication = 1.3.6.1.5.5.7.3.2
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
+
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject_alternative_names {
+        dns_names = [var.dns_name, "${local.base_name}-gw.${azurerm_resource_group.main.location}.cloudapp.azure.com"]
+      }
+
+      subject            = "CN=*.contoso.com"
+      validity_in_months = 12
+    }
+  }
+}
+
+module "appgateway" {
+  source = "../../../modules/providers/azure/aks-appgw"
+
+  name                = local.app_gw_name
+  resource_group_name = azurerm_resource_group.main.name
+
+  vnet_name            = module.network.name
+  vnet_subnet_id       = module.network.subnets.0
+  keyvault_id          = data.terraform_remote_state.central_resources.outputs.keyvault_id
+  keyvault_secret_id   = azurerm_key_vault_certificate.default.0.secret_id
+  ssl_certificate_name = local.ssl_cert_name
+
+  resource_tags = var.resource_tags
 }

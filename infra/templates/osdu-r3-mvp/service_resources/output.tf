@@ -73,3 +73,13 @@ output "redis_primary_access_key" {
 output "redis_ssl_port" {
   value = module.redis_cache.ssl_port
 }
+
+output "keyvault_secret_id" {
+  description = "The keyvault certificate keyvault resource id used to setup ssl termination on the app gateway."
+  value       = azurerm_key_vault_certificate.default.0.secret_id
+}
+
+output "appgw_name" {
+  description = "Application gateway's name"
+  value       = module.appgateway.name
+}
