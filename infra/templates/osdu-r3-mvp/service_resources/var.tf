@@ -142,3 +142,39 @@ variable "airflow_admin_password" {
   type        = string
   default     = ""
 }
+
+variable "dns_name" {
+  description = "Default DNS Name for the Public IP"
+  type        = string
+  default     = "osdu.contoso.com"
+}
+
+variable "address_space" {
+  description = "The address space that is used by the virtual network."
+  type        = string
+  default     = "10.10.0.0/16"
+}
+
+variable "subnet_fe_prefix" {
+  description = "The address prefix to use for the frontend subnet."
+  type        = string
+  default     = "10.10.1.0/26"
+}
+
+variable "subnet_aks_prefix" {
+  description = "The address prefix to use for the aks subnet."
+  type        = string
+  default     = "10.10.2.0/24"
+}
+
+variable "subnet_be_prefix" {
+  description = "The address prefix to use for the backend subnet."
+  type        = string
+  default     = "10.10.3.0/28"
+}
+
+variable "ssl_certificate_file" {
+  type        = string
+  description = "(Required) The x509-based SSL certificate used to setup ssl termination on the app gateway."
+  default     = ""
+}
