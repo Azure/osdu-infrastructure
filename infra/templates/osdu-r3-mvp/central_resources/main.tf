@@ -180,8 +180,8 @@ module "keyvault" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "kv_diagnostics" {
-  name               = "kv_diagnostics"
-  target_resource_id = module.keyvault.keyvault_id
+  name                       = "kv_diagnostics"
+  target_resource_id         = module.keyvault.keyvault_id
   log_analytics_workspace_id = module.log_analytics.id
 
   log {
@@ -258,8 +258,8 @@ module "container_registry" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "acr_diagnostics" {
-  name               = "acr_diagnostics"
-  target_resource_id = module.container_registry.container_registry_id
+  name                       = "acr_diagnostics"
+  target_resource_id         = module.container_registry.container_registry_id
   log_analytics_workspace_id = module.log_analytics.id
 
   log {
