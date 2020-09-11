@@ -20,7 +20,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-schema
+      app: schema-service
   action: DENY
   rules:
     - from:
