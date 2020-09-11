@@ -116,15 +116,15 @@ sb_topics = [
         sql_filter                           = null
         action                               = ""
       },
-      {	
-        name                                 = "wkssubscription"	
-        max_delivery_count                   = 5	
+      {
+        name                                 = "wkssubscription"
+        max_delivery_count                   = 5
         lock_duration                        = "PT5M" //ISO 8601 format	
         forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""	
-        dead_lettering_on_message_expiration = true	
-        filter_type                          = null	
-        sql_filter                           = null	
-        action                               = ""	
+        dead_lettering_on_message_expiration = true
+        filter_type                          = null
+        sql_filter                           = null
+        action                               = ""
       }
     ]
   },
