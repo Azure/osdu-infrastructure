@@ -26,19 +26,11 @@
 // 		"dead_lettering_on_message_expiration": true
 // 	}`)
 
-<<<<<<< HEAD
 // 	description["module.service_bus.azurerm_servicebus_subscription.subscription[4]"] = asMap(t, `{
 // 		"name":                                 "indexing-progresssubscription",
 // 		"dead_lettering_on_message_expiration": true,
 // 		"max_delivery_count":                   5
 // 	}`)
-=======
-	description["module.service_bus.azurerm_servicebus_subscription.subscription[5]"] = asMap(t, `{
-		"name":                                 "indexing-progresssubscription",
-		"dead_lettering_on_message_expiration": true,
-		"max_delivery_count":                   5
-	}`)
->>>>>>> 0845d4bca9373db78b6660d280e9f84a37d1def9
 
 // 	description["module.service_bus.azurerm_servicebus_topic.sptopic[0]"] = asMap(t, `{
 // 		"name":                         "recordstopic",
