@@ -205,6 +205,10 @@ locals {
   sb_namespace      = "${local.base_name_21}-bus"
   sb_namespace_name = format("%s-sb-namespace", var.data_partition_name)
   sb_connection     = format("%s-sb-connection", var.data_partition_name)
+
+  eventgrid_name            = "${local.base_name_21}-grid"
+  eventgrid_domain_name     = format("%s-eventgrid", var.data_partition_name)
+  eventgrid_domian_key_name = format("%s-key", local.eventgrid_domain_name)
 }
 
 
@@ -452,6 +456,70 @@ resource "azurerm_monitor_diagnostic_setting" "sb_diagnostics" {
 
   log {
     category = "OperationalLogs"
+
+    retention_policy {
+      days    = 100
+      enabled = true
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      days    = 100
+      enabled = true
+    }
+  }
+}
+
+#-------------------------------
+# Azure Event Grid (main.tf)
+#-------------------------------
+module "event_grid" {
+  source = "../../../modules/providers/azure/event-grid"
+
+  name                = local.eventgrid_name
+  resource_group_name = azurerm_resource_group.main.name
+  topics = [
+    {
+      name = format("%s-recordstopic", var.data_partition_name)
+    }
+  ]
+
+  resource_tags = var.resource_tags
+}
+
+// Add the Event Grid Name to the Vault
+resource "azurerm_key_vault_secret" "eventgrid_name" {
+  name         = local.eventgrid_domain_name
+  value        = module.event_grid.name
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+// Add the Event Grid Key to the Vault
+resource "azurerm_key_vault_secret" "eventgrid_key" {
+  name         = local.eventgrid_domian_key_name
+  value        = module.event_grid.primary_access_key
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+// Hook up Diagnostics
+resource "azurerm_monitor_diagnostic_setting" "eg_diagnostics" {
+  name                       = "eg_diagnostics"
+  target_resource_id         = module.event_grid.id
+  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  log {
+    category = "DeliveryFailures"
+
+    retention_policy {
+      enabled = true
+    }
+  }
+
+  log {
+    category = "PublishFailures"
 
     retention_policy {
       enabled = true

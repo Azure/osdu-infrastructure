@@ -100,7 +100,6 @@ cosmos_sql_collections = [
 
 
 # Service Bus Settings
-
 sb_topics = [
   {
     name                = "indexing-progress"
