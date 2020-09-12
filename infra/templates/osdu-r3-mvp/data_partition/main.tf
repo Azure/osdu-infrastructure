@@ -148,25 +148,25 @@ variable "sb_sku" {
 
 variable "sb_topics" {
   type = list(object({
-    name                         = string
-    enable_partitioning          = bool
+    name                = string
+    enable_partitioning = bool
     subscriptions = list(object({
-      name                                 = string
-      max_delivery_count                   = number
-      lock_duration                        = string
-      forward_to                           = string
+      name               = string
+      max_delivery_count = number
+      lock_duration      = string
+      forward_to         = string
     }))
   }))
   default = [
     {
-      name                       = "topic_test"
-      enable_partitioning        = true
+      name                = "topic_test"
+      enable_partitioning = true
       subscriptions = [
         {
-          name                                 = "sub_test"
-          max_delivery_count                   = 1
-          lock_duration                        = "PT5M"
-          forward_to                           = ""
+          name               = "sub_test"
+          max_delivery_count = 1
+          lock_duration      = "PT5M"
+          forward_to         = ""
         }
       ]
     }
@@ -197,14 +197,14 @@ locals {
   storage_account_name = format("%s-storage", var.data_partition_name)
   storage_key_name     = format("%s-key", local.storage_account_name)
 
-  cosmosdb_name        = "${local.base_name}-db"
-  cosmos_connection    = format("%s-cosmos-connection", var.data_partition_name)
-  cosmos_endpoint      = format("%s-cosmos-endpoint", var.data_partition_name)
-  cosmos_primary_key   = format("%s-cosmos-primary-key", var.data_partition_name)
+  cosmosdb_name      = "${local.base_name}-db"
+  cosmos_connection  = format("%s-cosmos-connection", var.data_partition_name)
+  cosmos_endpoint    = format("%s-cosmos-endpoint", var.data_partition_name)
+  cosmos_primary_key = format("%s-cosmos-primary-key", var.data_partition_name)
 
-  sb_namespace        = "${local.base_name_21}-bus"
-  sb_namespace_name   = format("%s-sb-namespace", var.data_partition_name)
-  sb_connection       = format("%s-sb-connection", var.data_partition_name)
+  sb_namespace      = "${local.base_name_21}-bus"
+  sb_namespace_name = format("%s-sb-namespace", var.data_partition_name)
+  sb_connection     = format("%s-sb-connection", var.data_partition_name)
 }
 
 
@@ -288,7 +288,7 @@ resource "azurerm_key_vault_secret" "storage_key" {
 # CosmosDB
 #-------------------------------
 module "cosmosdb_account" {
-  source                   = "../../../modules/providers/azure/cosmosdb"
+  source = "../../../modules/providers/azure/cosmosdb"
 
   name                     = local.cosmosdb_name
   resource_group_name      = azurerm_resource_group.main.name
@@ -332,7 +332,7 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
 
   log {
     category = "CassandraRequests"
-    enabled = false
+    enabled  = false
 
     retention_policy {
       days    = 0
@@ -351,7 +351,7 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
 
   log {
     category = "DataPlaneRequests"
-    enabled = true
+    enabled  = true
 
     retention_policy {
       days    = 100
@@ -361,7 +361,7 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
 
   log {
     category = "GremlinRequests"
-    enabled = false
+    enabled  = false
 
     retention_policy {
       days    = 0
@@ -371,7 +371,7 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
 
   log {
     category = "MongoRequests"
-    enabled = false
+    enabled  = false
 
     retention_policy {
       days    = 0
@@ -399,7 +399,7 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
 
   log {
     category = "QueryRuntimeStatistics"
-    enabled = false
+    enabled  = false
 
     retention_policy {
       days    = 0
@@ -422,10 +422,10 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
 module "service_bus" {
   source = "../../../modules/providers/azure/service-bus2"
 
-  name      = local.sb_namespace
+  name                = local.sb_namespace
   resource_group_name = azurerm_resource_group.main.name
-  sku    = var.sb_sku
-  topics = var.sb_topics
+  sku                 = var.sb_sku
+  topics              = var.sb_topics
 
   resource_tags = var.resource_tags
 }

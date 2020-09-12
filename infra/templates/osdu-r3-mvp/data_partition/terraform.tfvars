@@ -103,62 +103,62 @@ cosmos_sql_collections = [
 
 sb_topics = [
   {
-    name                       = "indexing-progress"
-    enable_partitioning        = true
+    name                = "indexing-progress"
+    enable_partitioning = true
     subscriptions = [
       {
-        name                                 = "indexing-progresssubscription"
-        max_delivery_count                   = 5
-        lock_duration                        = "PT5M"
-        forward_to                           = ""
+        name               = "indexing-progresssubscription"
+        max_delivery_count = 5
+        lock_duration      = "PT5M"
+        forward_to         = ""
       }
     ]
   },
   {
-    name                       = "legaltags"
-    enable_partitioning        = true
+    name                = "legaltags"
+    enable_partitioning = true
     subscriptions = [
       {
-        name                                 = "compliance-change--integration-test"
-        max_delivery_count                   = 1
-        lock_duration                        = "PT5M"
-        forward_to                           = ""
+        name               = "compliance-change--integration-test"
+        max_delivery_count = 1
+        lock_duration      = "PT5M"
+        forward_to         = ""
       },
       {
-        name                                 = "legaltagsubscription"
-        max_delivery_count                   = 5
-        lock_duration                        = "PT5M"
-        forward_to                           = ""
+        name               = "legaltagsubscription"
+        max_delivery_count = 5
+        lock_duration      = "PT5M"
+        forward_to         = ""
       }
     ]
   },
   {
-    name                       = "recordstopic"
-    enable_partitioning        = true
+    name                = "recordstopic"
+    enable_partitioning = true
     subscriptions = [
       {
-        name                                 = "recordstopicsubscription"
-        max_delivery_count                   = 5
-        lock_duration                        = "PT5M"
-        forward_to                           = ""
+        name               = "recordstopicsubscription"
+        max_delivery_count = 5
+        lock_duration      = "PT5M"
+        forward_to         = ""
       },
       {
-        name                                 = "wkssubscription"
-        max_delivery_count                   = 5
-        lock_duration                        = "PT5M"
-        forward_to                           = ""
+        name               = "wkssubscription"
+        max_delivery_count = 5
+        lock_duration      = "PT5M"
+        forward_to         = ""
       }
     ]
   },
   {
-    name                       = "recordstopicdownstream"
-    enable_partitioning        = true
+    name                = "recordstopicdownstream"
+    enable_partitioning = true
     subscriptions = [
       {
-        name                                 = "downstreamsub"
-        max_delivery_count                   = 5
-        lock_duration                        = "PT5M"
-        forward_to                           = ""
+        name               = "downstreamsub"
+        max_delivery_count = 5
+        lock_duration      = "PT5M"
+        forward_to         = ""
       }
     ]
   }
