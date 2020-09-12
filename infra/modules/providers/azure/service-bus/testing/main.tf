@@ -77,7 +77,7 @@ module "service-bus" {
           sql_filter                           = null
           action                               = ""
         }
-      ] 
+      ]
     },
     {
       name                         = "atopic"

@@ -28,17 +28,17 @@ module "service_bus" {
   name                = "osdu-module-service-bus-${module.resource_group.random}"
   resource_group_name = module.resource_group.name
   sku                 = "Standard"
-  
+
   topics = [
     {
-      name                       = "topic_test"
-      enable_partitioning        = true
+      name                = "topic_test"
+      enable_partitioning = true
       subscriptions = [
         {
-          name                                 = "sub_test"
-          max_delivery_count                   = 1
-          lock_duration                        = "PT5M"
-          forward_to                           = ""
+          name               = "sub_test"
+          max_delivery_count = 1
+          lock_duration      = "PT5M"
+          forward_to         = ""
         }
       ]
     }
