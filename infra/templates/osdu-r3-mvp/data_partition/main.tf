@@ -173,17 +173,6 @@ variable "sb_topics" {
   ]
 }
 
-variable "eg_topics" {
-  type = list(object({
-    name = string
-  }))
-  default = [
-    {
-      name = "topic_test"
-    }
-  ]
-}
-
 
 #-------------------------------
 # Private Variables  (common.tf)
@@ -492,7 +481,11 @@ module "event_grid" {
 
   name                = local.eventgrid_name
   resource_group_name = azurerm_resource_group.main.name
-  topics              = var.eg_topics
+  topics = [
+    {
+      name = format("%s-recordstopic", var.data_partition_name)
+    }
+  ]
 
   resource_tags = var.resource_tags
 }

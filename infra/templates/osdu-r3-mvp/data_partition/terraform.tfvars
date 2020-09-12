@@ -162,9 +162,3 @@ sb_topics = [
     ]
   }
 ]
-
-eg_topics = [
-  {
-    name = "recordstopic"
-  }
-]
