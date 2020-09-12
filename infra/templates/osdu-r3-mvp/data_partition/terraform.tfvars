@@ -100,7 +100,6 @@ cosmos_sql_collections = [
 
 
 # Service Bus Settings
-
 sb_topics = [
   {
     name                = "indexing-progress"
@@ -161,5 +160,11 @@ sb_topics = [
         forward_to         = ""
       }
     ]
+  }
+]
+
+eg_topics = [
+  {
+    name = "recordstopic"
   }
 ]
