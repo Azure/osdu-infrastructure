@@ -28,7 +28,7 @@ variable "sku" {
   default     = "Standard"
 }
 
-variable "tags" {
+variable "resource_tags" {
   description = " A mapping of tags to assign to the resource."
   type        = map(string)
   default     = {}

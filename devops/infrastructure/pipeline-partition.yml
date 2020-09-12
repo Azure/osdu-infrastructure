@@ -28,6 +28,7 @@
 # Required Env Group Variables - `Infrastructure Pipeline - {configurations.jobName} - {env_name}`
   # TF_VAR_resource_group_location
   # TF_VAR_cosmosdb_replica_location
+  # TF_VAR_data_partition_name
   
 
 
@@ -86,7 +87,9 @@ stages:
       terraformWorkspacePrefix: dp1
       terraformTemplatePath: infra/templates/osdu-r3-mvp/data_partition
       deploymentTimeoutInMinutes: 120
+      dataPartitionName: opendes
     - jobName: data_partition_2
       terraformWorkspacePrefix: dp2
       terraformTemplatePath: infra/templates/osdu-r3-mvp/data_partition
       deploymentTimeoutInMinutes: 120
+      dataPartitionName: common

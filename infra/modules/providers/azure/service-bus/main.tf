@@ -58,7 +58,7 @@ resource "azurerm_servicebus_namespace" "servicebus" {
   location            = data.azurerm_resource_group.resourcegroup.location
   resource_group_name = data.azurerm_resource_group.resourcegroup.name
   sku                 = var.sku
-  tags                = var.tags
+  tags                = var.resource_tags
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "sbnamespaceauth" {
