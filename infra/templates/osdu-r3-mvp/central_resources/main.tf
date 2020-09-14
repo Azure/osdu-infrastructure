@@ -62,16 +62,16 @@ variable "resource_group_location" {
   type        = string
 }
 
+variable "log_retention_days" {
+  description = "Number of days to retain logs."
+  type        = number
+  default     = 30
+}
+
 variable "container_registry_sku" {
   description = "(Optional) The SKU name of the the container registry. Possible values are Basic, Standard and Premium."
   type        = string
   default     = "Standard"
-}
-
-variable "diag_storage_containers" {
-  description = "The list of storage container names to create. Names must be unique per storage account."
-  type        = list(string)
-  default     = []
 }
 
 variable "elasticsearch_endpoint" {
@@ -113,10 +113,9 @@ locals {
   base_name_83 = length(local.base_name) < 84 ? local.base_name : "${substr(local.base_name, 0, 83 - length(local.suffix))}${local.suffix}"
 
   resource_group_name     = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
+  retention_policy        = var.log_retention_days == 0 ? false : true
+  
   kv_name                 = "${local.base_name_21}-kv"
-  storage_name            = "${replace(local.base_name_21, "-", "")}diag"
-  storage_account_name    = "diagnostics-account"
-  storage_key_name        = "${local.storage_account_name}-key"
   container_registry_name = "${replace(local.base_name_21, "-", "")}cr"
   osdupod_identity_name   = "${local.base_name}-osdu-identity"
   ai_name                 = "${local.base_name}-ai"
@@ -190,43 +189,11 @@ resource "azurerm_monitor_diagnostic_setting" "kv_diagnostics" {
     category = "AllMetrics"
 
     retention_policy {
-      enabled = false
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 }
-
-
-
-
-
-
-#-------------------------------
-# Diagnostics Storage
-#-------------------------------
-module "storage_account" {
-  source = "../../../modules/providers/azure/storage-account"
-
-  name                = local.storage_name
-  resource_group_name = azurerm_resource_group.main.name
-  container_names     = var.diag_storage_containers
-  kind                = "StorageV2"
-  replication_type    = "LRS"
-
-  resource_tags = var.resource_tags
-}
-
-
-// Add the Storage Key to the Vault
-resource "azurerm_key_vault_secret" "storage" {
-  name         = local.storage_key_name
-  value        = module.storage_account.primary_access_key
-  key_vault_id = module.keyvault.keyvault_id
-}
-
-
-
-
-
 
 #-------------------------------
 # Container Registry
@@ -253,7 +220,8 @@ resource "azurerm_monitor_diagnostic_setting" "acr_diagnostics" {
     enabled  = true
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -262,7 +230,8 @@ resource "azurerm_monitor_diagnostic_setting" "acr_diagnostics" {
     enabled  = true
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -270,7 +239,8 @@ resource "azurerm_monitor_diagnostic_setting" "acr_diagnostics" {
     category = "AllMetrics"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 }
@@ -361,33 +331,12 @@ resource "azurerm_management_lock" "acr_lock" {
   lock_level = "CanNotDelete"
 }
 
-// Lock the Diagnostics Storage Account
-resource "azurerm_management_lock" "storage_lock" {
-  name       = "osdu_sr_la_lock"
-  scope      = module.storage_account.id
-  lock_level = "CanNotDelete"
-}
 
 #-------------------------------
 # Output Variables  (output.tf)
 #-------------------------------
 output "central_resource_group_name" {
   value = azurerm_resource_group.main.name
-}
-
-output "diag_storage_account" {
-  description = "The name of the storage account."
-  value       = module.storage_account.name
-}
-
-output "diag_storage_account_id" {
-  description = "The name of the storage account."
-  value       = module.storage_account.id
-}
-
-output "diag_storage_containers" {
-  description = "Map of storage account containers."
-  value       = module.storage_account.containers
 }
 
 output "container_registry_id" {

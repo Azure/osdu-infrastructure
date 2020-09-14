@@ -78,9 +78,10 @@ locals {
 
   tenant_id           = data.azurerm_client_config.current.tenant_id
   resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
+  retention_policy    = var.log_retention_days == 0 ? false : true
 
   // airflow.tf
-  storage_name           = "${replace(local.base_name_21, "-", "")}af"
+  storage_name           = "${replace(local.base_name_21, "-", "")}config"
   storage_account_name   = "airflow-storage"
   storage_key_name       = "${local.storage_account_name}-key"
   redis_cache_name       = "${local.base_name}-cache"
@@ -156,7 +157,7 @@ module "storage_account" {
 
   name                = local.storage_name
   resource_group_name = azurerm_resource_group.main.name
-  container_names     = ["default"]
+  container_names     = var.storage_containers
   share_names         = var.storage_shares
   queue_names         = var.storage_queues
   kind                = "StorageV2"
@@ -222,6 +223,47 @@ resource "azurerm_key_vault_secret" "postgres_password" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
+resource "azurerm_monitor_diagnostic_setting" "postgres_diagnostics" {
+  name                       = "postgres_diagnostics"
+  target_resource_id         = module.postgreSQL.server_id
+  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  log {
+    category = "PostgreSQLLogs"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  log {
+    category = "QueryStoreRuntimeStatistics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  log {
+    category = "QueryStoreWaitStatistics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+}
+
 
 #-------------------------------
 # Azure Redis Cache (main.tf)
@@ -244,6 +286,22 @@ resource "azurerm_key_vault_secret" "redis_password" {
   name         = "redis-password"
   value        = module.redis_cache.primary_access_key
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+resource "azurerm_monitor_diagnostic_setting" "redis_diagnostics" {
+  name                       = "redis_diagnostics"
+  target_resource_id         = module.redis_cache.id
+  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
 }
 
 
@@ -304,16 +362,27 @@ module "network" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "vnet_diagnostics" {
-  name                       = "gw_diagnostics"
-  target_resource_id         = module.appgateway.id
+  name                       = "vnet_diagnostics"
+  target_resource_id         = module.network.id
   log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  log {
+    category = "VMProtectionAlerts"
+    enabled = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
 
 
   metric {
     category = "AllMetrics"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 }
@@ -400,7 +469,8 @@ resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
     category = "ApplicationGatewayAccessLog"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -408,7 +478,8 @@ resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
     category = "ApplicationGatewayPerformanceLog"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -416,7 +487,8 @@ resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
     category = "ApplicationGatewayFirewallLog"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -424,7 +496,117 @@ resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
     category = "AllMetrics"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
+}
+
+#-------------------------------
+# Azure AKS  (cluster.tf)
+#-------------------------------
+module "aks" {
+  source = "../../../modules/providers/azure/aks"
+
+  name                = local.aks_cluster_name
+  resource_group_name = azurerm_resource_group.main.name
+
+  dns_prefix         = local.aks_dns_prefix
+  agent_vm_count     = var.aks_agent_vm_count
+  agent_vm_size      = var.aks_agent_vm_size
+  vnet_subnet_id     = module.network.subnets.1
+  ssh_public_key     = file(var.ssh_public_key_file)
+  kubernetes_version = var.kubernetes_version
+  log_analytics_id   = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  msi_enabled           = true
+  oms_agent_enabled     = true
+  auto_scaling_default_node = true
+  kubeconfig_to_disk    = false
+  enable_kube_dashboard = false
+
+  resource_tags = var.resource_tags
+}
+
+resource "azurerm_monitor_diagnostic_setting" "aks_diagnostics" {
+  name                       = "aks_diagnostics"
+  target_resource_id         = module.aks.id
+  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  log {
+    category = "cluster-autoscaler"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  log {
+    category = "guard"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "kube-apiserver"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  log {
+    category = "kube-audit"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  log {
+    category = "kube-audit-admin"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  log {
+    category = "kube-controller-manager"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  log {
+    category = "kube-scheduler"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+}
+
+data "azurerm_resource_group" "aks_node_resource_group" {
+  name = module.aks.node_resource_group
 }

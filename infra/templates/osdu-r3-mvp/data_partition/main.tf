@@ -98,6 +98,12 @@ variable "data_partition_name" {
   default     = "opendes"
 }
 
+variable "log_retention_days" {
+  description = "Number of days to retain logs."
+  type        = number
+  default     = 30
+}
+
 variable "storage_containers" {
   description = "The list of storage container names to create. Names must be unique per storage account."
   type        = list(string)
@@ -193,7 +199,9 @@ locals {
   base_name_83 = length(local.base_name) < 84 ? local.base_name : "${substr(local.base_name, 0, 83 - length(local.suffix))}${local.suffix}"
 
   resource_group_name  = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
-  storage_name         = "${replace(local.base_name_21, "-", "")}sa"
+  retention_policy    = var.log_retention_days == 0 ? false : true
+
+  storage_name         = "${replace(local.base_name_21, "-", "")}data"
   storage_account_name = format("%s-storage", var.data_partition_name)
   storage_key_name     = format("%s-key", local.storage_account_name)
 
@@ -250,10 +258,7 @@ resource "azurerm_resource_group" "main" {
   location = var.resource_group_location
 
   tags = var.resource_tags
-
-  lifecycle {
-    ignore_changes = [tags]
-  }
+  lifecycle { ignore_changes = [tags] }
 }
 
 
@@ -334,6 +339,7 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
   target_resource_id         = module.cosmosdb_account.account_id
   log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
 
+  // This one always off.
   log {
     category = "CassandraRequests"
     enabled  = false
@@ -348,8 +354,8 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
     category = "ControlPlaneRequests"
 
     retention_policy {
-      days    = 100
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -358,11 +364,12 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
     enabled  = true
 
     retention_policy {
-      days    = 100
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
+  // This one always off.
   log {
     category = "GremlinRequests"
     enabled  = false
@@ -373,6 +380,7 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
     }
   }
 
+  // This one always off.
   log {
     category = "MongoRequests"
     enabled  = false
@@ -387,8 +395,8 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
     category = "PartitionKeyRUConsumption"
 
     retention_policy {
-      days    = 100
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -396,18 +404,18 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
     category = "PartitionKeyStatistics"
 
     retention_policy {
-      days    = 100
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
   log {
     category = "QueryRuntimeStatistics"
-    enabled  = false
+    enabled  = true
 
     retention_policy {
-      days    = 0
-      enabled = false
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -415,7 +423,8 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
     category = "Requests"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 }
@@ -458,8 +467,8 @@ resource "azurerm_monitor_diagnostic_setting" "sb_diagnostics" {
     category = "OperationalLogs"
 
     retention_policy {
-      days    = 100
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -467,8 +476,8 @@ resource "azurerm_monitor_diagnostic_setting" "sb_diagnostics" {
     category = "AllMetrics"
 
     retention_policy {
-      days    = 100
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 }
@@ -514,7 +523,8 @@ resource "azurerm_monitor_diagnostic_setting" "eg_diagnostics" {
     category = "DeliveryFailures"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -522,7 +532,8 @@ resource "azurerm_monitor_diagnostic_setting" "eg_diagnostics" {
     category = "PublishFailures"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -530,7 +541,8 @@ resource "azurerm_monitor_diagnostic_setting" "eg_diagnostics" {
     category = "AllMetrics"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 }

@@ -24,8 +24,3 @@ prefix = "osdu-mvp"
 resource_tags = {
   contact = "pipeline"
 }
-
-# Storage Settings
-diag_storage_containers = [
-  "logs"
-]
