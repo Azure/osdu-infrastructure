@@ -121,8 +121,8 @@ variable "network_policy" {
 
 variable "auto_scaling_default_node" {
   description = "(Optional) Kubernetes Auto Scaler must be enabled for this main pool"
-  type = bool
-  default = false
+  type        = bool
+  default     = false
 }
 
 variable "oms_agent_enabled" {

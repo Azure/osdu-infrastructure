@@ -368,7 +368,7 @@ resource "azurerm_monitor_diagnostic_setting" "vnet_diagnostics" {
 
   log {
     category = "VMProtectionAlerts"
-    enabled = false
+    enabled  = false
 
     retention_policy {
       days    = 0
@@ -519,11 +519,11 @@ module "aks" {
   kubernetes_version = var.kubernetes_version
   log_analytics_id   = data.terraform_remote_state.central_resources.outputs.log_analytics_id
 
-  msi_enabled           = true
-  oms_agent_enabled     = true
+  msi_enabled               = true
+  oms_agent_enabled         = true
   auto_scaling_default_node = true
-  kubeconfig_to_disk    = false
-  enable_kube_dashboard = false
+  kubeconfig_to_disk        = false
+  enable_kube_dashboard     = false
 
   resource_tags = var.resource_tags
 }
