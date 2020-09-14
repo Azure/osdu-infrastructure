@@ -262,6 +262,7 @@ resource "azurerm_resource_group" "main" {
 }
 
 
+
 #-------------------------------
 # Storage
 #-------------------------------
@@ -277,8 +278,6 @@ module "storage_account" {
   resource_tags = var.resource_tags
 }
 
-
-
 // Add the Storage Account Name to the Vault
 resource "azurerm_key_vault_secret" "storage_name" {
   name         = local.storage_account_name
@@ -292,6 +291,8 @@ resource "azurerm_key_vault_secret" "storage_key" {
   value        = module.storage_account.primary_access_key
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
+
+
 
 #-------------------------------
 # CosmosDB
@@ -334,100 +335,100 @@ resource "azurerm_key_vault_secret" "cosmos_key" {
 }
 
 // Hook up Diagnostics
-resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
-  name                       = "db_diagnostics"
-  target_resource_id         = module.cosmosdb_account.account_id
-  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+# resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
+#   name                       = "db_diagnostics"
+#   target_resource_id         = module.cosmosdb_account.account_id
+#   log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
 
-  // This one always off.
-  log {
-    category = "CassandraRequests"
-    enabled  = false
+#   // This one always off.
+#   log {
+#     category = "CassandraRequests"
+#     enabled  = false
 
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
+#     retention_policy {
+#       days    = 0
+#       enabled = false
+#     }
+#   }
 
-  log {
-    category = "ControlPlaneRequests"
+#   log {
+#     category = "ControlPlaneRequests"
 
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
+#     retention_policy {
+#       days    = var.log_retention_days
+#       enabled = local.retention_policy
+#     }
+#   }
 
-  log {
-    category = "DataPlaneRequests"
-    enabled  = true
+#   log {
+#     category = "DataPlaneRequests"
+#     enabled  = true
 
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
+#     retention_policy {
+#       days    = var.log_retention_days
+#       enabled = local.retention_policy
+#     }
+#   }
 
-  // This one always off.
-  log {
-    category = "GremlinRequests"
-    enabled  = false
+#   // This one always off.
+#   log {
+#     category = "GremlinRequests"
+#     enabled  = false
 
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
+#     retention_policy {
+#       days    = 0
+#       enabled = false
+#     }
+#   }
 
-  // This one always off.
-  log {
-    category = "MongoRequests"
-    enabled  = false
+#   // This one always off.
+#   log {
+#     category = "MongoRequests"
+#     enabled  = false
 
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
+#     retention_policy {
+#       days    = 0
+#       enabled = false
+#     }
+#   }
 
-  log {
-    category = "PartitionKeyRUConsumption"
+#   log {
+#     category = "PartitionKeyRUConsumption"
 
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
+#     retention_policy {
+#       days    = var.log_retention_days
+#       enabled = local.retention_policy
+#     }
+#   }
 
-  log {
-    category = "PartitionKeyStatistics"
+#   log {
+#     category = "PartitionKeyStatistics"
 
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
+#     retention_policy {
+#       days    = var.log_retention_days
+#       enabled = local.retention_policy
+#     }
+#   }
 
-  log {
-    category = "QueryRuntimeStatistics"
-    enabled  = true
+#   log {
+#     category = "QueryRuntimeStatistics"
+#     enabled  = true
 
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
+#     retention_policy {
+#       days    = var.log_retention_days
+#       enabled = local.retention_policy
+#     }
+#   }
 
-  metric {
-    category = "Requests"
+#   metric {
+#     category = "Requests"
 
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
+#     retention_policy {
+#       days    = var.log_retention_days
+#       enabled = local.retention_policy
+#     }
+#   }
+# }
 
 #-------------------------------
 # Azure Service Bus (main.tf)
@@ -458,29 +459,29 @@ resource "azurerm_key_vault_secret" "sb_connection" {
 }
 
 // Hook up Diagnostics
-resource "azurerm_monitor_diagnostic_setting" "sb_diagnostics" {
-  name                       = "sb_diagnostics"
-  target_resource_id         = module.service_bus.id
-  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+# resource "azurerm_monitor_diagnostic_setting" "sb_diagnostics" {
+#   name                       = "sb_diagnostics"
+#   target_resource_id         = module.service_bus.id
+#   log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
 
-  log {
-    category = "OperationalLogs"
+#   log {
+#     category = "OperationalLogs"
 
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
+#     retention_policy {
+#       days    = var.log_retention_days
+#       enabled = local.retention_policy
+#     }
+#   }
 
-  metric {
-    category = "AllMetrics"
+#   metric {
+#     category = "AllMetrics"
 
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
+#     retention_policy {
+#       days    = var.log_retention_days
+#       enabled = local.retention_policy
+#     }
+#   }
+# }
 
 #-------------------------------
 # Azure Event Grid (main.tf)
@@ -514,38 +515,38 @@ resource "azurerm_key_vault_secret" "eventgrid_key" {
 }
 
 // Hook up Diagnostics
-resource "azurerm_monitor_diagnostic_setting" "eg_diagnostics" {
-  name                       = "eg_diagnostics"
-  target_resource_id         = module.event_grid.id
-  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+# resource "azurerm_monitor_diagnostic_setting" "eg_diagnostics" {
+#   name                       = "eg_diagnostics"
+#   target_resource_id         = module.event_grid.id
+#   log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
 
-  log {
-    category = "DeliveryFailures"
+#   log {
+#     category = "DeliveryFailures"
 
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
+#     retention_policy {
+#       days    = var.log_retention_days
+#       enabled = local.retention_policy
+#     }
+#   }
 
-  log {
-    category = "PublishFailures"
+#   log {
+#     category = "PublishFailures"
 
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
+#     retention_policy {
+#       days    = var.log_retention_days
+#       enabled = local.retention_policy
+#     }
+#   }
 
-  metric {
-    category = "AllMetrics"
+#   metric {
+#     category = "AllMetrics"
 
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
+#     retention_policy {
+#       days    = var.log_retention_days
+#       enabled = local.retention_policy
+#     }
+#   }
+# }
 
 
 #-------------------------------
