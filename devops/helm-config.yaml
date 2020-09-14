@@ -14,7 +14,7 @@ global:
     identity: <osduIdentityName>
     identity_id: <osduClientId>
     keyvault: <keyVaultName>
-    aad_client_id: <aadClientId>
+    appid: <aadClientId>
 
   ################################################################################
   # Specify the Ingress Settings
