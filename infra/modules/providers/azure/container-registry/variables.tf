@@ -33,7 +33,7 @@ variable "container_registry_sku" {
   default     = "Standard"
 }
 
-variable "container_registry_tags" {
+variable "resource_tags" {
   description = "(Optional) A mapping of tags to assign to the resource."
   type        = map(string)
   default     = {}

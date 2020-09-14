@@ -4,7 +4,7 @@
 * [YES/NO] I have updated the documentation accordingly.
 * [YES/NO/NA] I have added tests to cover my changes.
 * [YES/NO/NA] All new and existing tests passed.
-* [YES/NO/NA] I have formatted the terrafrom code.  _(`terraform fmt -recursive && go fmt ./...`)_
+* [YES/NO/NA] I have formatted the terraform code.  _(`terraform fmt -recursive && go fmt ./...`)_
 
 ## Current Behavior or Linked Issues
 -------------------------------------

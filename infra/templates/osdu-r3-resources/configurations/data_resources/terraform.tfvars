@@ -17,7 +17,8 @@ prefix = "osdu-r3"
 # Storage Settings
 storage_containers = [
   "legal-service-azure-configuration",
-  "opendes"
+  "opendes",
+  "osdu-wks-mappings"
 ]
 
 # Database Settings
@@ -59,6 +60,30 @@ cosmos_sql_collections = [
     database_name      = "osdu-db"
     partition_key_path = "/id"
     throughput         = 400
+  },
+  {
+    name               = "Authority"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "EntityType"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "SchemaInfo"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "Source"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
   }
 ]
 
@@ -86,6 +111,16 @@ sb_topics = [
         max_delivery_count                   = 5
         lock_duration                        = "PT5M" //ISO 8601 format
         forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""
+        dead_lettering_on_message_expiration = true
+        filter_type                          = null
+        sql_filter                           = null
+        action                               = ""
+      },
+      {
+        name                                 = "wkssubscription"
+        max_delivery_count                   = 5
+        lock_duration                        = "PT5M" //ISO 8601 format	
+        forward_to                           = ""     //set with the topic name that will be used for forwarding. Otherwise, set to ""	
         dead_lettering_on_message_expiration = true
         filter_type                          = null
         sql_filter                           = null

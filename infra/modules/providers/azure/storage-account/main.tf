@@ -41,3 +41,16 @@ resource "azurerm_storage_container" "main" {
   storage_account_name  = azurerm_storage_account.main.name
   container_access_type = "private"
 }
+
+resource "azurerm_storage_share" "main" {
+  count                = length(var.share_names)
+  name                 = var.share_names[count.index]
+  storage_account_name = azurerm_storage_account.main.name
+  quota                = 50
+}
+
+resource "azurerm_storage_queue" "main" {
+  count                = length(var.queue_names)
+  name                 = var.queue_names[count.index]
+  storage_account_name = azurerm_storage_account.main.name
+}

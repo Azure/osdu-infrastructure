@@ -45,10 +45,7 @@ trigger:
     - master
   paths:
     include:
-    - /devops/infrastructure/*
-    - /infra/modules/providers/*
     - /infra/templates/osdu-r2-resources/*
-    - /test-harness/terratest-extensions/*
     exclude:
     - /**/*.md
 
@@ -59,16 +56,13 @@ pr:
     - '*'
   paths:
     include:
-    - /devops/infrastructure/*
-    - /infra/modules/providers/*
     - /infra/templates/osdu-r2-resources/*
-    - /test-harness/terratest-extensions/*
     exclude:
     - /**/*.md
 
 variables:
 - name: 'TF_VERSION'
-  value: '0.12.28'
+  value: '0.12.29'
 - name: 'GO_VERSION'
   value: '1.12.14'
 - name: 'TF_ROOT_DIR'

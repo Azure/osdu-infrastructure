@@ -68,7 +68,8 @@ output "topics" {
         for subscription in azurerm_servicebus_subscription.subscription :
         subscription.name => {
           name = subscription.name
-        } if topic.name == subscription.topic_name
+        }...
+        if topic.name == subscription.topic_name
       }
     }
   }

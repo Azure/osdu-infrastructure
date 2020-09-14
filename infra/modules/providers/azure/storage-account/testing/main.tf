@@ -15,7 +15,13 @@ module "storage_account" {
   resource_group_name = module.resource_group.name
   name                = substr("osdumodule${module.resource_group.random}", 0, 23)
   container_names = [
-    "iac-container"
+    "osdu-container"
+  ]
+  share_names = [
+    "osdu-share"
+  ]
+  queue_names = [
+    "osdu-queue"
   ]
 
   resource_tags = {

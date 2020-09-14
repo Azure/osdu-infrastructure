@@ -42,6 +42,10 @@ Cloud administrators who are versed with both Cobalt templating and Kubernetes.
 1. Terraform `data_resources` environment module is [provisoned](environments/data_resources/README.md) to your Azure Environment
 1. Install the required common tools (kubectl, helm, and terraform). See also [Required Tools](https://github.com/microsoft/bedrock/tree/master/cluster). Note: this tutorial currently uses [Terraform 0.12.28](https://releases.hashicorp.com/terraform/0.12.28/).
 
+## Cost
+
+Azure environment cost ballpark [estimate](https://azure.com/e/61d8d0ef1644470c9c23d6d51796b4b7). This is subject to change and is driven from the resource pricing tiers configured when the template is deployed.
+
 ### Install the required tooling
 
 This document assumes one is running a current version of Ubuntu. Windows users can install the [Ubuntu Terminal](https://www.microsoft.com/store/productId/9NBLGGH4MSV6) from the Microsoft Store. The Ubuntu Terminal enables Linux command-line utilities, including bash, ssh, and git that will be useful for the following deployment. _Note: You will need the Windows Subsystem for Linux installed to use the Ubuntu Terminal on Windows_.

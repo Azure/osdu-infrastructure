@@ -6,24 +6,28 @@
 wget https://raw.githubusercontent.com/Azure/osdu-infrastructure/master/devops/helm-config.yaml -O config.yaml
 ```
 
-2. Edit the newly downloaded [helm-config.yaml](https://raw.githubusercontent.com/Azure/osdu-infrastructure/master/devops/helm-config.yaml) and fill out the sections `azure` and `ingress`.
+2. Edit the newly downloaded [config.yaml](https://raw.githubusercontent.com/Azure/osdu-infrastructure/master/devops/helm-config.yaml) and fill out the sections `azure` and `ingress`.
 
-3. Install the osdu on azure charts.
-
-```bash
-# Full Install
-helm install -f config.yaml osdu-current osdu-azure
-```
-
-_Alternately you can install each chart individually_
+3. Manually extract the manifests from the helm charts to your Flux Repo Directory.
 
 ```bash
-# Targeted Install
-helm install -f helm-config.yaml osdu-common-current osdu-azure/charts/common
-helm install -f helm-config.yaml entitlements-azure-current osdu-azure/charts/entitlements-azure
-helm install -f helm-config.yaml legal-current osdu-azure/charts/legal
-helm install -f helm-config.yaml storage-current osdu-azure/charts/storage
-helm install -f helm-config.yaml indexer-queue-current osdu-azure/charts/indexer-queue
-helm install -f helm-config.yaml indexer-current osdu-azure/charts/indexer
-helm install -f helm-config.yaml search-current osdu-azure/charts/search
+SRC_DIR="<ROOT_PATH_TO_SOURCE>"      #  $HOME/source/osdu
+FLUX_SRC="<FULL_PATH_TO_SOURCE>"     #  $SRC_DIR/k8-gitops-manifests
+INFRA_SRC="<FULL_PATH_TO_SOURCE>"    #  $SRC_DIR/osdu-infrastructure
+SERVICES_DIR="<FULL_PATH_TO_SOURCE>" #  $SRC_DIR/osdu-gitlab
+BRANCH="master"
+TAG="latest"
+
+# Extract manifests from the common osdu chart.
+helm template osdu-flux ${INFRA_SRC}/devops/charts/osdu-common -f ${INFRA_SRC}/devops/config.yaml > ${FLUX_SRC}/providers/azure/hld-registry/azure-common.yaml
+
+# Extract manifests from each service chart.
+for SERVICE in entitlements-azure legal storage indexer-service indexer-queue search-service ;
+do
+  helm template $SERVICE ${SERVICES_DIR}/$SERVICE/devops/azure/chart --set image.branch=$BRANCH --set image.tag=$TAG > ${FLUX_SRC}/providers/azure/hld-registry/$SERVICE.yaml
+done
+
+# Extract manifests for Istio
+helm template osdu-flux ${INFRA_SRC}/devops/charts/osdu-istio -f ${INFRA_SRC}/devops/config.yaml > ${FLUX_SRC}/providers/azure/hld-registry/osdu-istio.yaml
+helm template osdu-flux ${INFRA_SRC}/devops/charts/osdu-istio-auth -f ${INFRA_SRC}/devops/config.yaml > ${FLUX_SRC}/providers/azure/hld-registry/osdu-istio-auth.yaml
 ```

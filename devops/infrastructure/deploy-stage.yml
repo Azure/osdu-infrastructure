@@ -62,6 +62,9 @@ jobs:
   - name: TF_TEMPLATE_WORKING_DIR
     value: '$(System.DefaultWorkingDirectory)/$(RELEASE_ARTIFACT_NAME)/${{ parameters.configuration.terraformTemplatePath }}'
 
+  - name: TF_VAR_DATA_PARTITION_NAME
+    value: ${{ parameters.configuration.dataPartitionName }}
+
   environment: ${{ parameters.environment }}
   strategy:
     runOnce:

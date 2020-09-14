@@ -24,6 +24,18 @@ variable "container_names" {
   type        = list(string)
 }
 
+variable "share_names" {
+  description = "The list of storage file share names to create. Names must be unique per storage account."
+  type        = list(string)
+  default     = []
+}
+
+variable "queue_names" {
+  description = "The list of storage queue names to create. Names must be unique per storage account."
+  type        = list(string)
+  default     = []
+}
+
 variable "resource_group_name" {
   description = "The name of the resource group."
   type        = string

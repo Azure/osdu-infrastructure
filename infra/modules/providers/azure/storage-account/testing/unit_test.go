@@ -10,7 +10,7 @@ import (
 )
 
 var name = "storage-"
-var count = 5
+var count = 7
 
 var tfOptions = &terraform.Options{
 	TerraformDir: "./",
@@ -34,7 +34,17 @@ func TestTemplate(t *testing.T) {
 	}`)
 
 	expectedContainer := asMap(t, `{
-		"name" : "iac-container"
+		"name" : "osdu-container",
+		"container_access_type": "private"
+	}`)
+
+	expectedShare := asMap(t, `{
+		"name" : "osdu-share",
+		"quota": 50
+	}`)
+
+	expectedQueue := asMap(t, `{
+		"name" : "osdu-queue"
 	}`)
 
 	testFixture := infratests.UnitTestFixture{
@@ -46,6 +56,8 @@ func TestTemplate(t *testing.T) {
 		ExpectedResourceAttributeValues: infratests.ResourceDescription{
 			"module.storage_account.azurerm_storage_account.main":      expectedResult,
 			"module.storage_account.azurerm_storage_container.main[0]": expectedContainer,
+			"module.storage_account.azurerm_storage_share.main[0]":     expectedShare,
+			"module.storage_account.azurerm_storage_queue.main[0]":     expectedQueue,
 		},
 	}
 

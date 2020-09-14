@@ -6,19 +6,30 @@
 This project is an implementation of the Infrastructure as Code and Pipelines necessary to build and deploy the required infrastructure necessary for the [Open Subsurface Data Universe](https://community.opengroup.org/osdu) (OSDU). Links and additional information is located in [GitLab](https://community.opengroup.org/osdu/platform/deployment-and-operations/infrastructure-templates) for OSDU discoverability.
 
 
-Patterns used leverage Microsoft Projects, for detailed design principals, operation and tutorials on these patterns it is best to review information directly from those projects. 
+Patterns used here derived from concepts in other Microsoft Projects, for detailed design principals, operation and tutorials on some of these patterns it is best to review information directly from those projects. 
 
 1. [Project Cobalt](https://github.com/microsoft/cobalt)
 2. [Project Bedrock](https://github.com/microsoft/bedrock)
 
 Please be aware that branching strategies are aligned with OSDU and the master branch is intended to be used as a [Current Delivery](https://docs.microsoft.com/en-us/azure/devops/learn/what-is-continuous-delivery) mechanism that aligns with master branches for the [OSDU Platform]((https://community.opengroup.org/osdu/platform))
 
+This project is an active project and the master branch changes frequently to support OSDU features.  The intent is for Master to be in sync with OSDU Service master branches.
+
 ## Architecture Solutions
-This project is an active project and the master branch is constantly changing to support OSDU features. Rhe master branch is intended to be in sync with the master branches of the OSDU Service branches.
 
-This project holds 2 different Solution Architectures for OSDU on Azure.
+- [R3 MVP - Azure OSDU R3 MVP Architecture Solution](infra/templates/osdu-r3-mvp)  
 
-- [R3 - Azure OSDU AKS Architecture Solution with Elastic Cloud SaaS](infra/templates/osdu-r3-resources)  
+  _central-resources_  
+  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infra-mvp-cr?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1206&branchName=master)
+
+  _service-resources_  
+  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infra-mvp-services?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1207&branchName=master)
+
+  _data-partition_  
+  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infra-mvp-partitions?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1208&branchName=master)
+
+
+- [R2 on AKS - Azure OSDU AKS Architecture Solution](infra/templates/osdu-r3-resources)  
 
   _common-resources_  
   [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infrastructure-r3-cr?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1186&branchName=master)
@@ -29,10 +40,8 @@ This project holds 2 different Solution Architectures for OSDU on Azure.
   _service-resources_  
   [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infrastructure-r3-sr?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1191&branchName=master)
 
-- [R2 - Azure OSDU AppService Architecture Solution with Elastic Cloud SaaS](infra/templates/osdu-r2-resources)
-
-  _osdu-r2-resources_  
-  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/osdu-infrastructure-integration?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=892&branchName=master) 
+- [R2 - Azure OSDU AppService Architecture Solution](infra/templates/osdu-r2-resources)
+  > Retired, no longer maintained _9/1_
 
 
 
