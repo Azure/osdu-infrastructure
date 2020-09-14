@@ -25,8 +25,140 @@ resource_tags = {
   contact = "pipeline"
 }
 
+# Storage Settings
 storage_containers = [
   "legal-service-azure-configuration",
   "opendes",
   "osdu-wks-mappings"
+]
+
+
+# Database Settings
+cosmosdb_consistency_level = "Session"
+cosmos_databases = [
+  {
+    name       = "osdu-db"
+    throughput = 400
+  }
+]
+cosmos_sql_collections = [
+  {
+    name               = "LegalTag"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "StorageRecord"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "StorageSchema"
+    database_name      = "osdu-db"
+    partition_key_path = "/kind"
+    throughput         = 400
+  },
+  {
+    name               = "TenantInfo"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "UserInfo"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "Authority"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "EntityType"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "SchemaInfo"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  },
+  {
+    name               = "Source"
+    database_name      = "osdu-db"
+    partition_key_path = "/id"
+    throughput         = 400
+  }
+]
+
+
+# Service Bus Settings
+sb_topics = [
+  {
+    name                = "indexing-progress"
+    enable_partitioning = true
+    subscriptions = [
+      {
+        name               = "indexing-progresssubscription"
+        max_delivery_count = 5
+        lock_duration      = "PT5M"
+        forward_to         = ""
+      }
+    ]
+  },
+  {
+    name                = "legaltags"
+    enable_partitioning = true
+    subscriptions = [
+      {
+        name               = "compliance-change--integration-test"
+        max_delivery_count = 1
+        lock_duration      = "PT5M"
+        forward_to         = ""
+      },
+      {
+        name               = "legaltagsubscription"
+        max_delivery_count = 5
+        lock_duration      = "PT5M"
+        forward_to         = ""
+      }
+    ]
+  },
+  {
+    name                = "recordstopic"
+    enable_partitioning = true
+    subscriptions = [
+      {
+        name               = "recordstopicsubscription"
+        max_delivery_count = 5
+        lock_duration      = "PT5M"
+        forward_to         = ""
+      },
+      {
+        name               = "wkssubscription"
+        max_delivery_count = 5
+        lock_duration      = "PT5M"
+        forward_to         = ""
+      }
+    ]
+  },
+  {
+    name                = "recordstopicdownstream"
+    enable_partitioning = true
+    subscriptions = [
+      {
+        name               = "downstreamsub"
+        max_delivery_count = 5
+        lock_duration      = "PT5M"
+        forward_to         = ""
+      }
+    ]
+  }
 ]

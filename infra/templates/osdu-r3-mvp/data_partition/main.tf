@@ -92,6 +92,12 @@ variable "resource_group_location" {
   type        = string
 }
 
+variable "data_partition_name" {
+  description = "The OSDU data Partition Name."
+  type        = string
+  default     = "opendes"
+}
+
 variable "storage_containers" {
   description = "The list of storage container names to create. Names must be unique per storage account."
   type        = list(string)
@@ -134,6 +140,39 @@ variable "cosmos_sql_collections" {
   default = []
 }
 
+variable "sb_sku" {
+  description = "The SKU of the namespace. The options are: `Basic`, `Standard`, `Premium`."
+  type        = string
+  default     = "Standard"
+}
+
+variable "sb_topics" {
+  type = list(object({
+    name                = string
+    enable_partitioning = bool
+    subscriptions = list(object({
+      name               = string
+      max_delivery_count = number
+      lock_duration      = string
+      forward_to         = string
+    }))
+  }))
+  default = [
+    {
+      name                = "topic_test"
+      enable_partitioning = true
+      subscriptions = [
+        {
+          name               = "sub_test"
+          max_delivery_count = 1
+          lock_duration      = "PT5M"
+          forward_to         = ""
+        }
+      ]
+    }
+  ]
+}
+
 
 #-------------------------------
 # Private Variables  (common.tf)
@@ -155,12 +194,21 @@ locals {
 
   resource_group_name  = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
   storage_name         = "${replace(local.base_name_21, "-", "")}sa"
-  storage_account_name = format("%s-storage", local.partition)
+  storage_account_name = format("%s-storage", var.data_partition_name)
   storage_key_name     = format("%s-key", local.storage_account_name)
-  cosmosdb_name        = "${local.base_name}-db"
-  cosmos-connection    = format("%s-cosmos-connection", local.partition)
-  cosmos-endpoint      = format("%s-cosmos-endpoint", local.partition)
-  cosmos-primary-key   = format("%s-cosmos-primary-key", local.partition)
+
+  cosmosdb_name      = "${local.base_name}-db"
+  cosmos_connection  = format("%s-cosmos-connection", var.data_partition_name)
+  cosmos_endpoint    = format("%s-cosmos-endpoint", var.data_partition_name)
+  cosmos_primary_key = format("%s-cosmos-primary-key", var.data_partition_name)
+
+  sb_namespace      = "${local.base_name_21}-bus"
+  sb_namespace_name = format("%s-sb-namespace", var.data_partition_name)
+  sb_connection     = format("%s-sb-connection", var.data_partition_name)
+
+  eventgrid_name            = "${local.base_name_21}-grid"
+  eventgrid_domain_name     = format("%s-eventgrid", var.data_partition_name)
+  eventgrid_domian_key_name = format("%s-key", local.eventgrid_domain_name)
 }
 
 
@@ -208,12 +256,6 @@ resource "azurerm_resource_group" "main" {
   }
 }
 
-resource "azurerm_management_lock" "rg_lock" {
-  name       = "osdu_rg_lock"
-  scope      = azurerm_resource_group.main.id
-  lock_level = "CanNotDelete"
-}
-
 
 #-------------------------------
 # Storage
@@ -230,11 +272,7 @@ module "storage_account" {
   resource_tags = var.resource_tags
 }
 
-resource "azurerm_management_lock" "sa_lock" {
-  name       = "osdu_ds_sa_lock"
-  scope      = module.storage_account.id
-  lock_level = "CanNotDelete"
-}
+
 
 // Add the Storage Account Name to the Vault
 resource "azurerm_key_vault_secret" "storage_name" {
@@ -254,7 +292,8 @@ resource "azurerm_key_vault_secret" "storage_key" {
 # CosmosDB
 #-------------------------------
 module "cosmosdb_account" {
-  source                   = "../../../modules/providers/azure/cosmosdb"
+  source = "../../../modules/providers/azure/cosmosdb"
+
   name                     = local.cosmosdb_name
   resource_group_name      = azurerm_resource_group.main.name
   primary_replica_location = var.cosmosdb_replica_location
@@ -266,31 +305,250 @@ module "cosmosdb_account" {
   resource_tags = var.resource_tags
 }
 
-resource "azurerm_management_lock" "db_lock" {
-  name       = "osdu_ds_db_lock"
-  scope      = module.cosmosdb_account.properties.cosmosdb.id
-  lock_level = "CanNotDelete"
-}
+
 
 // Add the CosmosDB Connection to the Vault
 resource "azurerm_key_vault_secret" "cosmos_connection" {
-  name         = local.cosmos-connection
+  name         = local.cosmos_connection
   value        = module.cosmosdb_account.properties.cosmosdb.connection_strings[0]
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
 // Add the CosmosDB Endpoint to the Vault
 resource "azurerm_key_vault_secret" "cosmos_endpoint" {
-  name         = local.cosmos-endpoint
+  name         = local.cosmos_endpoint
   value        = module.cosmosdb_account.properties.cosmosdb.endpoint
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
 // Add the CosmosDB Key to the Vault
 resource "azurerm_key_vault_secret" "cosmos_key" {
-  name         = local.cosmos-primary-key
+  name         = local.cosmos_primary_key
   value        = module.cosmosdb_account.properties.cosmosdb.primary_master_key
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+// Hook up Diagnostics
+resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
+  name                       = "db_diagnostics"
+  target_resource_id         = module.cosmosdb_account.account_id
+  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  log {
+    category = "CassandraRequests"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "ControlPlaneRequests"
+
+    retention_policy {
+      days    = 100
+      enabled = true
+    }
+  }
+
+  log {
+    category = "DataPlaneRequests"
+    enabled  = true
+
+    retention_policy {
+      days    = 100
+      enabled = true
+    }
+  }
+
+  log {
+    category = "GremlinRequests"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "MongoRequests"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "PartitionKeyRUConsumption"
+
+    retention_policy {
+      days    = 100
+      enabled = true
+    }
+  }
+
+  log {
+    category = "PartitionKeyStatistics"
+
+    retention_policy {
+      days    = 100
+      enabled = true
+    }
+  }
+
+  log {
+    category = "QueryRuntimeStatistics"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "Requests"
+
+    retention_policy {
+      enabled = true
+    }
+  }
+}
+
+#-------------------------------
+# Azure Service Bus (main.tf)
+#-------------------------------
+module "service_bus" {
+  source = "../../../modules/providers/azure/service-bus2"
+
+  name                = local.sb_namespace
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = var.sb_sku
+  topics              = var.sb_topics
+
+  resource_tags = var.resource_tags
+}
+
+// Add the ServiceBus Connection to the Vault
+resource "azurerm_key_vault_secret" "sb_namespace" {
+  name         = local.sb_namespace_name
+  value        = module.service_bus.name
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+// Add the ServiceBus Connection to the Vault
+resource "azurerm_key_vault_secret" "sb_connection" {
+  name         = local.sb_connection
+  value        = module.service_bus.default_connection_string
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+// Hook up Diagnostics
+resource "azurerm_monitor_diagnostic_setting" "sb_diagnostics" {
+  name                       = "sb_diagnostics"
+  target_resource_id         = module.service_bus.id
+  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  log {
+    category = "OperationalLogs"
+
+    retention_policy {
+      days    = 100
+      enabled = true
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      days    = 100
+      enabled = true
+    }
+  }
+}
+
+#-------------------------------
+# Azure Event Grid (main.tf)
+#-------------------------------
+module "event_grid" {
+  source = "../../../modules/providers/azure/event-grid"
+
+  name                = local.eventgrid_name
+  resource_group_name = azurerm_resource_group.main.name
+  topics = [
+    {
+      name = format("%s-recordstopic", var.data_partition_name)
+    }
+  ]
+
+  resource_tags = var.resource_tags
+}
+
+// Add the Event Grid Name to the Vault
+resource "azurerm_key_vault_secret" "eventgrid_name" {
+  name         = local.eventgrid_domain_name
+  value        = module.event_grid.name
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+// Add the Event Grid Key to the Vault
+resource "azurerm_key_vault_secret" "eventgrid_key" {
+  name         = local.eventgrid_domian_key_name
+  value        = module.event_grid.primary_access_key
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+// Hook up Diagnostics
+resource "azurerm_monitor_diagnostic_setting" "eg_diagnostics" {
+  name                       = "eg_diagnostics"
+  target_resource_id         = module.event_grid.id
+  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  log {
+    category = "DeliveryFailures"
+
+    retention_policy {
+      enabled = true
+    }
+  }
+
+  log {
+    category = "PublishFailures"
+
+    retention_policy {
+      enabled = true
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = true
+    }
+  }
+}
+
+
+#-------------------------------
+# Locks
+#-------------------------------
+resource "azurerm_management_lock" "sa_lock" {
+  name       = "osdu_ds_sa_lock"
+  scope      = module.storage_account.id
+  lock_level = "CanNotDelete"
+}
+
+resource "azurerm_management_lock" "db_lock" {
+  name       = "osdu_ds_db_lock"
+  scope      = module.cosmosdb_account.properties.cosmosdb.id
+  lock_level = "CanNotDelete"
 }
 
 #-------------------------------

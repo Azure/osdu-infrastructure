@@ -155,12 +155,6 @@ resource "azurerm_resource_group" "main" {
   }
 }
 
-resource "azurerm_management_lock" "common_rg" {
-  name       = "osdu_cr_rg_lock"
-  scope      = azurerm_resource_group.main.id
-  lock_level = "CanNotDelete"
-}
-
 #-------------------------------+
 # Key Vault  (security.tf)
 #-------------------------------
@@ -201,11 +195,7 @@ resource "azurerm_monitor_diagnostic_setting" "kv_diagnostics" {
   }
 }
 
-resource "azurerm_management_lock" "kv_lock" {
-  name       = "osdu_cr_kv_lock"
-  scope      = module.keyvault.keyvault_id
-  lock_level = "CanNotDelete"
-}
+
 
 
 
@@ -233,11 +223,7 @@ resource "azurerm_key_vault_secret" "storage" {
   key_vault_id = module.keyvault.keyvault_id
 }
 
-resource "azurerm_management_lock" "storage_lock" {
-  name       = "osdu_sr_la_lock"
-  scope      = module.storage_account.id
-  lock_level = "CanNotDelete"
-}
+
 
 
 
@@ -289,11 +275,7 @@ resource "azurerm_monitor_diagnostic_setting" "acr_diagnostics" {
   }
 }
 
-resource "azurerm_management_lock" "acr_lock" {
-  name       = "osdu_acr_lock"
-  scope      = module.container_registry.container_registry_id
-  lock_level = "CanNotDelete"
-}
+
 
 
 #-------------------------------
@@ -361,6 +343,30 @@ resource "azurerm_user_assigned_identity" "osduidentity" {
 }
 
 
+#-------------------------------
+# Locks
+#-------------------------------
+
+// Lock the KV
+resource "azurerm_management_lock" "kv_lock" {
+  name       = "osdu_cr_kv_lock"
+  scope      = module.keyvault.keyvault_id
+  lock_level = "CanNotDelete"
+}
+
+// Lock the Container Registry
+resource "azurerm_management_lock" "acr_lock" {
+  name       = "osdu_acr_lock"
+  scope      = module.container_registry.container_registry_id
+  lock_level = "CanNotDelete"
+}
+
+// Lock the Diagnostics Storage Account
+resource "azurerm_management_lock" "storage_lock" {
+  name       = "osdu_sr_la_lock"
+  scope      = module.storage_account.id
+  lock_level = "CanNotDelete"
+}
 
 #-------------------------------
 # Output Variables  (output.tf)

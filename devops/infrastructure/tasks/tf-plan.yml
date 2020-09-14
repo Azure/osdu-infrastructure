@@ -40,6 +40,7 @@ steps:
       TF_VAR_common_resources_workspace_name: $(TF_VAR_common_resources_workspace_name)
       TF_VAR_central_resources_workspace_name: $(TF_VAR_central_resources_workspace_name)
       TF_VAR_data_resources_workspace_name: $(TF_VAR_data_resources_workspace_name)
+      TF_VAR_data_partition_name: $(TF_VAR_data_partition_name)
       TF_VAR_gitops_ssh_url: $(TF_VAR_gitops_ssh_url)
       TF_VAR_gitops_url_branch: $(TF_VAR_gitops_url_branch)
       TF_VAR_aks_agent_vm_count: $(TF_VAR_aks_agent_vm_count)
@@ -96,6 +97,7 @@ steps:
         TF_CLI_ARGS=${TF_CLI_ARGS:-}
 
         echo "TF_WORKSPACE_NAME: ${TF_WORKSPACE_NAME}"
+        echo "TF_VAR_DATA_PARTITION_NAME: ${TF_VAR_DATA_PARTITION_NAME}"
         echo "File 1: $(aksPublicAgentKeySecureDownload.secureFilePath)"
         echo "File 2: $(aksPrivateGitopsKeySecureDownload.secureFilePath)"
 
