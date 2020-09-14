@@ -84,6 +84,24 @@ cosmos_sql_collections = [
     database_name      = "osdu-db"
     partition_key_path = "/id"
     throughput         = 400
+  },
+  {
+    name               = "RegisterAction"
+    database_name      = "osdu-db"
+    partition_key_path = "/dataPartitionId"
+    throughput         = 400
+  },
+  {
+    name               = "RegisterDdms"
+    database_name      = "osdu-db"
+    partition_key_path = "/dataPartitionId"
+    throughput         = 400
+  },
+  {
+    name               = "RegisterSubscription"
+    database_name      = "osdu-db"
+    partition_key_path = "/dataPartitionId"
+    throughput         = 400
   }
 ]
 
