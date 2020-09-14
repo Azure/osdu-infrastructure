@@ -64,25 +64,25 @@ cosmos_sql_collections = [
   {
     name               = "Authority"
     database_name      = "osdu-db"
-    partition_key_path = "/id"
+    partition_key_path = "/dataPartitionId"
     throughput         = 400
   },
   {
     name               = "EntityType"
     database_name      = "osdu-db"
-    partition_key_path = "/id"
+    partition_key_path = "/dataPartitionId"
     throughput         = 400
   },
   {
     name               = "SchemaInfo"
     database_name      = "osdu-db"
-    partition_key_path = "/id"
+    partition_key_path = "/dataPartitionId"
     throughput         = 400
   },
   {
     name               = "Source"
     database_name      = "osdu-db"
-    partition_key_path = "/id"
+    partition_key_path = "/dataPartitionId"
     throughput         = 400
   }
 ]
