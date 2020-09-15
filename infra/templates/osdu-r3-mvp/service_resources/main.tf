@@ -223,6 +223,7 @@ resource "azurerm_key_vault_secret" "postgres_password" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
+// Diagnostics Setup
 resource "azurerm_monitor_diagnostic_setting" "postgres_diagnostics" {
   name                       = "postgres_diagnostics"
   target_resource_id         = module.postgreSQL.server_id
@@ -288,6 +289,7 @@ resource "azurerm_key_vault_secret" "redis_password" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
+// Diagnostics Setup
 resource "azurerm_monitor_diagnostic_setting" "redis_diagnostics" {
   name                       = "redis_diagnostics"
   target_resource_id         = module.redis_cache.id
@@ -361,6 +363,7 @@ module "network" {
   resource_tags = var.resource_tags
 }
 
+// Diagnostics Setup
 resource "azurerm_monitor_diagnostic_setting" "vnet_diagnostics" {
   name                       = "vnet_diagnostics"
   target_resource_id         = module.network.id
@@ -459,6 +462,42 @@ module "appgateway" {
   resource_tags = var.resource_tags
 }
 
+// Identity for AGIC
+resource "azurerm_user_assigned_identity" "agicidentity" {
+  name                = local.appgw_identity_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+// Managed Identity Operator role for AKS to AGIC Identity
+resource "azurerm_role_assignment" "mi_ag_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = azurerm_user_assigned_identity.agicidentity.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Contributor Role for AGIC to the AppGateway
+resource "azurerm_role_assignment" "appgwcontributor" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = module.appgateway.id
+  role_definition_name = "Contributor"
+}
+
+// Reader Role for AGIC to the Resource Group
+resource "azurerm_role_assignment" "agic_resourcegroup_reader" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = azurerm_resource_group.main.id
+  role_definition_name = "Reader"
+}
+
+// Managed Identity Operator Role for AGIC to AppGateway Managed Identity
+resource "azurerm_role_assignment" "agic_app_gw_mi" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = module.appgateway.managed_identity_resource_id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Diagnostics Setup
 resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
   name                       = "gw_diagnostics"
   target_resource_id         = module.appgateway.id
@@ -567,7 +606,14 @@ resource "azurerm_role_assignment" "mi_operator" {
   role_definition_name = "Managed Identity Operator"
 }
 
+// Managed Identity Operator role for AKS to the OSDU Identity
+resource "azurerm_role_assignment" "osdu_identity_mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.terraform_remote_state.central_resources.outputs.osdu_identity_id
+  role_definition_name = "Managed Identity Operator"
+}
 
+// Diagnostics Setup
 resource "azurerm_monitor_diagnostic_setting" "aks_diagnostics" {
   name                       = "aks_diagnostics"
   target_resource_id         = module.aks.id
@@ -649,40 +695,6 @@ resource "azurerm_monitor_diagnostic_setting" "aks_diagnostics" {
 
 
 #-------------------------------
-# Role Assignments  (security.tf)
-#-------------------------------
-
-// Managed Identity Operator role for AKS to AGIC Identity
-resource "azurerm_role_assignment" "mi_ag_operator" {
-  principal_id         = module.aks.kubelet_object_id
-  scope                = data.terraform_remote_state.central_resources.outputs.osdu_identity_id
-  role_definition_name = "Managed Identity Operator"
-}
-
-// Contributor Role for AGIC to the AppGateway
-resource "azurerm_role_assignment" "appgwcontributor" {
-  principal_id         = data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id
-  scope                = module.appgateway.id
-  role_definition_name = "Contributor"
-}
-
-// Reader Role for AGIC to the Resource Group
-resource "azurerm_role_assignment" "agic_resourcegroup_reader" {
-  principal_id         = data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id
-  scope                = azurerm_resource_group.main.id
-  role_definition_name = "Reader"
-}
-
-// Managed Identity Operator Role for AGIC to AppGateway Managed Identity
-resource "azurerm_role_assignment" "agic_app_gw_mi" {
-  principal_id         = data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id
-  scope                = module.appgateway.managed_identity_resource_id
-  role_definition_name = "Managed Identity Operator"
-}
-
-
-
-#-------------------------------
 # Providers  (common.tf)
 #-------------------------------
 
@@ -690,12 +702,12 @@ resource "azurerm_role_assignment" "agic_app_gw_mi" {
 provider "kubernetes" {
   version                = "~> 1.11.3"
   load_config_file       = false
-  host                   = module.aks.kube_config.0.host
-  username               = module.aks.kube_config.0.username
-  password               = module.aks.kube_config.0.password
-  client_certificate     = base64decode(module.aks.kube_config.0.client_certificate)
-  client_key             = base64decode(module.aks.kube_config.0.client_key)
-  cluster_ca_certificate = base64decode(module.aks.kube_config.0.cluster_ca_certificate)
+  host                   = module.aks.kube_config_block.0.host
+  username               = module.aks.kube_config_block.0.username
+  password               = module.aks.kube_config_block.0.password
+  client_certificate     = base64decode(module.aks.kube_config_block.0.client_certificate)
+  client_key             = base64decode(module.aks.kube_config_block.0.client_key)
+  cluster_ca_certificate = base64decode(module.aks.kube_config_block.0.cluster_ca_certificate)
 }
 
 // Hook-up helm Provider for Terraform
@@ -704,11 +716,11 @@ provider "helm" {
 
   kubernetes {
     load_config_file       = false
-    host                   = module.aks.kube_config.0.host
-    username               = module.aks.kube_config.0.username
-    password               = module.aks.kube_config.0.password
-    client_certificate     = base64decode(module.aks.kube_config.0.client_certificate)
-    client_key             = base64decode(module.aks.kube_config.0.client_key)
-    cluster_ca_certificate = base64decode(module.aks.kube_config.0.cluster_ca_certificate)
+    host                   = module.aks.kube_config_block.0.host
+    username               = module.aks.kube_config_block.0.username
+    password               = module.aks.kube_config_block.0.password
+    client_certificate     = base64decode(module.aks.kube_config_block.0.client_certificate)
+    client_key             = base64decode(module.aks.kube_config_block.0.client_key)
+    cluster_ca_certificate = base64decode(module.aks.kube_config_block.0.cluster_ca_certificate)
   }
 }
