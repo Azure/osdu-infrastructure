@@ -354,6 +354,11 @@ output "keyvault_id" {
   value       = module.keyvault.keyvault_id
 }
 
+output "keyvault_name" {
+  description = "The name for Key Vault"
+  value       = module.keyvault.keyvault_name
+}
+
 output "log_analytics_id" {
   description = "The resource id for Log Analytics"
   value       = module.log_analytics.id
@@ -372,4 +377,14 @@ output "osdu_identity_principal_id" {
 output "osdu_identity_client_id" {
   description = "The client id for the User Assigned Identity"
   value       = azurerm_user_assigned_identity.osduidentity.client_id
+}
+
+output "elasticsearch_endpoint" {
+  description = "The elastic search endpoint"
+  value       = var.elasticsearch_endpoint
+}
+
+output "elasticsearch_username" {
+  description = "The elastic search username"
+  value       = var.elasticsearch_username
 }
