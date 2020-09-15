@@ -211,3 +211,31 @@ variable "ssh_public_key_file" {
   type        = string
   description = "(Required) The SSH public key used to setup log-in credentials on the nodes in the AKS cluster."
 }
+
+variable "flux_recreate" {
+  description = "Make any change to this value to trigger the recreation of the flux execution script."
+  type        = string
+  default     = "false"
+}
+
+variable "gitops_ssh_url" {
+  type        = string
+  description = "(Required) ssh git clone repository URL with Kubernetes manifests including services which runs in the cluster. Flux monitors this repo for Kubernetes manifest additions/changes periodically and apply them in the cluster."
+}
+
+variable "gitops_ssh_key_file" {
+  type        = string
+  description = "(Required) SSH key used to establish a connection to a private git repo containing the HLD manifest."
+}
+
+variable "gitops_branch" {
+  type        = string
+  description = "(Optional) The branch for flux to watch"
+  default     = "master"
+}
+
+variable "gitops_path" {
+  type        = string
+  description = "(Optional) The path for flux to watch"
+  default     = "providers/azure/hld-registry"
+}
