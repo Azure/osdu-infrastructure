@@ -26,6 +26,9 @@ resource_tags = {
 }
 
 # Storage Settings
+storage_containers = [
+  "azure-webjobs-hosts"
+]
 storage_shares = [
   "airflowdags"
 ]
