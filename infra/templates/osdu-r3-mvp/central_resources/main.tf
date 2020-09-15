@@ -358,3 +358,8 @@ output "log_analytics_id" {
   description = "The resource id for Log Analytics"
   value       = module.log_analytics.id
 }
+
+output "osdu_identity_id" {
+  description = "The resource id for the User Assigned Identity"
+  value       = azurerm_user_assigned_identity.osduidentity.id
+}
