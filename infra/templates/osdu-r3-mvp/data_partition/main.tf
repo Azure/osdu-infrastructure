@@ -214,11 +214,11 @@ locals {
   sb_namespace_name = format("%s-sb-namespace", var.data_partition_name)
   sb_connection     = format("%s-sb-connection", var.data_partition_name)
 
-  eventgrid_name            = "${local.base_name_21}-grid"
-  eventgrid_domain_name     = format("%s-eventgrid", var.data_partition_name)
-  eventgrid_domain_key_name = format("%s-key", local.eventgrid_domain_name)
-  eventgrid_records_topic   = format("%s-recordstopic", local.eventgrid_name)
-  eventgrid_records_topic_name   = format("%s-recordstopic", local.eventgrid_domain_name)
+  eventgrid_name                   = "${local.base_name_21}-grid"
+  eventgrid_domain_name            = format("%s-eventgrid", var.data_partition_name)
+  eventgrid_domain_key_name        = format("%s-key", local.eventgrid_domain_name)
+  eventgrid_records_topic          = format("%s-recordstopic", local.eventgrid_name)
+  eventgrid_records_topic_name     = format("%s-recordstopic", local.eventgrid_domain_name)
   eventgrid_records_topic_endpoint = format("https://%s.%s-1.eventgrid.azure.net/api/events", local.eventgrid_records_topic, var.resource_group_location)
 }
 
