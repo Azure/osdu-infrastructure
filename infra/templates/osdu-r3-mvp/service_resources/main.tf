@@ -528,6 +528,46 @@ module "aks" {
   resource_tags = var.resource_tags
 }
 
+data "azurerm_resource_group" "aks_node_resource_group" {
+  name = module.aks.node_resource_group
+}
+
+// Identity for Pod Identity
+resource "azurerm_user_assigned_identity" "podidentity" {
+  name                = local.aks_identity_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+// Managed Identity Operator role for AKS to Node Resource Group
+resource "azurerm_role_assignment" "all_mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Virtual Machine Contributor role for AKS to Node Resource Group
+resource "azurerm_role_assignment" "vm_contributor" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Virtual Machine Contributor"
+}
+
+// Azure Container Registry Reader role for AKS to ACR
+resource "azurerm_role_assignment" "acr_reader" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.terraform_remote_state.central_resources.outputs.container_registry_id
+  role_definition_name = "AcrPull"
+}
+
+// Managed Identity Operator role for AKS to Pod Identity
+resource "azurerm_role_assignment" "mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = azurerm_user_assigned_identity.podidentity.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+
 resource "azurerm_monitor_diagnostic_setting" "aks_diagnostics" {
   name                       = "aks_diagnostics"
   target_resource_id         = module.aks.id
@@ -607,6 +647,35 @@ resource "azurerm_monitor_diagnostic_setting" "aks_diagnostics" {
   }
 }
 
-data "azurerm_resource_group" "aks_node_resource_group" {
-  name = module.aks.node_resource_group
+
+#-------------------------------
+# Role Assignments  (security.tf)
+#-------------------------------
+
+// Managed Identity Operator role for AKS to AGIC Identity
+resource "azurerm_role_assignment" "mi_ag_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.terraform_remote_state.central_resources.outputs.osdu_identity_id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Contributor Role for AGIC to the AppGateway
+resource "azurerm_role_assignment" "appgwcontributor" {
+  principal_id         = data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id
+  scope                = module.appgateway.id
+  role_definition_name = "Contributor"
+}
+
+// Reader Role for AGIC to the Resource Group
+resource "azurerm_role_assignment" "agic_resourcegroup_reader" {
+  principal_id         = data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id
+  scope                = azurerm_resource_group.main.id
+  role_definition_name = "Reader"
+}
+
+// Managed Identity Operator Role for AGIC to AppGateway Managed Identity
+resource "azurerm_role_assignment" "agic_app_gw_mi" {
+  principal_id         = data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id
+  scope                = module.appgateway.managed_identity_resource_id
+  role_definition_name = "Managed Identity Operator"
 }
