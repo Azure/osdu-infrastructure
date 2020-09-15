@@ -362,9 +362,12 @@ output "log_analytics_id" {
 output "osdu_identity_id" {
   description = "The resource id for the User Assigned Identity"
   value       = azurerm_user_assigned_identity.osduidentity.id
+<<<<<<< HEAD
 }
 
 output "osdu_identity_principal_id" {
   description = "The principal id for the User Assigned Identity"
   value       = azurerm_user_assigned_identity.osduidentity.principal_id
+=======
+>>>>>>> master
 }
