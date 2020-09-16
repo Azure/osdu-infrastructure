@@ -60,6 +60,17 @@ variable "resource_tags" {
   default     = {}
 }
 
+variable "log_retention_days" {
+  description = "Number of days to retain logs."
+  type        = number
+  default     = 100
+}
+
+variable "storage_containers" {
+  description = "The list of storage containers names to create. Names must be unique per storage account."
+  type        = list(string)
+}
+
 variable "storage_shares" {
   description = "The list of storage share names to create. Names must be unique per storage account."
   type        = list(string)
@@ -177,4 +188,54 @@ variable "ssl_certificate_file" {
   type        = string
   description = "(Required) The x509-based SSL certificate used to setup ssl termination on the app gateway."
   default     = ""
+}
+
+variable "aks_agent_vm_count" {
+  description = "The initial number of agent pools / nodes allocated to the AKS cluster"
+  type        = string
+  default     = "3"
+}
+
+variable "aks_agent_vm_size" {
+  type        = string
+  description = "The size of each VM in the Agent Pool (e.g. Standard_F1). Changing this forces a new resource to be created."
+  default     = "Standard_D2s_v3"
+}
+
+variable "kubernetes_version" {
+  type    = string
+  default = "1.17.7"
+}
+
+variable "ssh_public_key_file" {
+  type        = string
+  description = "(Required) The SSH public key used to setup log-in credentials on the nodes in the AKS cluster."
+}
+
+variable "flux_recreate" {
+  description = "Make any change to this value to trigger the recreation of the flux execution script."
+  type        = string
+  default     = "false"
+}
+
+variable "gitops_ssh_url" {
+  type        = string
+  description = "(Required) ssh git clone repository URL with Kubernetes manifests including services which runs in the cluster. Flux monitors this repo for Kubernetes manifest additions/changes periodically and apply them in the cluster."
+}
+
+variable "gitops_ssh_key_file" {
+  type        = string
+  description = "(Required) SSH key used to establish a connection to a private git repo containing the HLD manifest."
+}
+
+variable "gitops_branch" {
+  type        = string
+  description = "(Optional) The branch for flux to watch"
+  default     = "master"
+}
+
+variable "gitops_path" {
+  type        = string
+  description = "(Optional) The path for flux to watch"
+  default     = "providers/azure/hld-registry"
 }

@@ -12,15 +12,27 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-/*
-.Synopsis
-   Terraform Variable Configuration
-.DESCRIPTION
-   This file holds the Default Variable Configuration
-*/
+locals {
+  helm_keda_name    = "keda"
+  helm_keda_ns      = "keda"
+  helm_keda_repo    = "https://kedacore.github.io/charts"
+  helm_keda_version = "1.4"
+}
 
-prefix = "osdu-mvp"
+resource "kubernetes_namespace" "keda" {
+  metadata {
+    name = local.helm_keda_ns
+  }
 
-resource_tags = {
-  contact = "pipeline"
+  depends_on = [module.aks]
+}
+
+resource "helm_release" "keda" {
+  name       = local.helm_keda_name
+  repository = local.helm_keda_repo
+  chart      = "keda"
+  version    = local.helm_keda_version
+  namespace  = local.helm_keda_ns
+
+  depends_on = [kubernetes_namespace.keda]
 }

@@ -20,7 +20,6 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	containerRegistryIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/container-registry/tests/integration"
-	storageIntegTests "github.com/microsoft/cobalt/infra/modules/providers/azure/storage-account/tests/integration"
 	"github.com/microsoft/cobalt/test-harness/infratests"
 )
 
@@ -39,10 +38,9 @@ func TestDataEnvironment(t *testing.T) {
 	testFixture := infratests.IntegrationTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedTfOutputCount: 8,
+		ExpectedTfOutputCount: 11,
 		TfOutputAssertions: []infratests.TerraformOutputValidation{
 			containerRegistryIntegTests.InspectContainerRegistryOutputs(subscription, "central_resource_group_name", "container_registry_name"),
-			storageIntegTests.InspectStorageAccount("diag_storage_account", "diag_storage_containers", "central_resource_group_name"),
 		},
 	}
 	infratests.RunIntegrationTests(&testFixture)

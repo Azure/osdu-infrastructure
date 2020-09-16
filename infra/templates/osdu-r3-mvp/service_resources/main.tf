@@ -78,9 +78,10 @@ locals {
 
   tenant_id           = data.azurerm_client_config.current.tenant_id
   resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
+  retention_policy    = var.log_retention_days == 0 ? false : true
 
   // airflow.tf
-  storage_name           = "${replace(local.base_name_21, "-", "")}af"
+  storage_name           = "${replace(local.base_name_21, "-", "")}config"
   storage_account_name   = "airflow-storage"
   storage_key_name       = "${local.storage_account_name}-key"
   redis_cache_name       = "${local.base_name}-cache"
@@ -156,7 +157,7 @@ module "storage_account" {
 
   name                = local.storage_name
   resource_group_name = azurerm_resource_group.main.name
-  container_names     = ["default"]
+  container_names     = var.storage_containers
   share_names         = var.storage_shares
   queue_names         = var.storage_queues
   kind                = "StorageV2"
@@ -222,6 +223,48 @@ resource "azurerm_key_vault_secret" "postgres_password" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
+// Diagnostics Setup
+resource "azurerm_monitor_diagnostic_setting" "postgres_diagnostics" {
+  name                       = "postgres_diagnostics"
+  target_resource_id         = module.postgreSQL.server_id
+  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  log {
+    category = "PostgreSQLLogs"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  log {
+    category = "QueryStoreRuntimeStatistics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  log {
+    category = "QueryStoreWaitStatistics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+}
+
 
 #-------------------------------
 # Azure Redis Cache (main.tf)
@@ -244,6 +287,23 @@ resource "azurerm_key_vault_secret" "redis_password" {
   name         = "redis-password"
   value        = module.redis_cache.primary_access_key
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+// Diagnostics Setup
+resource "azurerm_monitor_diagnostic_setting" "redis_diagnostics" {
+  name                       = "redis_diagnostics"
+  target_resource_id         = module.redis_cache.id
+  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
 }
 
 
@@ -303,17 +363,29 @@ module "network" {
   resource_tags = var.resource_tags
 }
 
+// Diagnostics Setup
 resource "azurerm_monitor_diagnostic_setting" "vnet_diagnostics" {
-  name                       = "gw_diagnostics"
-  target_resource_id         = module.appgateway.id
+  name                       = "vnet_diagnostics"
+  target_resource_id         = module.network.id
   log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  log {
+    category = "VMProtectionAlerts"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
 
 
   metric {
     category = "AllMetrics"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 }
@@ -390,6 +462,42 @@ module "appgateway" {
   resource_tags = var.resource_tags
 }
 
+// Identity for AGIC
+resource "azurerm_user_assigned_identity" "agicidentity" {
+  name                = local.appgw_identity_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+// Managed Identity Operator role for AKS to AGIC Identity
+resource "azurerm_role_assignment" "mi_ag_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = azurerm_user_assigned_identity.agicidentity.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Contributor Role for AGIC to the AppGateway
+resource "azurerm_role_assignment" "appgwcontributor" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = module.appgateway.id
+  role_definition_name = "Contributor"
+}
+
+// Reader Role for AGIC to the Resource Group
+resource "azurerm_role_assignment" "agic_resourcegroup_reader" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = azurerm_resource_group.main.id
+  role_definition_name = "Reader"
+}
+
+// Managed Identity Operator Role for AGIC to AppGateway Managed Identity
+resource "azurerm_role_assignment" "agic_app_gw_mi" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = module.appgateway.managed_identity_resource_id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Diagnostics Setup
 resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
   name                       = "gw_diagnostics"
   target_resource_id         = module.appgateway.id
@@ -400,7 +508,8 @@ resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
     category = "ApplicationGatewayAccessLog"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -408,7 +517,8 @@ resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
     category = "ApplicationGatewayPerformanceLog"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -416,7 +526,8 @@ resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
     category = "ApplicationGatewayFirewallLog"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -424,7 +535,192 @@ resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
     category = "AllMetrics"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
+  }
+}
+
+#-------------------------------
+# Azure AKS  (cluster.tf)
+#-------------------------------
+module "aks" {
+  source = "../../../modules/providers/azure/aks"
+
+  name                = local.aks_cluster_name
+  resource_group_name = azurerm_resource_group.main.name
+
+  dns_prefix         = local.aks_dns_prefix
+  agent_vm_count     = var.aks_agent_vm_count
+  agent_vm_size      = var.aks_agent_vm_size
+  vnet_subnet_id     = module.network.subnets.1
+  ssh_public_key     = file(var.ssh_public_key_file)
+  kubernetes_version = var.kubernetes_version
+  log_analytics_id   = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  msi_enabled               = true
+  oms_agent_enabled         = true
+  auto_scaling_default_node = true
+  kubeconfig_to_disk        = false
+  enable_kube_dashboard     = false
+
+  resource_tags = var.resource_tags
+}
+
+data "azurerm_resource_group" "aks_node_resource_group" {
+  name = module.aks.node_resource_group
+}
+
+// Identity for Pod Identity
+resource "azurerm_user_assigned_identity" "podidentity" {
+  name                = local.aks_identity_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+// Managed Identity Operator role for AKS to Node Resource Group
+resource "azurerm_role_assignment" "all_mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Virtual Machine Contributor role for AKS to Node Resource Group
+resource "azurerm_role_assignment" "vm_contributor" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Virtual Machine Contributor"
+}
+
+// Azure Container Registry Reader role for AKS to ACR
+resource "azurerm_role_assignment" "acr_reader" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.terraform_remote_state.central_resources.outputs.container_registry_id
+  role_definition_name = "AcrPull"
+}
+
+// Managed Identity Operator role for AKS to Pod Identity
+resource "azurerm_role_assignment" "mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = azurerm_user_assigned_identity.podidentity.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Managed Identity Operator role for AKS to the OSDU Identity
+resource "azurerm_role_assignment" "osdu_identity_mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.terraform_remote_state.central_resources.outputs.osdu_identity_id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Diagnostics Setup
+resource "azurerm_monitor_diagnostic_setting" "aks_diagnostics" {
+  name                       = "aks_diagnostics"
+  target_resource_id         = module.aks.id
+  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  log {
+    category = "cluster-autoscaler"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  log {
+    category = "guard"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "kube-apiserver"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  log {
+    category = "kube-audit"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  log {
+    category = "kube-audit-admin"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  log {
+    category = "kube-controller-manager"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  log {
+    category = "kube-scheduler"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      days    = var.log_retention_days
+      enabled = local.retention_policy
+    }
+  }
+}
+
+
+#-------------------------------
+# Providers  (common.tf)
+#-------------------------------
+
+// Hook-up kubectl Provider for Terraform
+provider "kubernetes" {
+  version                = "~> 1.11.3"
+  load_config_file       = false
+  host                   = module.aks.kube_config_block.0.host
+  username               = module.aks.kube_config_block.0.username
+  password               = module.aks.kube_config_block.0.password
+  client_certificate     = base64decode(module.aks.kube_config_block.0.client_certificate)
+  client_key             = base64decode(module.aks.kube_config_block.0.client_key)
+  cluster_ca_certificate = base64decode(module.aks.kube_config_block.0.cluster_ca_certificate)
+}
+
+// Hook-up helm Provider for Terraform
+provider "helm" {
+  version = "~> 1.2.3"
+
+  kubernetes {
+    load_config_file       = false
+    host                   = module.aks.kube_config_block.0.host
+    username               = module.aks.kube_config_block.0.username
+    password               = module.aks.kube_config_block.0.password
+    client_certificate     = base64decode(module.aks.kube_config_block.0.client_certificate)
+    client_key             = base64decode(module.aks.kube_config_block.0.client_key)
+    cluster_ca_certificate = base64decode(module.aks.kube_config_block.0.cluster_ca_certificate)
   }
 }
