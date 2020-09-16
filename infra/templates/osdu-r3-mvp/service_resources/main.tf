@@ -81,13 +81,14 @@ locals {
   retention_policy    = var.log_retention_days == 0 ? false : true
 
   // airflow.tf
-  storage_name           = "${replace(local.base_name_21, "-", "")}config"
-  storage_account_name   = "airflow-storage"
-  storage_key_name       = "${local.storage_account_name}-key"
-  redis_cache_name       = "${local.base_name}-cache"
-  postgresql_name        = "${local.base_name}-pg"
-  postgres_password      = coalesce(var.postgres_password, random_password.postgres[0].result)
-  airflow_admin_password = coalesce(var.airflow_admin_password, random_password.airflow_admin_password[0].result)
+  storage_name            = "${replace(local.base_name_21, "-", "")}config"
+  storage_account_name    = "airflow-storage"
+  storage_key_name        = "${local.storage_account_name}-key"
+  storage_connection_name = "${local.storage_account_name}-connection"
+  redis_cache_name        = "${local.base_name}-cache"
+  postgresql_name         = "${local.base_name}-pg"
+  postgres_password       = coalesce(var.postgres_password, random_password.postgres[0].result)
+  airflow_admin_password  = coalesce(var.airflow_admin_password, random_password.airflow_admin_password[0].result)
 
   // network.tf
   vnet_name           = "${local.base_name_60}-vnet"
@@ -180,6 +181,13 @@ resource "azurerm_key_vault_secret" "storage_key" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
+// Add the Storage Connection String to the Vault
+resource "azurerm_key_vault_secret" "storage_connection" {
+  name         = local.storage_connection_name
+  value        = format("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=core.windows.net", local.storage_account_name, module.storage_account.primary_access_key)
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
 
 #-------------------------------
 # PostgreSQL (main.tf)
@@ -213,6 +221,12 @@ module "postgreSQL" {
   geo_redundant_backup_enabled = true
   auto_grow_enabled            = true
   ssl_enforcement_enabled      = true
+
+  public_network_access = true
+  firewall_rules = [{
+    start_ip = "0.0.0.0"
+    end_ip   = "0.0.0.0"
+  }]
 
   resource_tags = var.resource_tags
 }

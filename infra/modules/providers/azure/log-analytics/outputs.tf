@@ -21,3 +21,11 @@ output "name" {
   description = "The Log Analytics Workspace Name"
   value       = azurerm_log_analytics_workspace.main.name
 }
+
+output "log_workspace_id" {
+  value = azurerm_log_analytics_workspace.main.workspace_id
+}
+
+output "log_workspace_key" {
+  value = azurerm_log_analytics_workspace.main.primary_shared_key
+}
