@@ -14,7 +14,7 @@
     "service.search.user",
     "data.default.viewers",
     "data.default.owners",
-	"service.schema-service.viewers",
-	"service.schema-service.editors"
+    "service.schema-service.viewers",
+    "service.schema-service.editors"
   ]
 }

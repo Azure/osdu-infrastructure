@@ -35,8 +35,8 @@
         "data.default.viewers",
         "data.default.owners",
         "service.entitlements.admin",
-		"service.schema-service.viewers",
-		"service.schema-service.editors"
+        "service.schema-service.viewers",
+        "service.schema-service.editors"
       ]
     }
   ]
