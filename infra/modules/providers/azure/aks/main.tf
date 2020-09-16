@@ -17,6 +17,7 @@
 // Need to be able to query the identityProfile to get kubelet client information. id, resourceid and client_id
 locals {
   msi_identity_type = "SystemAssigned"
+  log_analytics_id  = var.log_analytics_id == "" ? azurerm_log_analytics_workspace.main.0.id : var.log_analytics_id
 }
 
 data "azurerm_resource_group" "main" {
@@ -34,6 +35,8 @@ resource "random_id" "main" {
 }
 
 resource "azurerm_log_analytics_workspace" "main" {
+  count = var.log_analytics_id == "" ? 1 : 0
+
   name                = lower("${var.name}")
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
@@ -41,12 +44,14 @@ resource "azurerm_log_analytics_workspace" "main" {
 }
 
 resource "azurerm_log_analytics_solution" "main" {
+  count = var.log_analytics_id == "" ? 1 : 0
+
   solution_name       = "ContainerInsights"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
 
-  workspace_resource_id = azurerm_log_analytics_workspace.main.id
-  workspace_name        = azurerm_log_analytics_workspace.main.name
+  workspace_resource_id = azurerm_log_analytics_workspace.main.0.id
+  workspace_name        = azurerm_log_analytics_workspace.main.0.name
 
   plan {
     publisher = "Microsoft"
@@ -73,12 +78,15 @@ resource "azurerm_kubernetes_cluster" "main" {
   }
 
   default_node_pool {
-    name            = "default"
-    node_count      = var.agent_vm_count
-    vm_size         = var.agent_vm_size
-    os_disk_size_gb = 30
-    vnet_subnet_id  = var.vnet_subnet_id
-    max_pods        = var.max_pods
+    name                = "default"
+    node_count          = var.agent_vm_count
+    vm_size             = var.agent_vm_size
+    os_disk_size_gb     = 30
+    vnet_subnet_id      = var.vnet_subnet_id
+    enable_auto_scaling = var.auto_scaling_default_node
+    max_pods            = var.max_pods
+    max_count           = var.auto_scaling_default_node == true ? var.max_node_count : null
+    min_count           = var.auto_scaling_default_node == true ? var.agent_vm_count : null
   }
 
   network_profile {
@@ -115,9 +123,10 @@ resource "azurerm_kubernetes_cluster" "main" {
   }
 
   addon_profile {
+
     oms_agent {
       enabled                    = var.oms_agent_enabled
-      log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+      log_analytics_workspace_id = local.log_analytics_id
     }
 
     # adding this as a patch to disable azurerm provider from redeploying due to unset
@@ -125,6 +134,13 @@ resource "azurerm_kubernetes_cluster" "main" {
     kube_dashboard {
       enabled = var.enable_kube_dashboard
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      default_node_pool[0].node_count,
+      addon_profile[0].oms_agent[0].log_analytics_workspace_id
+    ]
   }
 }
 

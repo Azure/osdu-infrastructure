@@ -21,10 +21,14 @@ spec:
   jwtRules:
     - issuer: "https://login.microsoftonline.com/{{ .Values.global.azure.tenant }}/v2.0"
       jwksUri: "https://login.microsoftonline.com/common/discovery/v2.0/keys"
+      audiences:
+        - "{{ .Values.global.azure.appid }}"
       forwardOriginalToken: TRUE
       outputPayloadToHeader: "x-payload"
     - issuer: "https://sts.windows.net/{{ .Values.global.azure.tenant }}/"
       jwksUri: "https://login.microsoftonline.com/common/discovery/v2.0/keys"
+      audiences:
+        - "{{ .Values.global.azure.appid }}"
       forwardOriginalToken: TRUE
       outputPayloadToHeader: "x-payload"
 

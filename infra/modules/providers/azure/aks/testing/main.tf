@@ -22,15 +22,6 @@ module "resource_group" {
   location = "eastus2"
 }
 
-module "service_principal" {
-  source = "../../service-principal"
-
-  name     = format("osdu-module-%s", module.resource_group.random)
-  role     = "Contributor"
-  scopes   = [module.resource_group.id]
-  end_date = "1W"
-}
-
 module "network" {
   source = "../../network"
 
@@ -65,14 +56,16 @@ data "azurerm_client_config" "current" {}
 module "aks" {
   source = "../"
 
-  name                     = format("osdu-module-cluster-%s", module.resource_group.random)
-  resource_group_name      = module.resource_group.name
-  dns_prefix               = format("osdu-module-cluster-%s", module.resource_group.random)
-  service_principal_id     = module.service_principal.client_id
-  service_principal_secret = module.service_principal.client_secret
+  name                = format("osdu-module-cluster-%s", module.resource_group.random)
+  resource_group_name = module.resource_group.name
+  dns_prefix          = format("osdu-module-cluster-%s", module.resource_group.random)
+  ssh_public_key      = "${trimspace(tls_private_key.key.public_key_openssh)} k8sadmin"
+  vnet_subnet_id      = module.network.subnets.0
 
-  ssh_public_key = "${trimspace(tls_private_key.key.public_key_openssh)} k8sadmin"
-  vnet_subnet_id = module.network.subnets.0
+  msi_enabled           = true
+  kubeconfig_to_disk    = false
+  oms_agent_enabled     = true
+  enable_kube_dashboard = false
 
   resource_tags = {
     osdu = "module"
