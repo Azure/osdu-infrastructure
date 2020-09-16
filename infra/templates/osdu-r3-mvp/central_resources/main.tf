@@ -121,6 +121,8 @@ locals {
   ai_name                 = "${local.base_name}-ai"
   ai_key_name             = "appinsights-key"
   logs_name               = "${local.base_name}-logs"
+  logs_id_name            = "log-workspace-id"
+  logs_key_name           = "log-workspace-key"
 }
 
 #-------------------------------
@@ -297,6 +299,20 @@ module "log_analytics" {
   ]
 
   resource_tags = var.resource_tags
+}
+
+// Add the Log Analytics Id to the Vault
+resource "azurerm_key_vault_secret" "workspace_id" {
+  name         = local.logs_id_name
+  value        = module.log_analytics.log_workspace_id
+  key_vault_id = module.keyvault.keyvault_id
+}
+
+// Add the Log Analtyics Key to the Vault
+resource "azurerm_key_vault_secret" "workspace_key" {
+  name         = local.logs_key_name
+  value        = module.log_analytics.log_workspace_key
+  key_vault_id = module.keyvault.keyvault_id
 }
 
 
