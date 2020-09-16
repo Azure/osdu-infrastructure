@@ -98,6 +98,12 @@ variable "data_partition_name" {
   default     = "opendes"
 }
 
+variable "log_retention_days" {
+  description = "Number of days to retain logs."
+  type        = number
+  default     = 30
+}
+
 variable "storage_containers" {
   description = "The list of storage container names to create. Names must be unique per storage account."
   type        = list(string)
@@ -192,8 +198,10 @@ locals {
   base_name_76 = length(local.base_name) < 77 ? local.base_name : "${substr(local.base_name, 0, 76 - length(local.suffix))}${local.suffix}"
   base_name_83 = length(local.base_name) < 84 ? local.base_name : "${substr(local.base_name, 0, 83 - length(local.suffix))}${local.suffix}"
 
-  resource_group_name  = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
-  storage_name         = "${replace(local.base_name_21, "-", "")}sa"
+  resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
+  retention_policy    = var.log_retention_days == 0 ? false : true
+
+  storage_name         = "${replace(local.base_name_21, "-", "")}data"
   storage_account_name = format("%s-storage", var.data_partition_name)
   storage_key_name     = format("%s-key", local.storage_account_name)
 
@@ -206,9 +214,12 @@ locals {
   sb_namespace_name = format("%s-sb-namespace", var.data_partition_name)
   sb_connection     = format("%s-sb-connection", var.data_partition_name)
 
-  eventgrid_name            = "${local.base_name_21}-grid"
-  eventgrid_domain_name     = format("%s-eventgrid", var.data_partition_name)
-  eventgrid_domian_key_name = format("%s-key", local.eventgrid_domain_name)
+  eventgrid_name                   = "${local.base_name_21}-grid"
+  eventgrid_domain_name            = format("%s-eventgrid", var.data_partition_name)
+  eventgrid_domain_key_name        = format("%s-key", local.eventgrid_domain_name)
+  eventgrid_records_topic          = format("%s-recordstopic", local.eventgrid_name)
+  eventgrid_records_topic_name     = format("%s-recordstopic", local.eventgrid_domain_name)
+  eventgrid_records_topic_endpoint = format("https://%s.%s-1.eventgrid.azure.net/api/events", local.eventgrid_records_topic, var.resource_group_location)
 }
 
 
@@ -250,11 +261,9 @@ resource "azurerm_resource_group" "main" {
   location = var.resource_group_location
 
   tags = var.resource_tags
-
-  lifecycle {
-    ignore_changes = [tags]
-  }
+  lifecycle { ignore_changes = [tags] }
 }
+
 
 
 #-------------------------------
@@ -272,8 +281,6 @@ module "storage_account" {
   resource_tags = var.resource_tags
 }
 
-
-
 // Add the Storage Account Name to the Vault
 resource "azurerm_key_vault_secret" "storage_name" {
   name         = local.storage_account_name
@@ -287,6 +294,8 @@ resource "azurerm_key_vault_secret" "storage_key" {
   value        = module.storage_account.primary_access_key
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
+
+
 
 #-------------------------------
 # CosmosDB
@@ -334,6 +343,7 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
   target_resource_id         = module.cosmosdb_account.account_id
   log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
 
+  // This one always off.
   log {
     category = "CassandraRequests"
     enabled  = false
@@ -348,8 +358,8 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
     category = "ControlPlaneRequests"
 
     retention_policy {
-      days    = 100
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -358,11 +368,12 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
     enabled  = true
 
     retention_policy {
-      days    = 100
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
+  // This one always off.
   log {
     category = "GremlinRequests"
     enabled  = false
@@ -373,6 +384,7 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
     }
   }
 
+  // This one always off.
   log {
     category = "MongoRequests"
     enabled  = false
@@ -387,8 +399,8 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
     category = "PartitionKeyRUConsumption"
 
     retention_policy {
-      days    = 100
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -396,18 +408,18 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
     category = "PartitionKeyStatistics"
 
     retention_policy {
-      days    = 100
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
   log {
     category = "QueryRuntimeStatistics"
-    enabled  = false
+    enabled  = true
 
     retention_policy {
-      days    = 0
-      enabled = false
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -415,7 +427,8 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
     category = "Requests"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 }
@@ -458,8 +471,8 @@ resource "azurerm_monitor_diagnostic_setting" "sb_diagnostics" {
     category = "OperationalLogs"
 
     retention_policy {
-      days    = 100
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -467,8 +480,8 @@ resource "azurerm_monitor_diagnostic_setting" "sb_diagnostics" {
     category = "AllMetrics"
 
     retention_policy {
-      days    = 100
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 }
@@ -481,9 +494,10 @@ module "event_grid" {
 
   name                = local.eventgrid_name
   resource_group_name = azurerm_resource_group.main.name
+
   topics = [
     {
-      name = format("%s-recordstopic", var.data_partition_name)
+      name = local.eventgrid_records_topic
     }
   ]
 
@@ -499,8 +513,15 @@ resource "azurerm_key_vault_secret" "eventgrid_name" {
 
 // Add the Event Grid Key to the Vault
 resource "azurerm_key_vault_secret" "eventgrid_key" {
-  name         = local.eventgrid_domian_key_name
+  name         = local.eventgrid_domain_key_name
   value        = module.event_grid.primary_access_key
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+// Add the Record Topic Name to the Vault
+resource "azurerm_key_vault_secret" "recordstopic_name" {
+  name         = local.eventgrid_records_topic_name
+  value        = local.eventgrid_records_topic_endpoint
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
@@ -514,7 +535,8 @@ resource "azurerm_monitor_diagnostic_setting" "eg_diagnostics" {
     category = "DeliveryFailures"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -522,7 +544,8 @@ resource "azurerm_monitor_diagnostic_setting" "eg_diagnostics" {
     category = "PublishFailures"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 
@@ -530,7 +553,8 @@ resource "azurerm_monitor_diagnostic_setting" "eg_diagnostics" {
     category = "AllMetrics"
 
     retention_policy {
-      enabled = true
+      days    = var.log_retention_days
+      enabled = local.retention_policy
     }
   }
 }

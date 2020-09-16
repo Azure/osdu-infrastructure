@@ -37,6 +37,11 @@ variable "agent_vm_count" {
   default = "2"
 }
 
+variable "max_node_count" {
+  type    = string
+  default = "10"
+}
+
 variable "agent_vm_size" {
   type    = string
   default = "Standard_D2s_v3"
@@ -49,7 +54,7 @@ variable "max_pods" {
 
 variable "kubernetes_version" {
   type    = string
-  default = "1.17.7"
+  default = "1.17.9"
 }
 
 variable "admin_user" {
@@ -114,10 +119,22 @@ variable "network_policy" {
   description = "Network policy to be used with Azure CNI. Either azure or calico."
 }
 
+variable "auto_scaling_default_node" {
+  description = "(Optional) Kubernetes Auto Scaler must be enabled for this main pool"
+  type        = bool
+  default     = false
+}
+
 variable "oms_agent_enabled" {
   default     = "false"
   description = "Enable Azure Monitoring for AKS"
   type        = string
+}
+
+variable "log_analytics_id" {
+  description = "Id of the log analytics workspace"
+  type        = string
+  default     = ""
 }
 
 variable "service_principal_id" {
