@@ -26,6 +26,10 @@
 #-------------------------------
 locals {
   role = "Contributor"
+  rbac_principals = [
+    data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id,
+    data.terraform_remote_state.central_resources.outputs.principal_objectId
+  ]
 
   storage_account_name    = "airflow-storage"
   storage_key_name        = "${local.storage_account_name}-key"
@@ -63,10 +67,30 @@ resource "azurerm_key_vault_secret" "storage_connection" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add Access Control to Principal
+// Add Contributor Role Access
 resource "azurerm_role_assignment" "storage_access" {
+  count = length(local.rbac_principals)
+
   role_definition_name = local.role
-  principal_id         = data.terraform_remote_state.central_resources.outputs.principal_objectId
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.storage_account.id
+}
+
+// Add Storage Queue Data Reader Role Access 
+resource "azurerm_role_assignment" "queue_reader" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = "Storage Queue Data Reader"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.storage_account.id
+}
+
+// Add Storage Queue Data Message Processor Role Access 
+resource "azurerm_role_assignment" "airflow_log_queue_processor_roles" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = "Storage Queue Data Message Processor"
+  principal_id         = local.rbac_principals[count.index]
   scope                = module.storage_account.id
 }
 
@@ -82,10 +106,12 @@ resource "azurerm_key_vault_secret" "postgres_password" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add Access Control to Principal
+// Add Contributor Role Access
 resource "azurerm_role_assignment" "postgres_access" {
+  count = length(local.rbac_principals)
+
   role_definition_name = local.role
-  principal_id         = data.terraform_remote_state.central_resources.outputs.principal_objectId
+  principal_id         = local.rbac_principals[count.index]
   scope                = module.postgreSQL.server_id
 }
 
@@ -101,10 +127,12 @@ resource "azurerm_key_vault_secret" "redis_password" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add Access Control to Principal
+// Add Contributor Role Access
 resource "azurerm_role_assignment" "redis_cache" {
+  count = length(local.rbac_principals)
+
   role_definition_name = local.role
-  principal_id         = data.terraform_remote_state.central_resources.outputs.principal_objectId
+  principal_id         = local.rbac_principals[count.index]
   scope                = module.redis_cache.id
 }
 
@@ -168,60 +196,4 @@ resource "azurerm_key_vault_certificate" "default" {
       validity_in_months = 12
     }
   }
-}
-
-// Add Access Control to Principal
-resource "azurerm_role_assignment" "network" {
-  role_definition_name = local.role
-  principal_id         = data.terraform_remote_state.central_resources.outputs.principal_objectId
-  scope                = module.network.id
-}
-
-
-// Add Access Control to Principal
-resource "azurerm_role_assignment" "app_gateway" {
-  role_definition_name = local.role
-  principal_id         = data.terraform_remote_state.central_resources.outputs.principal_objectId
-  scope                = module.appgateway.id
-}
-
-
-#-------------------------------
-# Airflow (main.tf)
-#-------------------------------
-
-resource "random_password" "airflow_admin_password" {
-  count = var.airflow_admin_password == "" ? 1 : 0
-
-  length           = 8
-  special          = true
-  override_special = "_%@"
-  min_upper        = 1
-  min_lower        = 1
-  min_numeric      = 1
-  min_special      = 1
-}
-
-resource "random_string" "airflow_fernete_key_rnd" {
-  keepers = {
-    postgresql_name = local.postgresql_name
-  }
-  length      = 32
-  special     = true
-  min_upper   = 1
-  min_lower   = 1
-  min_numeric = 1
-  min_special = 1
-}
-
-resource "azurerm_key_vault_secret" "airflow_fernet_key_secret" {
-  name         = "airflow-fernet-key"
-  value        = base64encode(random_string.airflow_fernete_key_rnd.result)
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-resource "azurerm_key_vault_secret" "airflow_admin_password" {
-  name         = "airflow-admin-password"
-  value        = local.airflow_admin_password
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }

@@ -26,6 +26,10 @@
 #-------------------------------
 locals {
   role = "Contributor"
+  rbac_principals = [
+    data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id,
+    data.terraform_remote_state.central_resources.outputs.principal_objectId
+  ]
 
   storage_account_name = format("%s-storage", var.data_partition_name)
   storage_key_name     = format("%s-key", local.storage_account_name)
@@ -66,8 +70,10 @@ resource "azurerm_key_vault_secret" "storage_key" {
 
 // Add Access Control to Principal
 resource "azurerm_role_assignment" "storage_access" {
+  count = length(local.rbac_principals)
+
   role_definition_name = local.role
-  principal_id         = data.terraform_remote_state.central_resources.outputs.principal_objectId
+  principal_id         = local.rbac_principals[count.index]
   scope                = module.storage_account.id
 }
 
@@ -98,8 +104,10 @@ resource "azurerm_key_vault_secret" "cosmos_key" {
 
 // Add Access Control to Principal
 resource "azurerm_role_assignment" "cosmos_access" {
+  count = length(local.rbac_principals)
+
   role_definition_name = local.role
-  principal_id         = data.terraform_remote_state.central_resources.outputs.principal_objectId
+  principal_id         = local.rbac_principals[count.index]
   scope                = module.cosmosdb_account.account_id
 }
 
@@ -123,8 +131,10 @@ resource "azurerm_key_vault_secret" "sb_connection" {
 
 // Add Access Control to Principal
 resource "azurerm_role_assignment" "sb_access" {
+  count = length(local.rbac_principals)
+
   role_definition_name = local.role
-  principal_id         = data.terraform_remote_state.central_resources.outputs.principal_objectId
+  principal_id         = local.rbac_principals[count.index]
   scope                = module.service_bus.id
 }
 
@@ -155,7 +165,9 @@ resource "azurerm_key_vault_secret" "recordstopic_name" {
 
 // Add Access Control to Principal
 resource "azurerm_role_assignment" "eventgrid_access" {
+  count = length(local.rbac_principals)
+
   role_definition_name = local.role
-  principal_id         = data.terraform_remote_state.central_resources.outputs.principal_objectId
+  principal_id         = local.rbac_principals[count.index]
   scope                = module.event_grid.id
 }
