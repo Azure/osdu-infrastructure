@@ -483,6 +483,11 @@ output "osdu_identity_client_id" {
   value       = azurerm_user_assigned_identity.osduidentity.client_id
 }
 
+output "principal_objectId" {
+  description = "The service principal application object id"
+  value       = var.principal_objectId
+}
+
 output "elasticsearch_endpoint" {
   description = "The elastic search endpoint"
   value       = var.elasticsearch_endpoint
