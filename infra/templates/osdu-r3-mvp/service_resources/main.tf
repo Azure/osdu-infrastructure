@@ -55,12 +55,37 @@ provider "null" {
   version = "~>2.1.0"
 }
 
+// Hook-up kubectl Provider for Terraform
+provider "kubernetes" {
+  version                = "~> 1.11.3"
+  load_config_file       = false
+  host                   = module.aks.kube_config_block.0.host
+  username               = module.aks.kube_config_block.0.username
+  password               = module.aks.kube_config_block.0.password
+  client_certificate     = base64decode(module.aks.kube_config_block.0.client_certificate)
+  client_key             = base64decode(module.aks.kube_config_block.0.client_key)
+  cluster_ca_certificate = base64decode(module.aks.kube_config_block.0.cluster_ca_certificate)
+}
 
+// Hook-up helm Provider for Terraform
+provider "helm" {
+  version = "~> 1.2.3"
+
+  kubernetes {
+    load_config_file       = false
+    host                   = module.aks.kube_config_block.0.host
+    username               = module.aks.kube_config_block.0.username
+    password               = module.aks.kube_config_block.0.password
+    client_certificate     = base64decode(module.aks.kube_config_block.0.client_certificate)
+    client_key             = base64decode(module.aks.kube_config_block.0.client_key)
+    cluster_ca_certificate = base64decode(module.aks.kube_config_block.0.cluster_ca_certificate)
+  }
+}
 
 
 
 #-------------------------------
-# Private Variables  (common.tf)
+# Private Variables
 #-------------------------------
 locals {
   // sanitize names
@@ -80,17 +105,11 @@ locals {
   resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
   retention_policy    = var.log_retention_days == 0 ? false : true
 
-  // airflow.tf
-  storage_name            = "${replace(local.base_name_21, "-", "")}config"
-  storage_account_name    = "airflow-storage"
-  storage_key_name        = "${local.storage_account_name}-key"
-  storage_connection_name = "${local.storage_account_name}-connection"
-  redis_cache_name        = "${local.base_name}-cache"
-  postgresql_name         = "${local.base_name}-pg"
-  postgres_password       = coalesce(var.postgres_password, random_password.postgres[0].result)
-  airflow_admin_password  = coalesce(var.airflow_admin_password, random_password.airflow_admin_password[0].result)
+  storage_name = "${replace(local.base_name_21, "-", "")}config"
 
-  // network.tf
+  redis_cache_name = "${local.base_name}-cache"
+  postgresql_name  = "${local.base_name}-pg"
+
   vnet_name           = "${local.base_name_60}-vnet"
   fe_subnet_name      = "${local.base_name_21}-fe-subnet"
   aks_subnet_name     = "${local.base_name_21}-aks-subnet"
@@ -99,15 +118,17 @@ locals {
   appgw_identity_name = format("%s-agic-identity", local.app_gw_name)
   ssl_cert_name       = "appgw-ssl-cert"
 
-  // cluster.tf
   aks_cluster_name  = "${local.base_name_21}-aks"
   aks_identity_name = format("%s-pod-identity", local.aks_cluster_name)
   aks_dns_prefix    = local.base_name_60
+
+  airflow_admin_password = coalesce(var.airflow_admin_password, random_password.airflow_admin_password[0].result)
 }
 
 
+
 #-------------------------------
-# Common Resources  (common.tf)
+# Common Resources
 #-------------------------------
 data "azurerm_client_config" "current" {}
 data "azurerm_subscription" "current" {}
@@ -135,6 +156,7 @@ resource "random_string" "workspace_scope" {
 }
 
 
+
 #-------------------------------
 # Resource Group
 #-------------------------------
@@ -148,6 +170,7 @@ resource "azurerm_resource_group" "main" {
     ignore_changes = [tags]
   }
 }
+
 
 
 #-------------------------------
@@ -167,30 +190,10 @@ module "storage_account" {
   resource_tags = var.resource_tags
 }
 
-// Add the Storage Account Name to the Vault
-resource "azurerm_key_vault_secret" "storage_name" {
-  name         = local.storage_account_name
-  value        = module.storage_account.name
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-// Add the Storage Key to the Vault
-resource "azurerm_key_vault_secret" "storage_key" {
-  name         = local.storage_key_name
-  value        = module.storage_account.primary_access_key
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-// Add the Storage Connection String to the Vault
-resource "azurerm_key_vault_secret" "storage_connection" {
-  name         = local.storage_connection_name
-  value        = format("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=core.windows.net", local.storage_account_name, module.storage_account.primary_access_key)
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
 
 
 #-------------------------------
-# PostgreSQL (main.tf)
+# PostgreSQL
 #-------------------------------
 resource "random_password" "postgres" {
   count = var.postgres_password == "" ? 1 : 0
@@ -231,59 +234,11 @@ module "postgreSQL" {
   resource_tags = var.resource_tags
 }
 
-resource "azurerm_key_vault_secret" "postgres_password" {
-  name         = "postgres-password"
-  value        = local.postgres_password
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-// Diagnostics Setup
-resource "azurerm_monitor_diagnostic_setting" "postgres_diagnostics" {
-  name                       = "postgres_diagnostics"
-  target_resource_id         = module.postgreSQL.server_id
-  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
-
-  log {
-    category = "PostgreSQLLogs"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "QueryStoreRuntimeStatistics"
-
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  log {
-    category = "QueryStoreWaitStatistics"
-
-    retention_policy {
-      enabled = false
-    }
-  }
-
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
 
 
 #-------------------------------
-# Azure Redis Cache (main.tf)
+# Azure Redis Cache
 #-------------------------------
-
 module "redis_cache" {
   source = "../../../modules/providers/azure/redis-cache"
 
@@ -297,73 +252,10 @@ module "redis_cache" {
   resource_tags = var.resource_tags
 }
 
-resource "azurerm_key_vault_secret" "redis_password" {
-  name         = "redis-password"
-  value        = module.redis_cache.primary_access_key
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-// Diagnostics Setup
-resource "azurerm_monitor_diagnostic_setting" "redis_diagnostics" {
-  name                       = "redis_diagnostics"
-  target_resource_id         = module.redis_cache.id
-  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
-
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
 
 
 #-------------------------------
-# Airflow (main.tf)
-#-------------------------------
-
-resource "random_password" "airflow_admin_password" {
-  count = var.airflow_admin_password == "" ? 1 : 0
-
-  length           = 8
-  special          = true
-  override_special = "_%@"
-  min_upper        = 1
-  min_lower        = 1
-  min_numeric      = 1
-  min_special      = 1
-}
-
-resource "random_string" "airflow_fernete_key_rnd" {
-  keepers = {
-    postgresql_name = local.postgresql_name
-  }
-  length      = 32
-  special     = true
-  min_upper   = 1
-  min_lower   = 1
-  min_numeric = 1
-  min_special = 1
-}
-
-resource "azurerm_key_vault_secret" "airflow_fernet_key_secret" {
-  name         = "airflow-fernet-key"
-  value        = base64encode(random_string.airflow_fernete_key_rnd.result)
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-resource "azurerm_key_vault_secret" "airflow_admin_password" {
-  name         = "airflow-admin-password"
-  value        = local.airflow_admin_password
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-
-#-------------------------------
-# Network (main.tf)
+# Network
 #-------------------------------
 module "network" {
   source = "../../../modules/providers/azure/network"
@@ -375,90 +267,6 @@ module "network" {
   subnet_names        = [local.fe_subnet_name, local.aks_subnet_name, local.be_subnet_name]
 
   resource_tags = var.resource_tags
-}
-
-// Diagnostics Setup
-resource "azurerm_monitor_diagnostic_setting" "vnet_diagnostics" {
-  name                       = "vnet_diagnostics"
-  target_resource_id         = module.network.id
-  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
-
-  log {
-    category = "VMProtectionAlerts"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
-
-# Create a Default SSL Certificate.
-resource "azurerm_key_vault_certificate" "default" {
-  count = var.ssl_certificate_file == "" ? 1 : 0
-
-  name         = local.ssl_cert_name
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = true
-    }
-
-    lifetime_action {
-      action {
-        action_type = "AutoRenew"
-      }
-
-      trigger {
-        days_before_expiry = 30
-      }
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-
-    x509_certificate_properties {
-      # Server Authentication = 1.3.6.1.5.5.7.3.1
-      # Client Authentication = 1.3.6.1.5.5.7.3.2
-      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
-
-      key_usage = [
-        "cRLSign",
-        "dataEncipherment",
-        "digitalSignature",
-        "keyAgreement",
-        "keyCertSign",
-        "keyEncipherment",
-      ]
-
-      subject_alternative_names {
-        dns_names = [var.dns_name, "${local.base_name}-gw.${azurerm_resource_group.main.location}.cloudapp.azure.com"]
-      }
-
-      subject            = "CN=*.contoso.com"
-      validity_in_months = 12
-    }
-  }
 }
 
 module "appgateway" {
@@ -511,52 +319,10 @@ resource "azurerm_role_assignment" "agic_app_gw_mi" {
   role_definition_name = "Managed Identity Operator"
 }
 
-// Diagnostics Setup
-resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
-  name                       = "gw_diagnostics"
-  target_resource_id         = module.appgateway.id
-  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
 
-
-  log {
-    category = "ApplicationGatewayAccessLog"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "ApplicationGatewayPerformanceLog"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "ApplicationGatewayFirewallLog"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
 
 #-------------------------------
-# Azure AKS  (cluster.tf)
+# Azure AKS
 #-------------------------------
 module "aks" {
   source = "../../../modules/providers/azure/aks"
@@ -625,116 +391,4 @@ resource "azurerm_role_assignment" "osdu_identity_mi_operator" {
   principal_id         = module.aks.kubelet_object_id
   scope                = data.terraform_remote_state.central_resources.outputs.osdu_identity_id
   role_definition_name = "Managed Identity Operator"
-}
-
-// Diagnostics Setup
-resource "azurerm_monitor_diagnostic_setting" "aks_diagnostics" {
-  name                       = "aks_diagnostics"
-  target_resource_id         = module.aks.id
-  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
-
-  log {
-    category = "cluster-autoscaler"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "guard"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  log {
-    category = "kube-apiserver"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "kube-audit"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "kube-audit-admin"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "kube-controller-manager"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "kube-scheduler"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
-
-
-#-------------------------------
-# Providers  (common.tf)
-#-------------------------------
-
-// Hook-up kubectl Provider for Terraform
-provider "kubernetes" {
-  version                = "~> 1.11.3"
-  load_config_file       = false
-  host                   = module.aks.kube_config_block.0.host
-  username               = module.aks.kube_config_block.0.username
-  password               = module.aks.kube_config_block.0.password
-  client_certificate     = base64decode(module.aks.kube_config_block.0.client_certificate)
-  client_key             = base64decode(module.aks.kube_config_block.0.client_key)
-  cluster_ca_certificate = base64decode(module.aks.kube_config_block.0.cluster_ca_certificate)
-}
-
-// Hook-up helm Provider for Terraform
-provider "helm" {
-  version = "~> 1.2.3"
-
-  kubernetes {
-    load_config_file       = false
-    host                   = module.aks.kube_config_block.0.host
-    username               = module.aks.kube_config_block.0.username
-    password               = module.aks.kube_config_block.0.password
-    client_certificate     = base64decode(module.aks.kube_config_block.0.client_certificate)
-    client_key             = base64decode(module.aks.kube_config_block.0.client_key)
-    cluster_ca_certificate = base64decode(module.aks.kube_config_block.0.cluster_ca_certificate)
-  }
 }
