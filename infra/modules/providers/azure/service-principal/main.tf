@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 resource "random_password" "main" {
-  count   = var.password == "" ? 1 : 0
+  count   = local.create_count != 0 && var.password != null ? 1 : 0
   length  = 32
   special = false
 }
@@ -60,7 +60,7 @@ resource "azurerm_role_assignment" "main" {
 }
 
 resource "azuread_service_principal_password" "main" {
-  count                = var.password != null ? 1 : 0
+  count                = local.create_count != 0 && var.password != null ? 1 : 0
   service_principal_id = azuread_service_principal.main[0].id
 
   value             = coalesce(var.password, random_password.main[0].result)
