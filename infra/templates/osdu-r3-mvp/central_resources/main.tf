@@ -95,6 +95,18 @@ variable "resource_tags" {
   default     = {}
 }
 
+variable "principal_secret" {
+  description = "The password of the service principal. Required when create_for_rbac=true"
+  type        = string
+  default     = ""
+}
+
+variable "principal_id" {
+  description = "The clientId of the service principal. Required when create_for_rbac=true"
+  type        = string
+  default     = ""
+}
+
 #-------------------------------
 # Private Variables  (common.tf)
 #-------------------------------
@@ -326,6 +338,32 @@ resource "azurerm_user_assigned_identity" "osduidentity" {
   location            = azurerm_resource_group.main.location
 
   tags = var.resource_tags
+}
+
+
+#-------------------------------
+# AD Principal and Applications
+#-------------------------------
+module "service_principal" {
+  source = "../../../modules/providers/azure/service-principal"
+
+  // If these values are not empty then module should create otherwise module will skip.
+  principal_id     = var.principal_id
+  principal_secret = var.principal_secret
+
+  create_for_rbac = true
+  name            = local.ad_app_management_name
+  role            = "Contributor"
+  scopes          = local.rbac_contributor_scopes
+
+  api_permissions = [
+    {
+      name = "Microsoft Graph"
+      app_roles = [
+        "Directory.Read.All"
+      ]
+    }
+  ]
 }
 
 
