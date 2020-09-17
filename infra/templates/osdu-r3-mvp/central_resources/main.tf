@@ -95,16 +95,24 @@ variable "resource_tags" {
   default     = {}
 }
 
-variable "principal_secret" {
-  description = "The password of the service principal. Required when create_for_rbac=true"
+variable "principal_name" {
+  description = "Existing Service Principal Name."
   type        = string
-  default     = ""
 }
 
-variable "principal_id" {
-  description = "The clientId of the service principal. Required when create_for_rbac=true"
+variable "principal_password" {
+  description = "Existing Service Principal Password."
   type        = string
-  default     = ""
+}
+
+variable "principal_appId" {
+  description = "Existing Service Principal AppId."
+  type        = string
+}
+
+variable "principal_objectId" {
+  description = "Existing Service Principal ObjectId."
+  type        = string
 }
 
 #-------------------------------
@@ -135,6 +143,12 @@ locals {
   logs_name               = "${local.base_name}-logs"
   logs_id_name            = "log-workspace-id"
   logs_key_name           = "log-workspace-key"
+  ad_app_name             = "${local.base_name}-app"
+
+  rbac_contributor_scopes = concat(
+    [module.container_registry.container_registry_id],
+    [module.keyvault.keyvault_id]
+  )
 }
 
 #-------------------------------
@@ -347,23 +361,59 @@ resource "azurerm_user_assigned_identity" "osduidentity" {
 module "service_principal" {
   source = "../../../modules/providers/azure/service-principal"
 
-  // If these values are not empty then module should create otherwise module will skip.
-  principal_id     = var.principal_id
-  principal_secret = var.principal_secret
+  name   = var.principal_name
+  scopes = local.rbac_contributor_scopes
+  role   = "Contributor"
 
-  create_for_rbac = true
-  name            = local.ad_app_management_name
-  role            = "Contributor"
-  scopes          = local.rbac_contributor_scopes
+  create_for_rbac = false
+  object_id       = var.principal_objectId
+
+  principal = {
+    name     = var.principal_name
+    appId    = var.principal_appId
+    password = var.principal_password
+  }
+}
+
+// Add the Service Principal Id
+resource "azurerm_key_vault_secret" "principal_id" {
+  name         = "app-dev-sp-username"
+  value        = module.service_principal.client_id
+  key_vault_id = module.keyvault.keyvault_id
+}
+
+// Add the Service Principal Id
+resource "azurerm_key_vault_secret" "principal_secret" {
+  name         = "app-dev-sp-password"
+  value        = module.service_principal.client_secret
+  key_vault_id = module.keyvault.keyvault_id
+}
+
+module "ad_application" {
+  source                     = "../../../modules/providers/azure/ad-application"
+  name                       = local.ad_app_name
+  oauth2_allow_implicit_flow = true
+
+  reply_urls = [
+    "http://localhost:8080",
+    "http://localhost:8080/auth/callback"
+  ]
 
   api_permissions = [
     {
       name = "Microsoft Graph"
-      app_roles = [
-        "Directory.Read.All"
+      oauth2_permissions = [
+        "User.Read"
       ]
     }
   ]
+}
+
+// Add Application Information to KV
+resource "azurerm_key_vault_secret" "application_id" {
+  name         = "aad-client-id"
+  value        = module.ad_application.id
+  key_vault_id = module.keyvault.keyvault_id
 }
 
 
