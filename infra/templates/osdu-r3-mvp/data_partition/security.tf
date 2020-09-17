@@ -22,7 +22,7 @@
 
 
 #-------------------------------
-# Private Variables  (common.tf)
+# Private Variables
 #-------------------------------
 locals {
   role = "Contributor"
@@ -46,7 +46,6 @@ locals {
   eventgrid_records_topic_name     = format("%s-recordstopic", local.eventgrid_domain_name)
   eventgrid_records_topic_endpoint = format("https://%s.%s-1.eventgrid.azure.net/api/events", local.eventgrid_records_topic, var.resource_group_location)
 }
-
 
 
 
@@ -78,9 +77,11 @@ resource "azurerm_role_assignment" "storage_access" {
 }
 
 
+
 #-------------------------------
 # CosmosDB
 #-------------------------------
+
 // Add the CosmosDB Connection to the Vault
 resource "azurerm_key_vault_secret" "cosmos_connection" {
   name         = local.cosmos_connection
@@ -112,9 +113,11 @@ resource "azurerm_role_assignment" "cosmos_access" {
 }
 
 
+
 #-------------------------------
-# Azure Service Bus (main.tf)
+# Azure Service Bus
 #-------------------------------
+
 // Add the ServiceBus Connection to the Vault
 resource "azurerm_key_vault_secret" "sb_namespace" {
   name         = local.sb_namespace_name
@@ -139,9 +142,11 @@ resource "azurerm_role_assignment" "sb_access" {
 }
 
 
+
 #-------------------------------
-# Azure Event Grid (main.tf)
+# Azure Event Grid
 #-------------------------------
+
 // Add the Event Grid Name to the Vault
 resource "azurerm_key_vault_secret" "eventgrid_name" {
   name         = local.eventgrid_domain_name

@@ -21,7 +21,7 @@
 
 
 #-------------------------------
-# Application Variables  (var.tf)
+# Application Variables
 #-------------------------------
 variable "prefix" {
   description = "(Required) An identifier used to construct the names of all resources in this template."

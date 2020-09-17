@@ -12,6 +12,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+#-------------------------------
+# Flux
+#-------------------------------
+
 locals {
   helm_flux_name    = "flux"
   helm_flux_ns      = "flux"
