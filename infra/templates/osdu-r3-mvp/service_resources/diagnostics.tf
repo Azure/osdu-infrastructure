@@ -23,7 +23,6 @@
 #-------------------------------
 # PostgreSQL
 #-------------------------------
-
 resource "azurerm_monitor_diagnostic_setting" "postgres_diagnostics" {
   name                       = "postgres_diagnostics"
   target_resource_id         = module.postgreSQL.server_id
@@ -66,10 +65,10 @@ resource "azurerm_monitor_diagnostic_setting" "postgres_diagnostics" {
 }
 
 
+
 #-------------------------------
 # Azure Redis Cache
 #-------------------------------
-
 resource "azurerm_monitor_diagnostic_setting" "redis_diagnostics" {
   name                       = "redis_diagnostics"
   target_resource_id         = module.redis_cache.id
@@ -89,7 +88,6 @@ resource "azurerm_monitor_diagnostic_setting" "redis_diagnostics" {
 #-------------------------------
 # Network
 #-------------------------------
-
 resource "azurerm_monitor_diagnostic_setting" "vnet_diagnostics" {
   name                       = "vnet_diagnostics"
   target_resource_id         = module.network.id
@@ -160,10 +158,10 @@ resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
 }
 
 
+
 #-------------------------------
 # Azure AKS
 #-------------------------------
-
 resource "azurerm_monitor_diagnostic_setting" "aks_diagnostics" {
   name                       = "aks_diagnostics"
   target_resource_id         = module.aks.id

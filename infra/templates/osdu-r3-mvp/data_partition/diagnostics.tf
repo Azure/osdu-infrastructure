@@ -24,7 +24,6 @@
 #-------------------------------
 # CosmosDB
 #-------------------------------
-
 resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
   name                       = "db_diagnostics"
   target_resource_id         = module.cosmosdb_account.account_id
@@ -121,10 +120,10 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
 }
 
 
+
 #-------------------------------
 # Azure Service Bus (main.tf)
 #-------------------------------
-
 resource "azurerm_monitor_diagnostic_setting" "sb_diagnostics" {
   name                       = "sb_diagnostics"
   target_resource_id         = module.service_bus.id

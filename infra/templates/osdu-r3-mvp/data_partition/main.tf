@@ -27,6 +27,8 @@ terraform {
   }
 }
 
+
+
 #-------------------------------
 # Providers
 #-------------------------------
@@ -52,136 +54,9 @@ provider "null" {
 }
 
 
-#-------------------------------
-# Application Variables  (variables.tf)
-#-------------------------------
-variable "prefix" {
-  description = "The workspace prefix defining the project area for this terraform deployment."
-  type        = string
-}
-
-variable "randomization_level" {
-  description = "Number of additional random characters to include in resource names to insulate against unexpected resource name collisions."
-  type        = number
-  default     = 4
-}
-
-variable "remote_state_account" {
-  description = "Remote Terraform State Azure storage account name. This is typically set as an environment variable and used for the initial terraform init."
-  type        = string
-}
-
-variable "remote_state_container" {
-  description = "Remote Terraform State Azure storage container name. This is typically set as an environment variable and used for the initial terraform init."
-  type        = string
-}
-
-variable "central_resources_workspace_name" {
-  description = "(Required) The workspace name for the central_resources repository terraform environment / template to reference for this template."
-  type        = string
-}
-
-variable "resource_tags" {
-  description = "Map of tags to apply to this template."
-  type        = map(string)
-  default     = {}
-}
-
-variable "resource_group_location" {
-  description = "The Azure region where data storage resources in this template should be created."
-  type        = string
-}
-
-variable "data_partition_name" {
-  description = "The OSDU data Partition Name."
-  type        = string
-  default     = "opendes"
-}
-
-variable "log_retention_days" {
-  description = "Number of days to retain logs."
-  type        = number
-  default     = 30
-}
-
-variable "storage_containers" {
-  description = "The list of storage container names to create. Names must be unique per storage account."
-  type        = list(string)
-}
-
-variable "cosmosdb_replica_location" {
-  description = "The name of the Azure region to host replicated data. i.e. 'East US' 'East US 2'. More locations can be found at https://azure.microsoft.com/en-us/global-infrastructure/locations/"
-  type        = string
-}
-
-variable "cosmosdb_consistency_level" {
-  description = "The level of consistency backed by SLAs for Cosmos database. Developers can chose from five well-defined consistency levels on the consistency spectrum."
-  type        = string
-  default     = "Session"
-}
-
-variable "cosmosdb_automatic_failover" {
-  description = "Determines if automatic failover is enabled for CosmosDB."
-  type        = bool
-  default     = true
-}
-
-variable "cosmos_databases" {
-  description = "The list of Cosmos DB SQL Databases."
-  type = list(object({
-    name       = string
-    throughput = number
-  }))
-  default = []
-}
-
-variable "cosmos_sql_collections" {
-  description = "The list of cosmos collection names to create. Names must be unique per cosmos instance."
-  type = list(object({
-    name               = string
-    database_name      = string
-    partition_key_path = string
-    throughput         = number
-  }))
-  default = []
-}
-
-variable "sb_sku" {
-  description = "The SKU of the namespace. The options are: `Basic`, `Standard`, `Premium`."
-  type        = string
-  default     = "Standard"
-}
-
-variable "sb_topics" {
-  type = list(object({
-    name                = string
-    enable_partitioning = bool
-    subscriptions = list(object({
-      name               = string
-      max_delivery_count = number
-      lock_duration      = string
-      forward_to         = string
-    }))
-  }))
-  default = [
-    {
-      name                = "topic_test"
-      enable_partitioning = true
-      subscriptions = [
-        {
-          name               = "sub_test"
-          max_delivery_count = 1
-          lock_duration      = "PT5M"
-          forward_to         = ""
-        }
-      ]
-    }
-  ]
-}
-
 
 #-------------------------------
-# Private Variables  (common.tf)
+# Private Variables
 #-------------------------------
 locals {
   // sanitize names
@@ -209,8 +84,9 @@ locals {
 }
 
 
+
 #-------------------------------
-# Common Resources  (common.tf)
+# Common Resources
 #-------------------------------
 data "azurerm_client_config" "current" {}
 data "azurerm_subscription" "current" {}
@@ -289,7 +165,7 @@ module "cosmosdb_account" {
 
 
 #-------------------------------
-# Azure Service Bus (main.tf)
+# Azure Service Bus
 #-------------------------------
 module "service_bus" {
   source = "../../../modules/providers/azure/service-bus2"
@@ -305,7 +181,7 @@ module "service_bus" {
 
 
 #-------------------------------
-# Azure Event Grid (main.tf)
+# Azure Event Grid
 #-------------------------------
 module "event_grid" {
   source = "../../../modules/providers/azure/event-grid"
@@ -337,44 +213,4 @@ resource "azurerm_management_lock" "db_lock" {
   name       = "osdu_ds_db_lock"
   scope      = module.cosmosdb_account.properties.cosmosdb.id
   lock_level = "CanNotDelete"
-}
-
-
-
-#-------------------------------
-# Output Variables  (output.tf)
-#-------------------------------
-output "data_partition_group_name" {
-  description = "The name of the resource group"
-  value       = azurerm_resource_group.main.name
-}
-
-output "data_partition_group_id" {
-  description = "The resource id for the provisioned resource group"
-  value       = azurerm_resource_group.main.id
-}
-
-output "storage_account" {
-  description = "The name of the storage account."
-  value       = module.storage_account.name
-}
-
-output "storage_account_id" {
-  description = "The resource id of the storage account instance"
-  value       = module.storage_account.id
-}
-
-output "storage_containers" {
-  description = "Map of storage account containers."
-  value       = module.storage_account.containers
-}
-
-output "cosmosdb_account_name" {
-  description = "The name of the CosmosDB account."
-  value       = module.cosmosdb_account.account_name
-}
-
-output "cosmosdb_properties" {
-  description = "Properties of the deployed CosmosDB account."
-  value       = module.cosmosdb_account.properties
 }

@@ -20,6 +20,9 @@
    This file holds airflow specific settings.
 */
 
+#-------------------------------
+# PostgreSQL
+#-------------------------------
 resource "random_password" "airflow_admin_password" {
   count = var.airflow_admin_password == "" ? 1 : 0
 
@@ -73,5 +76,4 @@ resource "azurerm_eventgrid_event_subscription" "airflow_log_event_subscription"
   subject_filter {
     subject_begins_with = "/blobServices/default/containers/airflow-logs/blobs"
   }
-
 }

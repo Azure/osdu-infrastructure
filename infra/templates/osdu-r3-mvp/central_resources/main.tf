@@ -43,80 +43,10 @@ provider "random" {
   version = "~>2.2"
 }
 
-#-------------------------------
-# Application Variables  (variables.tf)
-#-------------------------------
-variable "prefix" {
-  description = "(Required) An identifier used to construct the names of all resources in this template."
-  type        = string
-}
 
-variable "randomization_level" {
-  description = "Number of additional random characters to include in resource names to insulate against unexpected resource name collisions."
-  type        = number
-  default     = 4
-}
-
-variable "resource_group_location" {
-  description = "The Azure region where container registry resources in this template should be created."
-  type        = string
-}
-
-variable "log_retention_days" {
-  description = "Number of days to retain logs."
-  type        = number
-  default     = 30
-}
-
-variable "container_registry_sku" {
-  description = "(Optional) The SKU name of the the container registry. Possible values are Basic, Standard and Premium."
-  type        = string
-  default     = "Standard"
-}
-
-variable "elasticsearch_endpoint" {
-  type        = string
-  description = "endpoint for elasticsearch cluster"
-}
-
-variable "elasticsearch_username" {
-  type        = string
-  description = "username for elasticsearch cluster"
-}
-
-variable "elasticsearch_password" {
-  type        = string
-  description = "password for elasticsearch cluster"
-}
-
-variable "resource_tags" {
-  description = "Map of tags to apply to this template."
-  type        = map(string)
-  default     = {}
-}
-
-variable "principal_name" {
-  description = "Existing Service Principal Name."
-  type        = string
-}
-
-variable "principal_password" {
-  description = "Existing Service Principal Password."
-  type        = string
-}
-
-variable "principal_appId" {
-  description = "Existing Service Principal AppId."
-  type        = string
-}
-
-variable "principal_objectId" {
-  description = "Existing Service Principal ObjectId."
-  type        = string
-}
 
 #-------------------------------
-# Private Variables  (common.tf)
+# Private Variables
 #-------------------------------
 locals {
   // sanitize names
@@ -139,22 +69,15 @@ locals {
   container_registry_name = "${replace(local.base_name_21, "-", "")}cr"
   osdupod_identity_name   = "${local.base_name}-osdu-identity"
   ai_name                 = "${local.base_name}-ai"
-  ai_key_name             = "appinsights-key"
   logs_name               = "${local.base_name}-logs"
-  logs_id_name            = "log-workspace-id"
-  logs_key_name           = "log-workspace-key"
   ad_app_name             = "${local.base_name}-app"
-
-  rbac_contributor_scopes = concat(
-    [module.container_registry.container_registry_id],
-    [module.keyvault.keyvault_id]
-  )
 }
 
-#-------------------------------
-# Common Resources  (common.tf)
-#-------------------------------
 
+
+#-------------------------------
+# Common Resources
+#-------------------------------
 data "azurerm_client_config" "current" {}
 
 resource "random_string" "workspace_scope" {
@@ -182,8 +105,10 @@ resource "azurerm_resource_group" "main" {
   }
 }
 
-#-------------------------------+
-# Key Vault  (security.tf)
+
+
+#-------------------------------
+# Key Vault
 #-------------------------------
 module "keyvault" {
   source = "../../../modules/providers/azure/keyvault"
@@ -200,28 +125,7 @@ module "keyvault" {
   resource_tags = var.resource_tags
 }
 
-resource "azurerm_monitor_diagnostic_setting" "kv_diagnostics" {
-  name                       = "kv_diagnostics"
-  target_resource_id         = module.keyvault.keyvault_id
-  log_analytics_workspace_id = module.log_analytics.id
 
-  log {
-    category = "AuditEvent"
-
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
 
 #-------------------------------
 # Container Registry
@@ -238,46 +142,10 @@ module "container_registry" {
   resource_tags = var.resource_tags
 }
 
-resource "azurerm_monitor_diagnostic_setting" "acr_diagnostics" {
-  name                       = "acr_diagnostics"
-  target_resource_id         = module.container_registry.container_registry_id
-  log_analytics_workspace_id = module.log_analytics.id
-
-  log {
-    category = "ContainerRegistryRepositoryEvents"
-    enabled  = true
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "ContainerRegistryLoginEvents"
-    enabled  = true
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
-
-
 
 
 #-------------------------------
-# Application Insights (main.tf)
+# Application Insights
 #-------------------------------
 module "app_insights" {
   source = "../../../modules/providers/azure/app-insights"
@@ -289,16 +157,10 @@ module "app_insights" {
   resource_tags = var.resource_tags
 }
 
-// Add the App Insights Key to the Vault
-resource "azurerm_key_vault_secret" "insights" {
-  name         = local.ai_key_name
-  value        = module.app_insights.app_insights_instrumentation_key
-  key_vault_id = module.keyvault.keyvault_id
-}
 
 
 #-------------------------------
-# Log Analytics (main.tf)
+# Log Analytics
 #-------------------------------
 module "log_analytics" {
   source = "../../../modules/providers/azure/log-analytics"
@@ -327,23 +189,10 @@ module "log_analytics" {
   resource_tags = var.resource_tags
 }
 
-// Add the Log Analytics Id to the Vault
-resource "azurerm_key_vault_secret" "workspace_id" {
-  name         = local.logs_id_name
-  value        = module.log_analytics.log_workspace_id
-  key_vault_id = module.keyvault.keyvault_id
-}
-
-// Add the Log Analtyics Key to the Vault
-resource "azurerm_key_vault_secret" "workspace_key" {
-  name         = local.logs_key_name
-  value        = module.log_analytics.log_workspace_key
-  key_vault_id = module.keyvault.keyvault_id
-}
 
 
 #-------------------------------
-# OSDU Identity  (security.tf)
+# OSDU Identity
 #-------------------------------
 // Identity for OSDU Pod Identity
 resource "azurerm_user_assigned_identity" "osduidentity" {
@@ -353,6 +202,7 @@ resource "azurerm_user_assigned_identity" "osduidentity" {
 
   tags = var.resource_tags
 }
+
 
 
 #-------------------------------
@@ -375,19 +225,6 @@ module "service_principal" {
   }
 }
 
-// Add the Service Principal Id
-resource "azurerm_key_vault_secret" "principal_id" {
-  name         = "app-dev-sp-username"
-  value        = module.service_principal.client_id
-  key_vault_id = module.keyvault.keyvault_id
-}
-
-// Add the Service Principal Id
-resource "azurerm_key_vault_secret" "principal_secret" {
-  name         = "app-dev-sp-password"
-  value        = module.service_principal.client_secret
-  key_vault_id = module.keyvault.keyvault_id
-}
 
 module "ad_application" {
   source                     = "../../../modules/providers/azure/ad-application"
@@ -417,6 +254,7 @@ resource "azurerm_key_vault_secret" "application_id" {
 }
 
 
+
 #-------------------------------
 # Locks
 #-------------------------------
@@ -433,67 +271,4 @@ resource "azurerm_management_lock" "acr_lock" {
   name       = "osdu_acr_lock"
   scope      = module.container_registry.container_registry_id
   lock_level = "CanNotDelete"
-}
-
-
-#-------------------------------
-# Output Variables  (output.tf)
-#-------------------------------
-output "central_resource_group_name" {
-  value = azurerm_resource_group.main.name
-}
-
-output "container_registry_id" {
-  description = "The resource identifier of the container registry."
-  value       = module.container_registry.container_registry_id
-}
-
-output "container_registry_name" {
-  description = "The name of the container registry."
-  value       = module.container_registry.container_registry_name
-}
-
-output "keyvault_id" {
-  description = "The resource id for Key Vault"
-  value       = module.keyvault.keyvault_id
-}
-
-output "keyvault_name" {
-  description = "The name for Key Vault"
-  value       = module.keyvault.keyvault_name
-}
-
-output "log_analytics_id" {
-  description = "The resource id for Log Analytics"
-  value       = module.log_analytics.id
-}
-
-output "osdu_identity_id" {
-  description = "The resource id for the User Assigned Identity"
-  value       = azurerm_user_assigned_identity.osduidentity.id
-}
-
-output "osdu_identity_principal_id" {
-  description = "The principal id for the User Assigned Identity"
-  value       = azurerm_user_assigned_identity.osduidentity.principal_id
-}
-
-output "osdu_identity_client_id" {
-  description = "The client id for the User Assigned Identity"
-  value       = azurerm_user_assigned_identity.osduidentity.client_id
-}
-
-output "principal_objectId" {
-  description = "The service principal application object id"
-  value       = var.principal_objectId
-}
-
-output "elasticsearch_endpoint" {
-  description = "The elastic search endpoint"
-  value       = var.elasticsearch_endpoint
-}
-
-output "elasticsearch_username" {
-  description = "The elastic search username"
-  value       = var.elasticsearch_username
 }
