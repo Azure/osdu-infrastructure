@@ -71,6 +71,11 @@ locals {
   ai_name                 = "${local.base_name}-ai"
   logs_name               = "${local.base_name}-logs"
   ad_app_name             = "${local.base_name}-app"
+
+  rbac_contributor_scopes = concat(
+    [module.container_registry.container_registry_id],
+    [module.keyvault.keyvault_id]
+  )
 }
 
 
@@ -192,20 +197,6 @@ module "log_analytics" {
 
 
 #-------------------------------
-# OSDU Identity
-#-------------------------------
-// Identity for OSDU Pod Identity
-resource "azurerm_user_assigned_identity" "osduidentity" {
-  name                = local.osdupod_identity_name
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-
-  tags = var.resource_tags
-}
-
-
-
-#-------------------------------
 # AD Principal and Applications
 #-------------------------------
 module "service_principal" {
@@ -251,6 +242,20 @@ resource "azurerm_key_vault_secret" "application_id" {
   name         = "aad-client-id"
   value        = module.ad_application.id
   key_vault_id = module.keyvault.keyvault_id
+}
+
+
+
+#-------------------------------
+# OSDU Identity
+#-------------------------------
+// Identity for OSDU Pod Identity
+resource "azurerm_user_assigned_identity" "osduidentity" {
+  name                = local.osdupod_identity_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+
+  tags = var.resource_tags
 }
 
 
