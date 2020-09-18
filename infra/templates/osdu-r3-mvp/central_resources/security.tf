@@ -25,11 +25,11 @@
 # Private Variables
 #-------------------------------
 locals {
-  role = "Contributor"
-  rbac_contributor_scopes = concat(
-    [module.container_registry.container_registry_id],
-    [module.keyvault.keyvault_id]
-  )
+  rbac_principals = [
+    azurerm_user_assigned_identity.osduidentity.principal_id,
+    var.principal_objectId
+  ]
+
 
   ai_key_name   = "appinsights-key"
   logs_id_name  = "log-workspace-id"
@@ -38,7 +38,23 @@ locals {
 
 
 // *** NOTE ***
-// Security Role Scopes are set automatically by the Module itself. (main.tf)
+// Contributor Role Scopes are set automatically by the Principal Module itself. (main.tf)
+
+
+#-------------------------------
+# Key Vault
+#-------------------------------
+
+// Add Reader Role Access
+resource "azurerm_role_assignment" "kv_roles" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = "Reader"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.keyvault.keyvault_id
+}
+
+
 
 #-------------------------------
 # Application Insights
@@ -88,3 +104,10 @@ resource "azurerm_key_vault_secret" "principal_secret" {
   value        = module.service_principal.client_secret
   key_vault_id = module.keyvault.keyvault_id
 }
+
+
+#-------------------------------
+# OSDU Identity
+#-------------------------------
+
+// Add Reader Role
