@@ -71,7 +71,7 @@ resource "azurerm_key_vault_secret" "storage_key" {
 resource "azurerm_role_assignment" "storage_access" {
   count = length(local.rbac_principals)
 
-  role_definition_name = local.role
+  role_definition_name = "Contributor"
   principal_id         = local.rbac_principals[count.index]
   scope                = module.storage_account.id
 }
@@ -103,11 +103,11 @@ resource "azurerm_key_vault_secret" "cosmos_key" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add Access Control to Principal
-resource "azurerm_role_assignment" "cosmos_access" {
+// Add DB Reader Role 
+resource "azurerm_role_assignment" "database_roles" {
   count = length(local.rbac_principals)
 
-  role_definition_name = local.role
+  role_definition_name = "Cosmos DB Account Reader Role"
   principal_id         = local.rbac_principals[count.index]
   scope                = module.cosmosdb_account.account_id
 }
@@ -132,11 +132,11 @@ resource "azurerm_key_vault_secret" "sb_connection" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add Access Control to Principal
-resource "azurerm_role_assignment" "sb_access" {
+// Add SB Data Sender Role
+resource "azurerm_role_assignment" "service_bus_roles" {
   count = length(local.rbac_principals)
 
-  role_definition_name = local.role
+  role_definition_name = "Azure Service Bus Data Sender"
   principal_id         = local.rbac_principals[count.index]
   scope                = module.service_bus.id
 }
@@ -168,11 +168,11 @@ resource "azurerm_key_vault_secret" "recordstopic_name" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add Access Control to Principal
-resource "azurerm_role_assignment" "eventgrid_access" {
+// Add EventGrid Reader Role
+resource "azurerm_role_assignment" "eventgrid_roles" {
   count = length(local.rbac_principals)
 
-  role_definition_name = local.role
+  role_definition_name = "EventGrid EventSubscription Reader"
   principal_id         = local.rbac_principals[count.index]
   scope                = module.event_grid.id
 }

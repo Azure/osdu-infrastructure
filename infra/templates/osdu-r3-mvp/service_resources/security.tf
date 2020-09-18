@@ -197,3 +197,44 @@ resource "azurerm_key_vault_certificate" "default" {
     }
   }
 }
+
+
+
+#-------------------------------
+# Azure AKS
+#-------------------------------
+
+// Managed Identity Operator role for AKS to Node Resource Group
+resource "azurerm_role_assignment" "all_mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Virtual Machine Contributor role for AKS to Node Resource Group
+resource "azurerm_role_assignment" "vm_contributor" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Virtual Machine Contributor"
+}
+
+// Azure Container Registry Reader role for AKS to ACR
+resource "azurerm_role_assignment" "acr_reader" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.terraform_remote_state.central_resources.outputs.container_registry_id
+  role_definition_name = "AcrPull"
+}
+
+// Managed Identity Operator role for AKS to Pod Identity
+resource "azurerm_role_assignment" "mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = azurerm_user_assigned_identity.podidentity.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Managed Identity Operator role for AKS to the OSDU Identity
+resource "azurerm_role_assignment" "osdu_identity_mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.terraform_remote_state.central_resources.outputs.osdu_identity_id
+  role_definition_name = "Managed Identity Operator"
+}
