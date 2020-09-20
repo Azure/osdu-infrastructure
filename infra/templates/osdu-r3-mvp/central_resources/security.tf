@@ -25,7 +25,7 @@
 # Private Variables
 #-------------------------------
 locals {
-  ai_key_name   = "appinsights-key"
+  ai_key_name = "appinsights-key"
 
   logs_id_name  = "log-workspace-id"
   logs_key_name = "log-workspace-key"

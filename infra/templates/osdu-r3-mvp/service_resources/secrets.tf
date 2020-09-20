@@ -54,7 +54,7 @@ resource "azurerm_key_vault_secret" "storage_connection" {
 # Network
 #-------------------------------
 locals {
-  ssl_cert_name       = "appgw-ssl-cert"
+  ssl_cert_name = "appgw-ssl-cert"
 }
 
 resource "azurerm_key_vault_certificate" "default" {

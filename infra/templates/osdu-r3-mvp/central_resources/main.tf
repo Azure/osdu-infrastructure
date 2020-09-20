@@ -142,16 +142,16 @@ module "keyvault" {
 }
 
 module "keyvault_policy" {
-  source             = "../../../modules/providers/azure/keyvault-policy"
-  vault_id           = module.keyvault.keyvault_id
-  tenant_id          = data.azurerm_client_config.current.tenant_id
-  object_ids         = [
+  source    = "../../../modules/providers/azure/keyvault-policy"
+  vault_id  = module.keyvault.keyvault_id
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_ids = [
     azurerm_user_assigned_identity.osduidentity.principal_id,
     module.service_principal.id
   ]
   key_permissions         = ["get"]
   certificate_permissions = ["get"]
-  secret_permissions = ["get"]
+  secret_permissions      = ["get"]
 }
 
 resource "azurerm_role_assignment" "kv_roles" {

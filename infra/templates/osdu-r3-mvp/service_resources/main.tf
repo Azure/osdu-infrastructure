@@ -123,7 +123,7 @@ locals {
   be_subnet_name      = "${local.base_name_21}-be-subnet"
   app_gw_name         = "${local.base_name_60}-gw"
   appgw_identity_name = format("%s-agic-identity", local.app_gw_name)
-  
+
 
   aks_cluster_name  = "${local.base_name_21}-aks"
   aks_identity_name = format("%s-pod-identity", local.aks_cluster_name)
