@@ -20,13 +20,18 @@
    This file holds the main control and resoures for bootstraping an OSDU Azure Devops Project.
 */
 
+// *** WARNING  ****
+// This template makes changes into the Central Resources and the locks in Central have to be removed to delete.
+// Lock: Key Vault
+// Lock: Container Registry
+// *** WARNING  ****
+
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" {
     key = "terraform.tfstate"
   }
 }
-
 
 
 #-------------------------------
@@ -118,13 +123,20 @@ locals {
   be_subnet_name      = "${local.base_name_21}-be-subnet"
   app_gw_name         = "${local.base_name_60}-gw"
   appgw_identity_name = format("%s-agic-identity", local.app_gw_name)
-  ssl_cert_name       = "appgw-ssl-cert"
+  
 
   aks_cluster_name  = "${local.base_name_21}-aks"
   aks_identity_name = format("%s-pod-identity", local.aks_cluster_name)
   aks_dns_prefix    = local.base_name_60
 
-  airflow_admin_password = coalesce(var.airflow_admin_password, random_password.airflow_admin_password[0].result)
+  role = "Contributor"
+  rbac_principals = [
+    // OSDU Identity
+    data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id,
+
+    // Service Principal
+    data.terraform_remote_state.central_resources.outputs.principal_objectId
+  ]
 }
 
 
@@ -174,6 +186,25 @@ resource "azurerm_resource_group" "main" {
 }
 
 
+#-------------------------------
+# User Assigned Identities
+#-------------------------------
+
+// Create an Identity for Pod Identity
+resource "azurerm_user_assigned_identity" "podidentity" {
+  name                = local.aks_identity_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+// Create and Identity for AGIC
+resource "azurerm_user_assigned_identity" "agicidentity" {
+  name                = local.appgw_identity_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+
 
 #-------------------------------
 # Storage
@@ -190,6 +221,160 @@ module "storage_account" {
   replication_type    = "LRS"
 
   resource_tags = var.resource_tags
+}
+
+// Add Contributor Role Access
+resource "azurerm_role_assignment" "storage_access" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = local.role
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.storage_account.id
+}
+
+// Add Storage Queue Data Reader Role Access 
+resource "azurerm_role_assignment" "queue_reader" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = "Storage Queue Data Reader"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.storage_account.id
+}
+
+// Add Storage Queue Data Message Processor Role Access 
+resource "azurerm_role_assignment" "airflow_log_queue_processor_roles" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = "Storage Queue Data Message Processor"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.storage_account.id
+}
+
+
+
+#-------------------------------
+# Network
+#-------------------------------
+module "network" {
+  source = "../../../modules/providers/azure/network"
+
+  name                = local.vnet_name
+  resource_group_name = azurerm_resource_group.main.name
+  address_space       = var.address_space
+  subnet_prefixes     = [var.subnet_fe_prefix, var.subnet_aks_prefix, var.subnet_be_prefix]
+  subnet_names        = [local.fe_subnet_name, local.aks_subnet_name, local.be_subnet_name]
+
+  resource_tags = var.resource_tags
+}
+
+module "appgateway" {
+  source = "../../../modules/providers/azure/aks-appgw"
+
+  name                = local.app_gw_name
+  resource_group_name = azurerm_resource_group.main.name
+
+  vnet_name            = module.network.name
+  vnet_subnet_id       = module.network.subnets.0
+  keyvault_id          = data.terraform_remote_state.central_resources.outputs.keyvault_id
+  keyvault_secret_id   = azurerm_key_vault_certificate.default.0.secret_id
+  ssl_certificate_name = local.ssl_cert_name
+
+  resource_tags = var.resource_tags
+}
+
+// Give AGIC Identity Access rights to Change the Application Gateway
+resource "azurerm_role_assignment" "appgwcontributor" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = module.appgateway.id
+  role_definition_name = "Contributor"
+}
+
+// Give AGIC Identity the rights to look at the Resource Group
+resource "azurerm_role_assignment" "agic_resourcegroup_reader" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = azurerm_resource_group.main.id
+  role_definition_name = "Reader"
+}
+
+// Give AGIC Identity rights to Operate the Gateway Identity
+resource "azurerm_role_assignment" "agic_app_gw_mi" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = module.appgateway.managed_identity_resource_id
+  role_definition_name = "Managed Identity Operator"
+}
+
+
+
+#-------------------------------
+# Azure AKS
+#-------------------------------
+module "aks" {
+  source = "../../../modules/providers/azure/aks"
+
+  name                = local.aks_cluster_name
+  resource_group_name = azurerm_resource_group.main.name
+
+  dns_prefix         = local.aks_dns_prefix
+  agent_vm_count     = var.aks_agent_vm_count
+  agent_vm_size      = var.aks_agent_vm_size
+  vnet_subnet_id     = module.network.subnets.1
+  ssh_public_key     = file(var.ssh_public_key_file)
+  kubernetes_version = var.kubernetes_version
+  log_analytics_id   = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  msi_enabled               = true
+  oms_agent_enabled         = true
+  auto_scaling_default_node = true
+  kubeconfig_to_disk        = false
+  enable_kube_dashboard     = false
+
+  resource_tags = var.resource_tags
+}
+
+data "azurerm_resource_group" "aks_node_resource_group" {
+  name = module.aks.node_resource_group
+}
+
+// Give AKS Access rights to Operate the Node Resource Group
+resource "azurerm_role_assignment" "all_mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Give AKS Access to Create and Remove VM's in Node Resource Group
+resource "azurerm_role_assignment" "vm_contributor" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Virtual Machine Contributor"
+}
+
+// Give AKS Access to Pull from ACR
+resource "azurerm_role_assignment" "acr_reader" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.terraform_remote_state.central_resources.outputs.container_registry_id
+  role_definition_name = "AcrPull"
+}
+
+// Give AKS Rights to operate the AGIC Identity
+resource "azurerm_role_assignment" "mi_ag_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = azurerm_user_assigned_identity.agicidentity.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Give AKS Access Rights to operate the Pod Identity
+resource "azurerm_role_assignment" "mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = azurerm_user_assigned_identity.podidentity.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Give AKS Access Rights to operate the OSDU Identity
+resource "azurerm_role_assignment" "osdu_identity_mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.terraform_remote_state.central_resources.outputs.osdu_identity_id
+  role_definition_name = "Managed Identity Operator"
 }
 
 
@@ -236,6 +421,15 @@ module "postgreSQL" {
   resource_tags = var.resource_tags
 }
 
+// Add Contributor Role Access
+resource "azurerm_role_assignment" "postgres_access" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = local.role
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.postgreSQL.server_id
+}
+
 
 
 #-------------------------------
@@ -254,143 +448,11 @@ module "redis_cache" {
   resource_tags = var.resource_tags
 }
 
+// Add Contributor Role Access
+resource "azurerm_role_assignment" "redis_cache" {
+  count = length(local.rbac_principals)
 
-
-#-------------------------------
-# Network
-#-------------------------------
-module "network" {
-  source = "../../../modules/providers/azure/network"
-
-  name                = local.vnet_name
-  resource_group_name = azurerm_resource_group.main.name
-  address_space       = var.address_space
-  subnet_prefixes     = [var.subnet_fe_prefix, var.subnet_aks_prefix, var.subnet_be_prefix]
-  subnet_names        = [local.fe_subnet_name, local.aks_subnet_name, local.be_subnet_name]
-
-  resource_tags = var.resource_tags
-}
-
-module "appgateway" {
-  source = "../../../modules/providers/azure/aks-appgw"
-
-  name                = local.app_gw_name
-  resource_group_name = azurerm_resource_group.main.name
-
-  vnet_name            = module.network.name
-  vnet_subnet_id       = module.network.subnets.0
-  keyvault_id          = data.terraform_remote_state.central_resources.outputs.keyvault_id
-  keyvault_secret_id   = azurerm_key_vault_certificate.default.0.secret_id
-  ssl_certificate_name = local.ssl_cert_name
-
-  resource_tags = var.resource_tags
-}
-
-// Identity for AGIC
-resource "azurerm_user_assigned_identity" "agicidentity" {
-  name                = local.appgw_identity_name
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-}
-
-// Managed Identity Operator role for AKS to AGIC Identity
-resource "azurerm_role_assignment" "mi_ag_operator" {
-  principal_id         = module.aks.kubelet_object_id
-  scope                = azurerm_user_assigned_identity.agicidentity.id
-  role_definition_name = "Managed Identity Operator"
-}
-
-// Contributor Role for AGIC to the AppGateway
-resource "azurerm_role_assignment" "appgwcontributor" {
-  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
-  scope                = module.appgateway.id
-  role_definition_name = "Contributor"
-}
-
-// Reader Role for AGIC to the Resource Group
-resource "azurerm_role_assignment" "agic_resourcegroup_reader" {
-  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
-  scope                = azurerm_resource_group.main.id
-  role_definition_name = "Reader"
-}
-
-// Managed Identity Operator Role for AGIC to AppGateway Managed Identity
-resource "azurerm_role_assignment" "agic_app_gw_mi" {
-  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
-  scope                = module.appgateway.managed_identity_resource_id
-  role_definition_name = "Managed Identity Operator"
-}
-
-
-
-#-------------------------------
-# Azure AKS
-#-------------------------------
-module "aks" {
-  source = "../../../modules/providers/azure/aks"
-
-  name                = local.aks_cluster_name
-  resource_group_name = azurerm_resource_group.main.name
-
-  dns_prefix         = local.aks_dns_prefix
-  agent_vm_count     = var.aks_agent_vm_count
-  agent_vm_size      = var.aks_agent_vm_size
-  vnet_subnet_id     = module.network.subnets.1
-  ssh_public_key     = file(var.ssh_public_key_file)
-  kubernetes_version = var.kubernetes_version
-  log_analytics_id   = data.terraform_remote_state.central_resources.outputs.log_analytics_id
-
-  msi_enabled               = true
-  oms_agent_enabled         = true
-  auto_scaling_default_node = true
-  kubeconfig_to_disk        = false
-  enable_kube_dashboard     = false
-
-  resource_tags = var.resource_tags
-}
-
-data "azurerm_resource_group" "aks_node_resource_group" {
-  name = module.aks.node_resource_group
-}
-
-// Identity for Pod Identity
-resource "azurerm_user_assigned_identity" "podidentity" {
-  name                = local.aks_identity_name
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-}
-
-// Managed Identity Operator role for AKS to Node Resource Group
-resource "azurerm_role_assignment" "all_mi_operator" {
-  principal_id         = module.aks.kubelet_object_id
-  scope                = data.azurerm_resource_group.aks_node_resource_group.id
-  role_definition_name = "Managed Identity Operator"
-}
-
-// Virtual Machine Contributor role for AKS to Node Resource Group
-resource "azurerm_role_assignment" "vm_contributor" {
-  principal_id         = module.aks.kubelet_object_id
-  scope                = data.azurerm_resource_group.aks_node_resource_group.id
-  role_definition_name = "Virtual Machine Contributor"
-}
-
-// Azure Container Registry Reader role for AKS to ACR
-resource "azurerm_role_assignment" "acr_reader" {
-  principal_id         = module.aks.kubelet_object_id
-  scope                = data.terraform_remote_state.central_resources.outputs.container_registry_id
-  role_definition_name = "AcrPull"
-}
-
-// Managed Identity Operator role for AKS to Pod Identity
-resource "azurerm_role_assignment" "mi_operator" {
-  principal_id         = module.aks.kubelet_object_id
-  scope                = azurerm_user_assigned_identity.podidentity.id
-  role_definition_name = "Managed Identity Operator"
-}
-
-// Managed Identity Operator role for AKS to the OSDU Identity
-resource "azurerm_role_assignment" "osdu_identity_mi_operator" {
-  principal_id         = module.aks.kubelet_object_id
-  scope                = data.terraform_remote_state.central_resources.outputs.osdu_identity_id
-  role_definition_name = "Managed Identity Operator"
+  role_definition_name = local.role
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.redis_cache.id
 }

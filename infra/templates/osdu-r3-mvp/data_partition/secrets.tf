@@ -15,9 +15,9 @@
 
 /*
 .Synopsis
-   Terraform Security Control
+   Terraform Secrets Control
 .DESCRIPTION
-   This file holds security settings.
+   This file holds KV Secrets.
 */
 
 
@@ -25,12 +25,6 @@
 # Private Variables
 #-------------------------------
 locals {
-  role = "Contributor"
-  rbac_principals = [
-    data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id,
-    data.terraform_remote_state.central_resources.outputs.principal_objectId
-  ]
-
   storage_account_name = format("%s-storage", var.data_partition_name)
   storage_key_name     = format("%s-key", local.storage_account_name)
 
@@ -52,28 +46,16 @@ locals {
 #-------------------------------
 # Storage
 #-------------------------------
-
-// Add the Storage Account Name to the Vault
 resource "azurerm_key_vault_secret" "storage_name" {
   name         = local.storage_account_name
   value        = module.storage_account.name
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add the Storage Key to the Vault
 resource "azurerm_key_vault_secret" "storage_key" {
   name         = local.storage_key_name
   value        = module.storage_account.primary_access_key
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-// Add Access Control to Principal
-resource "azurerm_role_assignment" "storage_access" {
-  count = length(local.rbac_principals)
-
-  role_definition_name = local.role
-  principal_id         = local.rbac_principals[count.index]
-  scope                = module.storage_account.id
 }
 
 
@@ -81,35 +63,22 @@ resource "azurerm_role_assignment" "storage_access" {
 #-------------------------------
 # CosmosDB
 #-------------------------------
-
-// Add the CosmosDB Connection to the Vault
 resource "azurerm_key_vault_secret" "cosmos_connection" {
   name         = local.cosmos_connection
   value        = module.cosmosdb_account.properties.cosmosdb.connection_strings[0]
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add the CosmosDB Endpoint to the Vault
 resource "azurerm_key_vault_secret" "cosmos_endpoint" {
   name         = local.cosmos_endpoint
   value        = module.cosmosdb_account.properties.cosmosdb.endpoint
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add the CosmosDB Key to the Vault
 resource "azurerm_key_vault_secret" "cosmos_key" {
   name         = local.cosmos_primary_key
   value        = module.cosmosdb_account.properties.cosmosdb.primary_master_key
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-// Add Access Control to Principal
-resource "azurerm_role_assignment" "cosmos_access" {
-  count = length(local.rbac_principals)
-
-  role_definition_name = local.role
-  principal_id         = local.rbac_principals[count.index]
-  scope                = module.cosmosdb_account.account_id
 }
 
 
@@ -117,28 +86,16 @@ resource "azurerm_role_assignment" "cosmos_access" {
 #-------------------------------
 # Azure Service Bus
 #-------------------------------
-
-// Add the ServiceBus Connection to the Vault
 resource "azurerm_key_vault_secret" "sb_namespace" {
   name         = local.sb_namespace_name
   value        = module.service_bus.name
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add the ServiceBus Connection to the Vault
 resource "azurerm_key_vault_secret" "sb_connection" {
   name         = local.sb_connection
   value        = module.service_bus.default_connection_string
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-// Add Access Control to Principal
-resource "azurerm_role_assignment" "sb_access" {
-  count = length(local.rbac_principals)
-
-  role_definition_name = local.role
-  principal_id         = local.rbac_principals[count.index]
-  scope                = module.service_bus.id
 }
 
 
@@ -146,33 +103,20 @@ resource "azurerm_role_assignment" "sb_access" {
 #-------------------------------
 # Azure Event Grid
 #-------------------------------
-
-// Add the Event Grid Name to the Vault
 resource "azurerm_key_vault_secret" "eventgrid_name" {
   name         = local.eventgrid_domain_name
   value        = module.event_grid.name
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add the Event Grid Key to the Vault
 resource "azurerm_key_vault_secret" "eventgrid_key" {
   name         = local.eventgrid_domain_key_name
   value        = module.event_grid.primary_access_key
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add the Record Topic Name to the Vault
 resource "azurerm_key_vault_secret" "recordstopic_name" {
   name         = local.eventgrid_records_topic_name
   value        = local.eventgrid_records_topic_endpoint
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-// Add Access Control to Principal
-resource "azurerm_role_assignment" "eventgrid_access" {
-  count = length(local.rbac_principals)
-
-  role_definition_name = local.role
-  principal_id         = local.rbac_principals[count.index]
-  scope                = module.event_grid.id
 }

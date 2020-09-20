@@ -12,10 +12,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+
 #-------------------------------
 # Flux
 #-------------------------------
-
 locals {
   helm_flux_name    = "flux"
   helm_flux_ns      = "flux"
@@ -43,6 +43,8 @@ resource "kubernetes_secret" "flux_ssh" {
   data = {
     identity = file(var.gitops_ssh_key_file)
   }
+
+  depends_on = [module.aks]
 }
 
 resource "helm_release" "flux" {
@@ -66,7 +68,6 @@ resource "helm_release" "flux" {
     name  = "git.secretName"
     value = local.helm_flux_secret
   }
-
 
   set {
     name  = "git.path"
@@ -98,5 +99,5 @@ resource "helm_release" "flux" {
     value = "flux"
   }
 
-  depends_on = [kubernetes_namespace.kvsecrets]
+  depends_on = [module.aks, kubernetes_namespace.kvsecrets]
 }

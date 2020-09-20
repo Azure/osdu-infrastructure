@@ -25,33 +25,10 @@
 # Private Variables
 #-------------------------------
 locals {
-  rbac_principals = [
-    azurerm_user_assigned_identity.osduidentity.principal_id,
-    var.principal_objectId
-  ]
-
-
   ai_key_name   = "appinsights-key"
+
   logs_id_name  = "log-workspace-id"
   logs_key_name = "log-workspace-key"
-}
-
-
-// *** NOTE ***
-// Contributor Role Scopes are set automatically by the Principal Module itself. (main.tf)
-
-
-#-------------------------------
-# Key Vault
-#-------------------------------
-
-// Add Reader Role Access
-resource "azurerm_role_assignment" "kv_roles" {
-  count = length(local.rbac_principals)
-
-  role_definition_name = "Reader"
-  principal_id         = local.rbac_principals[count.index]
-  scope                = module.keyvault.keyvault_id
 }
 
 
@@ -59,8 +36,6 @@ resource "azurerm_role_assignment" "kv_roles" {
 #-------------------------------
 # Application Insights
 #-------------------------------
-
-// Add the App Insights Key to the Vault
 resource "azurerm_key_vault_secret" "insights" {
   name         = local.ai_key_name
   value        = module.app_insights.app_insights_instrumentation_key
@@ -68,18 +43,16 @@ resource "azurerm_key_vault_secret" "insights" {
 }
 
 
+
 #-------------------------------
 # Log Analytics
 #-------------------------------
-
-// Add the Log Analytics Id to the Vault
 resource "azurerm_key_vault_secret" "workspace_id" {
   name         = local.logs_id_name
   value        = module.log_analytics.log_workspace_id
   key_vault_id = module.keyvault.keyvault_id
 }
 
-// Add the Log Analtyics Key to the Vault
 resource "azurerm_key_vault_secret" "workspace_key" {
   name         = local.logs_key_name
   value        = module.log_analytics.log_workspace_key
@@ -90,24 +63,14 @@ resource "azurerm_key_vault_secret" "workspace_key" {
 #-------------------------------
 # AD Principal and Applications
 #-------------------------------
-
-// Add the Service Principal Id
 resource "azurerm_key_vault_secret" "principal_id" {
   name         = "app-dev-sp-username"
   value        = module.service_principal.client_id
   key_vault_id = module.keyvault.keyvault_id
 }
 
-// Add the Service Principal Id
 resource "azurerm_key_vault_secret" "principal_secret" {
   name         = "app-dev-sp-password"
   value        = module.service_principal.client_secret
   key_vault_id = module.keyvault.keyvault_id
 }
-
-
-#-------------------------------
-# OSDU Identity
-#-------------------------------
-
-// Add Reader Role

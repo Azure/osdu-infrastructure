@@ -19,8 +19,9 @@
    This file holds the Output Configuration
 */
 
+
 #-------------------------------
-# Output Variables  (output.tf)
+# Output Variables
 #-------------------------------
 output "services_resource_group_name" {
   description = "The name of the resource group containing the data specific resources"
@@ -57,6 +58,19 @@ output "storage_queues" {
   value       = module.storage_account.queues
 }
 
+// Network Output Items for Integration Tests
+output "appgw_name" {
+  description = "Application gateway's name"
+  value       = module.appgateway.name
+}
+
+output "keyvault_secret_id" {
+  description = "The keyvault certificate keyvault resource id used to setup ssl termination on the app gateway."
+  value       = azurerm_key_vault_certificate.default.0.secret_id
+}
+
+
+// Redis Output Items for Integration Tests
 output "redis_name" {
   description = "The name of the redis_cache"
   value       = module.redis_cache.name
@@ -72,14 +86,4 @@ output "redis_primary_access_key" {
 
 output "redis_ssl_port" {
   value = module.redis_cache.ssl_port
-}
-
-output "keyvault_secret_id" {
-  description = "The keyvault certificate keyvault resource id used to setup ssl termination on the app gateway."
-  value       = azurerm_key_vault_certificate.default.0.secret_id
-}
-
-output "appgw_name" {
-  description = "Application gateway's name"
-  value       = module.appgateway.name
 }
