@@ -81,6 +81,10 @@ stages:
     - name: 'dev'
       enablePrIsolation: false
       resourceNameIsolationLevel: 8  
+    - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+      - name: 'glab'
+        enablePrIsolation: false
+        resourceNameIsolationLevel: 8  
 
     configurations:
     - jobName: data_partition_1
