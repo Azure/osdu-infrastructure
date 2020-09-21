@@ -20,14 +20,24 @@
    This file holds the main control.
 */
 
+
+// *** WARNING  ****
+// This template includes locks and won't fully delete if locks aren't removed first.
+// Lock: Storage
+// Lock: CosmosDb
+// *** WARNING  ****
+
+// *** WARNING  ****
+// This template makes changes into the Central Resources and the locks in Central have to be removed to delete.
+// Lock: Key Vault
+// *** WARNING  ****
+
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" {
     key = "terraform.tfstate"
   }
 }
-
-
 
 #-------------------------------
 # Providers
@@ -81,6 +91,12 @@ locals {
   sb_namespace            = "${local.base_name_21}-bus"
   eventgrid_name          = "${local.base_name_21}-grid"
   eventgrid_records_topic = format("%s-recordstopic", local.eventgrid_name)
+
+  role = "Contributor"
+  rbac_principals = [
+    data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id,
+    data.terraform_remote_state.central_resources.outputs.principal_objectId
+  ]
 }
 
 
@@ -143,6 +159,14 @@ module "storage_account" {
   resource_tags = var.resource_tags
 }
 
+// Add Access Control to Principal
+resource "azurerm_role_assignment" "storage_access" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = local.role
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.storage_account.id
+}
 
 
 #-------------------------------
@@ -162,6 +186,15 @@ module "cosmosdb_account" {
   resource_tags = var.resource_tags
 }
 
+// Add Access Control to Principal
+resource "azurerm_role_assignment" "cosmos_access" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = local.role
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.cosmosdb_account.account_id
+}
+
 
 
 #-------------------------------
@@ -178,6 +211,14 @@ module "service_bus" {
   resource_tags = var.resource_tags
 }
 
+// Add Access Control to Principal
+resource "azurerm_role_assignment" "sb_access" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = local.role
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.service_bus.id
+}
 
 
 #-------------------------------
@@ -196,6 +237,15 @@ module "event_grid" {
   ]
 
   resource_tags = var.resource_tags
+}
+
+// Add Access Control to Principal
+resource "azurerm_role_assignment" "eventgrid_access" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = local.role
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.event_grid.id
 }
 
 

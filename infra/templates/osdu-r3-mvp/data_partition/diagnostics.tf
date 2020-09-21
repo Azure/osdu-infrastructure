@@ -122,7 +122,7 @@ resource "azurerm_monitor_diagnostic_setting" "db_diagnostics" {
 
 
 #-------------------------------
-# Azure Service Bus (main.tf)
+# Azure Service Bus
 #-------------------------------
 resource "azurerm_monitor_diagnostic_setting" "sb_diagnostics" {
   name                       = "sb_diagnostics"
@@ -149,8 +149,9 @@ resource "azurerm_monitor_diagnostic_setting" "sb_diagnostics" {
 }
 
 
+
 #-------------------------------
-# Azure Event Grid (main.tf)
+# Azure Event Grid
 #-------------------------------
 resource "azurerm_monitor_diagnostic_setting" "eg_diagnostics" {
   name                       = "eg_diagnostics"

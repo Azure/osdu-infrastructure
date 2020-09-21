@@ -20,6 +20,12 @@
    This file holds the main control.
 */
 
+// *** WARNING  ****
+// This template includes locks and won't delete by destroy if locks aren't removed first.
+// Lock: KeyVault
+// Lock: Container Registry
+// *** WARNING  ****
+
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" {
@@ -76,6 +82,11 @@ locals {
     [module.container_registry.container_registry_id],
     [module.keyvault.keyvault_id]
   )
+
+  rbac_principals = [
+    azurerm_user_assigned_identity.osduidentity.principal_id,
+    module.service_principal.id
+  ]
 }
 
 
@@ -128,6 +139,27 @@ module "keyvault" {
   }
 
   resource_tags = var.resource_tags
+}
+
+module "keyvault_policy" {
+  source    = "../../../modules/providers/azure/keyvault-policy"
+  vault_id  = module.keyvault.keyvault_id
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_ids = [
+    azurerm_user_assigned_identity.osduidentity.principal_id,
+    module.service_principal.id
+  ]
+  key_permissions         = ["get"]
+  certificate_permissions = ["get"]
+  secret_permissions      = ["get"]
+}
+
+resource "azurerm_role_assignment" "kv_roles" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = "Reader"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.keyvault.keyvault_id
 }
 
 

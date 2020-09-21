@@ -15,133 +15,48 @@
 
 /*
 .Synopsis
-   Terraform Security Control
+   Terraform Secrets Control
 .DESCRIPTION
-   This file holds security settings.
+   This file holds Key Vault Secrets.
 */
-
-
-#-------------------------------
-# Private Variables
-#-------------------------------
-locals {
-  role = "Contributor"
-  rbac_principals = [
-    data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id,
-    data.terraform_remote_state.central_resources.outputs.principal_objectId
-  ]
-
-  storage_account_name    = "airflow-storage"
-  storage_key_name        = "${local.storage_account_name}-key"
-  storage_connection_name = "${local.storage_account_name}-connection"
-
-  postgres_password_name = "postgres-password"
-  postgres_password      = coalesce(var.postgres_password, random_password.postgres[0].result)
-
-  redis_password_name = "redis-password"
-}
 
 
 #-------------------------------
 # Storage
 #-------------------------------
+locals {
+  storage_account_name    = "airflow-storage"
+  storage_key_name        = "${local.storage_account_name}-key"
+  storage_connection_name = "${local.storage_account_name}-connection"
+}
 
-// Add the Storage Account Name to the Vault
 resource "azurerm_key_vault_secret" "storage_name" {
   name         = local.storage_account_name
   value        = module.storage_account.name
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add the Storage Key to the Vault
 resource "azurerm_key_vault_secret" "storage_key" {
   name         = local.storage_key_name
   value        = module.storage_account.primary_access_key
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add the Storage Connection String to the Vault
 resource "azurerm_key_vault_secret" "storage_connection" {
   name         = local.storage_connection_name
   value        = format("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=core.windows.net", local.storage_account_name, module.storage_account.primary_access_key)
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-// Add Contributor Role Access
-resource "azurerm_role_assignment" "storage_access" {
-  count = length(local.rbac_principals)
-
-  role_definition_name = local.role
-  principal_id         = local.rbac_principals[count.index]
-  scope                = module.storage_account.id
-}
-
-// Add Storage Queue Data Reader Role Access 
-resource "azurerm_role_assignment" "queue_reader" {
-  count = length(local.rbac_principals)
-
-  role_definition_name = "Storage Queue Data Reader"
-  principal_id         = local.rbac_principals[count.index]
-  scope                = module.storage_account.id
-}
-
-// Add Storage Queue Data Message Processor Role Access 
-resource "azurerm_role_assignment" "airflow_log_queue_processor_roles" {
-  count = length(local.rbac_principals)
-
-  role_definition_name = "Storage Queue Data Message Processor"
-  principal_id         = local.rbac_principals[count.index]
-  scope                = module.storage_account.id
-}
-
-
-#-------------------------------
-# PostgreSQL
-#-------------------------------
-
-// Add the Postgres Password to the Vault
-resource "azurerm_key_vault_secret" "postgres_password" {
-  name         = local.postgres_password_name
-  value        = local.postgres_password
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-// Add Contributor Role Access
-resource "azurerm_role_assignment" "postgres_access" {
-  count = length(local.rbac_principals)
-
-  role_definition_name = local.role
-  principal_id         = local.rbac_principals[count.index]
-  scope                = module.postgreSQL.server_id
-}
-
-
-#-------------------------------
-# Azure Redis Cache
-#-------------------------------
-
-// Add the Redis Password to the Vault
-resource "azurerm_key_vault_secret" "redis_password" {
-  name         = local.redis_password_name
-  value        = module.redis_cache.primary_access_key
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-// Add Contributor Role Access
-resource "azurerm_role_assignment" "redis_cache" {
-  count = length(local.rbac_principals)
-
-  role_definition_name = local.role
-  principal_id         = local.rbac_principals[count.index]
-  scope                = module.redis_cache.id
-}
 
 
 #-------------------------------
 # Network
 #-------------------------------
+locals {
+  ssl_cert_name = "appgw-ssl-cert"
+}
 
-// Create a Default SSL Certificate.
 resource "azurerm_key_vault_certificate" "default" {
   count = var.ssl_certificate_file == "" ? 1 : 0
 
@@ -196,4 +111,34 @@ resource "azurerm_key_vault_certificate" "default" {
       validity_in_months = 12
     }
   }
+}
+
+
+#-------------------------------
+# PostgreSQL
+#-------------------------------
+locals {
+  postgres_password_name = "postgres-password"
+  postgres_password      = coalesce(var.postgres_password, random_password.postgres[0].result)
+}
+
+resource "azurerm_key_vault_secret" "postgres_password" {
+  name         = local.postgres_password_name
+  value        = local.postgres_password
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+
+
+#-------------------------------
+# Azure Redis Cache
+#-------------------------------
+locals {
+  redis_password_name = "redis-password"
+}
+
+resource "azurerm_key_vault_secret" "redis_password" {
+  name         = local.redis_password_name
+  value        = module.redis_cache.primary_access_key
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
