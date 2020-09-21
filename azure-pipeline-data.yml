@@ -75,7 +75,7 @@ variables:
 - group: 'Infrastructure Pipeline Variables'
 
 stages:
-- template: prepare-stage.yml
+- template: devops/infrastructure/prepare-stage.yml
   parameters:
     environments:
     - name: 'demo'
