@@ -25,6 +25,7 @@
 # Private Variables
 #-------------------------------
 locals {
+  partition_id         = format("%s-id", var.data_partition_name)
   storage_account_name = format("%s-storage", var.data_partition_name)
   storage_key_name     = format("%s-key", local.storage_account_name)
 
@@ -42,6 +43,14 @@ locals {
 }
 
 
+#-------------------------------
+# Partition
+#-------------------------------
+resource "azurerm_key_vault_secret" "partition_id" {
+  name         = local.partition_id
+  value        = var.data_partition_name
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
 
 #-------------------------------
 # Storage
