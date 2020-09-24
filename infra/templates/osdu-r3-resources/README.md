@@ -38,8 +38,8 @@ Cloud administrators who are versed with both Cobalt templating and Kubernetes.
 1. Deployment Service Principal is granted Owner level role assignment for the target Azure subscription
 ![image](../../../docs/osdu/images/service_principal.png)
 1. Enroll as an Azure subscriber. The free trial subscription does not support enough cores to run this tutorial.
-1. Terraform `common_resources` environment module is [provisoned](environments/common_resources/README.md) to your Azure Environment
-1. Terraform `data_resources` environment module is [provisoned](environments/data_resources/README.md) to your Azure Environment
+1. Terraform `common_resources` environment module is [provisoned](configurations/common_resources/README.md) to your Azure Environment
+1. Terraform `data_resources` environment module is [provisoned](configurations/data_resources/README.md) to your Azure Environment
 1. Install the required common tools (kubectl, helm, and terraform). See also [Required Tools](https://github.com/microsoft/bedrock/tree/master/cluster). Note: this tutorial currently uses [Terraform 0.12.28](https://releases.hashicorp.com/terraform/0.12.28/).
 
 ### Install the required tooling
@@ -245,9 +245,9 @@ with name `osdu-infrastructure` for the desired subscription.
 
 ## Manually Deployment Processes
 
-Follow the directions in the [`common_resources`](./environments/common_resources/README.md) environment.
+Follow the directions in the [`common_resources`](configurations/common_resources/README.md) environment.
 
-Follow the directions in the [`data_resources`](/environments/data_resources/README.md) environment.
+Follow the directions in the [`data_resources`](configurations/data_resources/README.md) environment.
 
 Follow the directions in the [`cluster_resources`](./environments/cluster_resources/README.md) environment.
 
