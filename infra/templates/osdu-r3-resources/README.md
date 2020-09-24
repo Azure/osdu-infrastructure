@@ -516,25 +516,6 @@ Press CTRL+C to close the tunnel...
 
 
 
-## Integration Testing
-
-Please confirm that you've completed the `terraform apply` step before running the integration tests as we're validating the active terraform workspace.
-
-Integration tests can be run using the following command:
-
-```
-go test -v $(go list ./... | grep "integration")
-```
-
-## Terraform Destroy 
-
-Optionally execute the following command to teardown your deployment and delete your resources.
-
-```bash
-# Destroy resources and tear down deployment. Only do this if you want to destroy your deployment.
-terraform destroy
-```
-
 ## License
 Copyright © Microsoft Corporation
 
