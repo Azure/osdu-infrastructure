@@ -73,7 +73,7 @@ Flux requires that the git repository have at least one commit. Initialize the r
 git commit --allow-empty -m "Initializing the Flux Manifest Repository"
 ```
 
-Copy the manifests located in /devops/manifests to the providers/azure/hld-registry directory.
+When you are deploying services, you will put the manifests in providers/azure/hld-registry directory of this repo. Once you push the manifests, Flux should automatically deploy the services.
 
 ## Generate an RSA Key Pair to use as the Manifest Repository Deploy Key
 
