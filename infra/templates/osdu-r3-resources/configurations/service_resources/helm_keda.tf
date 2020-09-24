@@ -33,4 +33,6 @@ resource "helm_release" "keda" {
   chart      = "keda"
   version    = local.helm_keda_version
   namespace  = local.helm_keda_ns
+
+  depends_on = [kubernetes_namespace.keda]
 }
