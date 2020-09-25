@@ -38,7 +38,7 @@ Central Resources are required to be provisioned before Service or Data Partitio
 
 ## Cloud Resource Architecture
 
-![Architecture](./docs/images/architecture_diagram.png "Architecture")
+![Architecture](./docs/images/architecture.png "Architecture")
 
 
 ## Intended audience
