@@ -72,6 +72,7 @@ locals {
   retention_policy    = var.log_retention_days == 0 ? false : true
 
   kv_name                 = "${local.base_name_21}-kv"
+  storage_name            = "${replace(local.base_name_21, "-", "")}tbl"
   container_registry_name = "${replace(local.base_name_21, "-", "")}cr"
   osdupod_identity_name   = "${local.base_name}-osdu-identity"
   ai_name                 = "${local.base_name}-ai"
@@ -82,7 +83,7 @@ locals {
     [module.container_registry.container_registry_id],
     [module.keyvault.keyvault_id]
   )
-
+  role = "Contributor"
   rbac_principals = [
     azurerm_user_assigned_identity.osduidentity.principal_id,
     module.service_principal.id
@@ -160,6 +161,30 @@ resource "azurerm_role_assignment" "kv_roles" {
   role_definition_name = "Reader"
   principal_id         = local.rbac_principals[count.index]
   scope                = module.keyvault.keyvault_id
+}
+
+#-------------------------------
+# Storage
+#-------------------------------
+module "storage_account" {
+  source = "../../../modules/providers/azure/storage-account"
+
+  name                = local.storage_name
+  resource_group_name = azurerm_resource_group.main.name
+  container_names     = []
+  kind                = "StorageV2"
+  replication_type    = "GRS"
+
+  resource_tags = var.resource_tags
+}
+
+// Add Access Control to Principal
+resource "azurerm_role_assignment" "storage_access" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = local.role
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.storage_account.id
 }
 
 
@@ -300,6 +325,13 @@ resource "azurerm_user_assigned_identity" "osduidentity" {
 resource "azurerm_management_lock" "kv_lock" {
   name       = "osdu_cr_kv_lock"
   scope      = module.keyvault.keyvault_id
+  lock_level = "CanNotDelete"
+}
+
+// Lock the Storage
+resource "azurerm_management_lock" "sa_lock" {
+  name       = "osdu_tbl_sa_lock"
+  scope      = module.storage_account.id
   lock_level = "CanNotDelete"
 }
 
