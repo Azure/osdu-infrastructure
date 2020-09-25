@@ -92,3 +92,9 @@ resource "azurerm_key_vault_secret" "principal_secret" {
   value        = module.service_principal.client_secret
   key_vault_id = module.keyvault.keyvault_id
 }
+
+resource "azurerm_key_vault_secret" "principal_object_id" {
+  name         = "app-dev-sp-id"
+  value        = module.service_principal.id
+  key_vault_id = module.keyvault.keyvault_id
+}
