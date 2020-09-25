@@ -25,9 +25,13 @@
 # Private Variables
 #-------------------------------
 locals {
-  partition_id         = format("%s-id", var.data_partition_name)
+  partition_id = format("%s-id", var.data_partition_name)
+
   storage_account_name = format("%s-storage", var.data_partition_name)
   storage_key_name     = format("%s-key", local.storage_account_name)
+
+  sdms_storage_account_name = format("%s-sdms-storage", var.data_partition_name)
+  sdms_storage_key_name     = format("%s-key", local.sdms_storage_account_name)
 
   cosmos_connection  = format("%s-cosmos-connection", var.data_partition_name)
   cosmos_endpoint    = format("%s-cosmos-endpoint", var.data_partition_name)
@@ -52,6 +56,8 @@ resource "azurerm_key_vault_secret" "partition_id" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
+
+
 #-------------------------------
 # Storage
 #-------------------------------
@@ -64,6 +70,18 @@ resource "azurerm_key_vault_secret" "storage_name" {
 resource "azurerm_key_vault_secret" "storage_key" {
   name         = local.storage_key_name
   value        = module.storage_account.primary_access_key
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+resource "azurerm_key_vault_secret" "sdms_storage_name" {
+  name         = local.sdms_storage_account_name
+  value        = module.sdms_storage_account.name
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
+resource "azurerm_key_vault_secret" "sdms_storage_key" {
+  name         = local.sdms_storage_key_name
+  value        = module.sdms_storage_account.primary_access_key
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 

@@ -87,6 +87,7 @@ locals {
   retention_policy    = var.log_retention_days == 0 ? false : true
 
   storage_name            = "${replace(local.base_name_21, "-", "")}data"
+  sdms_storage_name       = "${replace(local.base_name_21, "-", "")}sdms"
   cosmosdb_name           = "${local.base_name}-db"
   sb_namespace            = "${local.base_name_21}-bus"
   eventgrid_name          = "${local.base_name_21}-grid"
@@ -166,6 +167,27 @@ resource "azurerm_role_assignment" "storage_access" {
   role_definition_name = local.role
   principal_id         = local.rbac_principals[count.index]
   scope                = module.storage_account.id
+}
+
+module "sdms_storage_account" {
+  source = "../../../modules/providers/azure/storage-account"
+
+  name                = local.sdms_storage_name
+  resource_group_name = azurerm_resource_group.main.name
+  container_names     = []
+  kind                = "StorageV2"
+  replication_type    = "GRS"
+
+  resource_tags = var.resource_tags
+}
+
+// Add Access Control to Principal
+resource "azurerm_role_assignment" "sdms_storage_access" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = local.role
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.sdms_storage_account.id
 }
 
 
@@ -256,6 +278,12 @@ resource "azurerm_role_assignment" "eventgrid_access" {
 resource "azurerm_management_lock" "sa_lock" {
   name       = "osdu_ds_sa_lock"
   scope      = module.storage_account.id
+  lock_level = "CanNotDelete"
+}
+
+resource "azurerm_management_lock" "sdms_sa_lock" {
+  name       = "osdu_sdms_sa_lock"
+  scope      = module.sdms_storage_account.id
   lock_level = "CanNotDelete"
 }
 
