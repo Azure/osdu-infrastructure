@@ -30,7 +30,7 @@ locals {
   storage_account_name = format("%s-storage", var.data_partition_name)
   storage_key_name     = format("%s-key", local.storage_account_name)
 
-  sdms_storage_account_name = format("sdms-storage")
+  sdms_storage_account_name = format("%s-sdms-storage", var.data_partition_name)
   sdms_storage_key_name     = format("%s-key", local.sdms_storage_account_name)
 
   cosmos_connection  = format("%s-cosmos-connection", var.data_partition_name)
