@@ -66,6 +66,13 @@ resource "azurerm_key_vault_secret" "airflow_admin_password" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
+// Add the Airflow Log Connection to the Vault
+resource "azurerm_key_vault_secret" "airflow_remote_log_connection" {
+  name         = "airflow-remote-log-connection"
+  value        = format("wasb://%s:%s@", module.storage_account.name, urlencode(module.storage_account.primary_access_key))
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
 // Add the Subscription to the Queue
 resource "azurerm_eventgrid_event_subscription" "airflow_log_event_subscription" {
   name  = "airflowlogeventsubscription"
