@@ -52,3 +52,9 @@ variable "subnet_names" {
   description = "A list of public subnets inside the vNet."
   default     = ["subnet1"]
 }
+
+variable "subnet_service_endpoints" {
+  description = "A map of subnet name to service endpoints to add to the subnet."
+  type        = map(any)
+  default     = {}
+}
