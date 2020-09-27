@@ -92,8 +92,3 @@ stages:
       terraformTemplatePath: infra/templates/osdu-r3-mvp/data_partition
       deploymentTimeoutInMinutes: 120
       dataPartitionName: opendes
-    - jobName: data_partition_2
-      terraformWorkspacePrefix: dp2
-      terraformTemplatePath: infra/templates/osdu-r3-mvp/data_partition
-      deploymentTimeoutInMinutes: 120
-      dataPartitionName: common
