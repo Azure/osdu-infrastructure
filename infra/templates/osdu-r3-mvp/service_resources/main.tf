@@ -261,8 +261,16 @@ module "network" {
   name                = local.vnet_name
   resource_group_name = azurerm_resource_group.main.name
   address_space       = var.address_space
-  subnet_prefixes     = [var.subnet_fe_prefix, var.subnet_aks_prefix, var.subnet_be_prefix]
-  subnet_names        = [local.fe_subnet_name, local.aks_subnet_name, local.be_subnet_name]
+  subnet_prefixes     = [var.subnet_fe_prefix, var.subnet_aks_prefix]
+  subnet_names        = [local.fe_subnet_name, local.aks_subnet_name]
+  subnet_service_endpoints = {
+    (local.aks_subnet_name) = ["Microsoft.Storage",
+      "Microsoft.Sql",
+      "Microsoft.AzureCosmosDB",
+      "Microsoft.KeyVault",
+      "Microsoft.ServiceBus",
+    "Microsoft.EventHub"]
+  }
 
   resource_tags = var.resource_tags
 }

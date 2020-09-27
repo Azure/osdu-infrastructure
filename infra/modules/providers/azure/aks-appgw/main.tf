@@ -79,7 +79,7 @@ resource "azurerm_application_gateway" "main" {
   }
 
   waf_configuration {
-    enabled          = var.tier == "WAF" ? true : false
+    enabled          = var.tier == "WAF" || var.tier == "WAF_v2" ? true : false
     firewall_mode    = var.waf_config_firewall_mode
     rule_set_type    = "OWASP"
     rule_set_version = "3.1"

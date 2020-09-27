@@ -44,7 +44,7 @@ variable "tier" {
 variable "waf_config_firewall_mode" {
   description = "The firewall mode on the waf gateway"
   type        = string
-  default     = "Prevention"
+  default     = "Detection"
 }
 
 variable "vnet_name" {
