@@ -44,7 +44,7 @@ resource "kubernetes_secret" "flux_ssh" {
     identity = file(var.gitops_ssh_key_file)
   }
 
-  depends_on = [module.aks]
+  depends_on = [kubernetes_namespace.flux]
 }
 
 resource "helm_release" "flux" {
@@ -99,5 +99,5 @@ resource "helm_release" "flux" {
     value = "flux"
   }
 
-  depends_on = [module.aks, kubernetes_namespace.kvsecrets]
+  depends_on = [kubernetes_namespace.flux, kubernetes_secret.flux_ssh]
 }
