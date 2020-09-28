@@ -498,6 +498,50 @@ The EXTERNAL-IP, in this case is: http://168.61.208.215/. Append the port and us
 
 ![image](https://user-images.githubusercontent.com/7635865/74478125-55be6200-4e72-11ea-957f-dab2c663034a.png)
 
+## Deploying OSDU Services
+There are six OSDU services that can be deployed in this infrastructure: storage, search, indexer-serivce, indexer-queue, entitlements, and legal. The helm charts for these service can be found in their respective repos at /devops/azure:
+* [Storage](https://community.opengroup.org/osdu/platform/system/storage/-/tree/master/devops/azure)
+* [Search](https://community.opengroup.org/osdu/platform/system/search-service/-/tree/master/devops/azure)
+* [Entitlements](https://community.opengroup.org/osdu/platform/security-and-compliance/entitlements-azure/-/tree/master/devops/azure)
+* [Legal](https://community.opengroup.org/osdu/platform/security-and-compliance/legal/-/tree/master/devops/azure)
+* [Indexer Service](https://community.opengroup.org/osdu/platform/system/indexer-queue/-/tree/master/devops/azure)
+* [Indexer Queue](https://community.opengroup.org/osdu/platform/system/indexer-queue/-/tree/master/devops/azure)
+
+You can download the config file for these templates here: `wget https://raw.githubusercontent.com/Azure/osdu-infrastructure/master/devops/helm-config.yaml -O config.yaml`
+
+To install the services using Flux, you will want a directory stucture like the following: 
+```
+project root
+└───osdu-infrastructure (this repo)
+└───osdu-services (folder you create)
+|    └───entitlements-azure (service repo you will clone)
+|    └───legal (service repo you will clone)
+|    └───storage (service repo you will clone)
+|    └───indexer-service (service repo you will clone)
+|    └───indexer-queue (service repo you will clone)
+|    └───search-service (service repo you will clone)
+└───flux-repo (the repo for flux manifests you created earlier)
+```
+You can then use this script to generate the manifests in your flux repo after filling out your config.yaml file:
+```bash
+SRC_DIR="<ROOT_PATH_TO_SOURCE>"      #  $HOME/source/osdu
+FLUX_SRC="<FULL_PATH_TO_SOURCE>"     #  $SRC_DIR/flux-repo
+INFRA_SRC="<FULL_PATH_TO_SOURCE>"    #  $SRC_DIR/osdu-infrastructure
+SERVICES_DIR="<FULL_PATH_TO_SOURCE>" #  $SRC_DIR/osdu-services
+BRANCH="master"
+TAG="latest"
+
+# Extract manifests from the common osdu chart.
+helm template osdu-flux ${INFRA_SRC}/devops/charts/osdu-common -f ${INFRA_SRC}/devops/config.yaml > ${FLUX_SRC}/providers/azure/hld-registry/azure-common.yaml
+
+# Extract manifests from each service chart.
+for SERVICE in entitlements-azure legal storage indexer-service indexer-queue search-service ;
+do
+  helm template $SERVICE ${SERVICES_DIR}/$SERVICE/devops/azure/chart --set image.branch=$BRANCH --set image.tag=$TAG > ${FLUX_SRC}/providers/azure/hld-registry/$SERVICE.yaml
+done
+```
+After running this script, verify that the manifests are in your flux repo in the hld-registry directory and that the azure-common manifest is there as well. After verifying that these manifests are all in place, you can deploy the service by pushing the flux repo with the new files.
+
 ## Kubernetes Portal Dashboard
 
 Kubernetes includes a web dashboard that can be used for basic management operations. This dashboard lets you view basic health status and metrics for your applications, create and deploy services, and edit existing applications.
