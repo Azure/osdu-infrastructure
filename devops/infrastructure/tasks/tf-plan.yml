@@ -55,6 +55,7 @@ steps:
       TF_VAR_principal_name: $(TF_VAR_principal_name)
       TF_VAR_principal_password: $(TF_VAR_principal_password)
       TF_VAR_principal_objectId: $(TF_VAR_principal_objectId)
+      TF_VAR_gitops_path: $(TF_VAR_gitops_path)
 
     inputs:
       azureSubscription: '$(SERVICE_CONNECTION_NAME)'
