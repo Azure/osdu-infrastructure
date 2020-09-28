@@ -66,6 +66,12 @@ variable "log_retention_days" {
   default     = 100
 }
 
+variable "storage_replication_type" {
+  description = "Defines the type of replication to use for this storage account. Valid options are LRS*, GRS, RAGRS and ZRS."
+  type        = string
+  default     = "LRS"
+}
+
 variable "storage_containers" {
   description = "The list of storage containers names to create. Names must be unique per storage account."
   type        = list(string)

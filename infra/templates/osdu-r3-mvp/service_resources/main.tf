@@ -218,7 +218,7 @@ module "storage_account" {
   share_names         = var.storage_shares
   queue_names         = var.storage_queues
   kind                = "StorageV2"
-  replication_type    = "LRS"
+  replication_type    = var.storage_replication_type
 
   resource_tags = var.resource_tags
 }

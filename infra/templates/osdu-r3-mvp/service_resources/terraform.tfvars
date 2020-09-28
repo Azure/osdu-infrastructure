@@ -26,6 +26,7 @@ resource_tags = {
 }
 
 # Storage Settings
+storage_replication_type = "LRS"
 storage_containers = [
   "azure-webjobs-hosts",
   "airflow-logs"

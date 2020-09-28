@@ -50,7 +50,7 @@ variable "sql_collections" {
     name               = string
     database_name      = string
     partition_key_path = string
-    throughput         = number
+    # throughput         = number
   }))
   default = []
 }
