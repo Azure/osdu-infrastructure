@@ -164,7 +164,7 @@ Follow the directions in the [`cluster_resources`](./environments/cluster_resour
 
 ## Interact with the Deployed Cluster
 
-After `terraform apply` finishes for the cluster_resources, there is one critical output artifact: the Kubernetes config file for the deployed cluster that is generated and saved in the output directory. The default file is output/bedrock_kube_config. The following steps use this file to interact with the deployed Bedrock AKS cluster.
+After `terraform apply` finishes for the service_resources, there is one critical output artifact: the Kubernetes config file for the deployed cluster that is generated and saved in the output directory. The default file is output/bedrock_kube_config. The following steps use this file to interact with the deployed Bedrock AKS cluster.
 
 Using the config file output/bedrock_kube_config, one of the first things we can do is list all pods deployed within the cluster:
 
