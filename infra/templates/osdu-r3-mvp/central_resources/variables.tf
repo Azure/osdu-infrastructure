@@ -51,21 +51,6 @@ variable "container_registry_sku" {
   default     = "Standard"
 }
 
-variable "elasticsearch_endpoint" {
-  type        = string
-  description = "endpoint for elasticsearch cluster"
-}
-
-variable "elasticsearch_username" {
-  type        = string
-  description = "username for elasticsearch cluster"
-}
-
-variable "elasticsearch_password" {
-  type        = string
-  description = "password for elasticsearch cluster"
-}
-
 variable "resource_tags" {
   description = "Map of tags to apply to this template."
   type        = map(string)
@@ -90,4 +75,10 @@ variable "principal_appId" {
 variable "principal_objectId" {
   description = "Existing Service Principal ObjectId."
   type        = string
+}
+
+variable "storage_replication_type" {
+  description = "Defines the type of replication to use for this storage account. Valid options are LRS*, GRS, RAGRS and ZRS."
+  type        = string
+  default     = "LRS"
 }

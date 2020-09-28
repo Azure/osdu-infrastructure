@@ -133,9 +133,6 @@ module "keyvault" {
   keyvault_name       = local.kv_name
   resource_group_name = azurerm_resource_group.main.name
   secrets = {
-    elastic-endpoint     = var.elasticsearch_endpoint
-    elastic-username     = var.elasticsearch_username
-    elastic-password     = var.elasticsearch_password
     app-dev-sp-tenant-id = data.azurerm_client_config.current.tenant_id
   }
 
@@ -173,7 +170,7 @@ module "storage_account" {
   resource_group_name = azurerm_resource_group.main.name
   container_names     = []
   kind                = "StorageV2"
-  replication_type    = "GRS"
+  replication_type    = var.storage_replication_type
 
   resource_tags = var.resource_tags
 }
