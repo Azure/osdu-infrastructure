@@ -28,6 +28,10 @@ resource "azurerm_key_vault" "keyvault" {
   resource_group_name = data.azurerm_resource_group.kv.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 90
+  purge_protection_enabled   = false
+
   sku_name = var.keyvault_sku
 
   # This block configures VNET integration if a subnet whitelist is specified

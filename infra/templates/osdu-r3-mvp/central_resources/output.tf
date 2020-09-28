@@ -70,13 +70,3 @@ output "principal_objectId" {
   description = "The service principal application object id"
   value       = var.principal_objectId
 }
-
-output "elasticsearch_endpoint" {
-  description = "The elastic search endpoint"
-  value       = var.elasticsearch_endpoint
-}
-
-output "elasticsearch_username" {
-  description = "The elastic search username"
-  value       = var.elasticsearch_username
-}

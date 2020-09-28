@@ -46,8 +46,6 @@ resource "kubernetes_config_map" "osduconfigmap" {
     ENV_LOG_WORKSPACE_ID  = data.terraform_remote_state.central_resources.outputs.log_analytics_id
     ENV_POSTGRES_USERNAME = var.postgres_username
     ENV_POSTGRES_HOSTNAME = module.postgreSQL.server_fqdn
-    ENV_ELASTIC_ENDPOINT  = data.terraform_remote_state.central_resources.outputs.elasticsearch_endpoint
-    ENV_ELASTIC_USERNAME  = data.terraform_remote_state.central_resources.outputs.elasticsearch_username
   }
 
   depends_on = [kubernetes_namespace.osdu]

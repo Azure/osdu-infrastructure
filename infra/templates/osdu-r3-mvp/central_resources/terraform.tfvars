@@ -24,3 +24,6 @@ prefix = "osdu-mvp"
 resource_tags = {
   contact = "pipeline"
 }
+
+# Storage Settings
+storage_replication_type = "LRS"
