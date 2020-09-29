@@ -159,7 +159,7 @@ Follow the directions in the [`common_resources`](configurations/common_resource
 
 Follow the directions in the [`data_resources`](configurations/data_resources/README.md) environment.
 
-Follow the directions in the [`cluster_resources`](./environments/cluster_resources/README.md) environment.
+Follow the directions in the [`service_resources`](./configurations/service_resources/README.md) environment.
 
 
 ## Interact with the Deployed Cluster
