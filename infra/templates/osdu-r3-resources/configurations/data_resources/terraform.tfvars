@@ -126,7 +126,7 @@ cosmos_sql_collections = [
     database_name      = "osdu-db"
     partition_key_path = "/workflowId"
     throughput         = 400
-  },
+  }
 ]
 
 # Service Bus Settings
