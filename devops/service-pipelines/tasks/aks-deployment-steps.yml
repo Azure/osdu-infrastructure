@@ -1,0 +1,56 @@
+#  Copyright © Microsoft Corporation
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+#####################
+# README: Trigger steps to push to prepare Helm chart and push to Manifest repo.
+#####################
+
+parameters:
+  environment: "check"
+  skipDeploy: "false"
+  generateName: ""
+  hldRegPath: "providers/azure/hld-registry"
+  providerName: ""
+    
+steps:
+    # self to trigger clone of the current repo.
+    - checkout: self
+      persistCredentials: true
+    - checkout: K8ManifestsRepo
+      persistCredentials: true
+    - task: "HelmInstaller@1"
+      inputs:
+        helmVersionToInstall: $(HELM_VERSION)
+    # By default copy to HLD, option flag to switch off copying.
+    - task: Bash@3
+      displayName: "Helm template generation"
+      env:
+        GENERATE_NAME: ${{parameters.generateName}}
+      inputs:  
+        targetType: inline
+        script: |
+          #!/usr/bin/env bash
+          cd $(Build.SourcesDirectory)/$(Build.Repository.Name)/$(HELM_CHART_PATH)
+
+          echo "GENERATING HELM TEMPLATE"
+          mkdir $(MANIFEST_GENERATION_PATH) && \
+          helm template $GENERATE_NAME --output-dir $(MANIFEST_GENERATION_PATH) \
+          --set-string image.repository=$(CONTAINER_REGISTRY_NAME).azurecr.io,image.branch=$(Build.SourceBranchName),image.tag=$(Build.SourceVersion) .
+    # Currently pushing to folder "generated" and based on the deploy flag pushing to hld-registry folder as well.
+    - template: gitops.yml
+      parameters:
+        branchName: "$(K8_ENV_PREFIX)-${{parameters.environment}}"
+        skipDeploy: ${{parameters.skipDeploy}}
+        generateName: ${{parameters.generateName}}
+        hldRegPath: ${{parameters.hldRegPath}}

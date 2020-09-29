@@ -1,0 +1,56 @@
+#  Copyright © Microsoft Corporation
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+#####################
+# README: Create Pull Request Against K8 Manifest Repo
+#####################
+
+parameters:
+  sourceBranchName: 'azure-evd'
+  targetBranchName: 'master'
+
+steps:
+  - script: az extension add -n azure-devops
+    displayName: 'Install Azure DevOps Extension'
+  - script: echo ${AZURE_DEVOPS_CLI_PAT} | az devops login
+    env:
+      AZURE_DEVOPS_CLI_PAT: $(System.AccessToken)
+    displayName: 'Login Azure DevOps Extension'
+  - script: az devops configure --defaults organization=$(System.TeamFoundationCollectionUri) project=$(System.TeamProject) --use-git-aliases true
+    displayName: 'Set default Azure DevOps organization and project'
+  - task: Bash@3
+    displayName: 'Create Pull Request Against Target Branch'
+    env:
+      BRANCH_SOURCE: ${{ parameters.sourceBranchName }}
+      BRANCH_TARGET: ${{ parameters.targetBranchName }}
+    inputs:
+      targetType: 'inline'
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+
+        echo "Source: $BRANCH_SOURCE Target: $BRANCH_TARGET"
+        cd $(Build.SourcesDirectory)/$(MANIFEST_REPO)
+
+        function create_pr(){
+          PR_DESCRIPTION="Updating SDMS Service for image tag: $(IMAGE_VERSION).<br><br>"
+          DETAILED_DESCRIPTION="PR created by: $(Build.DefinitionName) with buildId: $(Build.BuildId) and buildNumber: $(Build.BuildNumber)"
+
+          az repos pr create --auto-complete true --delete-source-branch true  -s $BRANCH_SOURCE -t $BRANCH_TARGET -d "$PR_DESCRIPTION $DETAILED_DESCRIPTION"
+        }
+
+        if [[ "$BRANCH_SOURCE" != "$BRANCH_TARGET" ]]; then
+          echo "creating PR Source: $BRANCH_SOURCE Target: $BRANCH_TARGET"
+          create_pr
+        fi
