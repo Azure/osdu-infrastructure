@@ -102,7 +102,31 @@ cosmos_sql_collections = [
     database_name      = "osdu-db"
     partition_key_path = "/dataPartitionId"
     throughput         = 400
-  }
+  },
+  {
+    name               = "IngestionStrategy"
+    database_name      = "osdu-db"
+    partition_key_path = "/workflowType"
+    throughput         = 400
+  },
+  {
+    name               = "WorkflowStatus"
+    database_name      = "osdu-db"
+    partition_key_path = "/workflowId"
+    throughput         = 400
+  },
+  {
+    name               = "Workflow"
+    database_name      = "osdu-db"
+    partition_key_path = "/workflowId"
+    throughput         = 400
+  },
+  {
+    name               = "WorkflowRun"
+    database_name      = "osdu-db"
+    partition_key_path = "/workflowId"
+    throughput         = 400
+  },
 ]
 
 # Service Bus Settings
