@@ -32,7 +32,7 @@ terraform {
 # Providers
 #-------------------------------
 provider "azurerm" {
-  version = "=2.18.0"
+  version = "=2.29.0"
   features {}
 }
 
