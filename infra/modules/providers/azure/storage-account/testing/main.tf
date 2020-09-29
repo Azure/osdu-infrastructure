@@ -14,6 +14,7 @@ module "storage_account" {
 
   resource_group_name = module.resource_group.name
   name                = substr("osdumodule${module.resource_group.random}", 0, 23)
+  replication_type    = "GZRS"
   container_names = [
     "osdu-container"
   ]

@@ -75,7 +75,7 @@ variable "log_retention_days" {
 variable "storage_replication_type" {
   description = "Defines the type of replication to use for this storage account. Valid options are LRS*, GRS, RAGRS and ZRS."
   type        = string
-  default     = "ZRS"
+  default     = "GZRS"
 }
 
 variable "storage_containers" {
@@ -115,7 +115,6 @@ variable "cosmos_sql_collections" {
     name               = string
     database_name      = string
     partition_key_path = string
-    throughput         = number
   }))
   default = []
 }

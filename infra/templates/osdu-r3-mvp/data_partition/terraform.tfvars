@@ -26,7 +26,7 @@ resource_tags = {
 }
 
 # Storage Settings
-storage_replication_type = "ZRS"
+storage_replication_type = "GZRS"
 storage_containers = [
   "legal-service-azure-configuration",
   "opendes",
