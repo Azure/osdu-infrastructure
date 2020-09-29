@@ -72,6 +72,12 @@ variable "log_retention_days" {
   default     = 30
 }
 
+variable "storage_replication_type" {
+  description = "Defines the type of replication to use for this storage account. Valid options are LRS*, GRS, RAGRS and ZRS."
+  type        = string
+  default     = "GZRS"
+}
+
 variable "storage_containers" {
   description = "The list of storage container names to create. Names must be unique per storage account."
   type        = list(string)
@@ -109,7 +115,6 @@ variable "cosmos_sql_collections" {
     name               = string
     database_name      = string
     partition_key_path = string
-    throughput         = number
   }))
   default = []
 }
@@ -145,4 +150,19 @@ variable "sb_topics" {
       ]
     }
   ]
+}
+
+variable "elasticsearch_endpoint" {
+  type        = string
+  description = "endpoint for elasticsearch cluster"
+}
+
+variable "elasticsearch_username" {
+  type        = string
+  description = "username for elasticsearch cluster"
+}
+
+variable "elasticsearch_password" {
+  type        = string
+  description = "password for elasticsearch cluster"
 }

@@ -43,7 +43,7 @@ terraform {
 # Providers
 #-------------------------------
 provider "azurerm" {
-  version = "=2.26.0"
+  version = "=2.29.0"
   features {}
 }
 
@@ -155,7 +155,7 @@ module "storage_account" {
   resource_group_name = azurerm_resource_group.main.name
   container_names     = var.storage_containers
   kind                = "StorageV2"
-  replication_type    = "GRS"
+  replication_type    = var.storage_replication_type
 
   resource_tags = var.resource_tags
 }
@@ -176,7 +176,7 @@ module "sdms_storage_account" {
   resource_group_name = azurerm_resource_group.main.name
   container_names     = []
   kind                = "StorageV2"
-  replication_type    = "GRS"
+  replication_type    = var.storage_replication_type
 
   resource_tags = var.resource_tags
 }
