@@ -102,6 +102,26 @@ cosmos_sql_collections = [
     name               = "RegisterSubscription"
     database_name      = "osdu-db"
     partition_key_path = "/dataPartitionId"
+  },
+  {
+    name               = "IngestionStrategy"
+    database_name      = "osdu-db"
+    partition_key_path = "/workflowType"
+  },
+  {
+    name               = "WorkflowStatus"
+    database_name      = "osdu-db"
+    partition_key_path = "/workflowId"
+  },
+  {
+    name               = "Workflow"
+    database_name      = "osdu-db"
+    partition_key_path = "/workflowId"
+  },
+  {
+    name               = "WorkflowRun"
+    database_name      = "osdu-db"
+    partition_key_path = "/workflowId"
   }
 ]
 
