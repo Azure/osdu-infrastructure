@@ -20,6 +20,12 @@
    This file holds the main control and resoures for bootstraping an OSDU Azure Devops Project.
 */
 
+// *** WARNING  ****
+// This template makes changes into the Central Resources and the locks in Central have to be removed to delete.
+// Lock: Key Vault
+// Lock: Container Registry
+// *** WARNING  ****
+
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" {
@@ -27,11 +33,12 @@ terraform {
   }
 }
 
+
 #-------------------------------
 # Providers
 #-------------------------------
 provider "azurerm" {
-  version = "=2.26.0"
+  version = "=2.29.0"
   features {}
 }
 
@@ -55,12 +62,37 @@ provider "null" {
   version = "~>2.1.0"
 }
 
+// Hook-up kubectl Provider for Terraform
+provider "kubernetes" {
+  version                = "~> 1.11.3"
+  load_config_file       = false
+  host                   = module.aks.kube_config_block.0.host
+  username               = module.aks.kube_config_block.0.username
+  password               = module.aks.kube_config_block.0.password
+  client_certificate     = base64decode(module.aks.kube_config_block.0.client_certificate)
+  client_key             = base64decode(module.aks.kube_config_block.0.client_key)
+  cluster_ca_certificate = base64decode(module.aks.kube_config_block.0.cluster_ca_certificate)
+}
 
+// Hook-up helm Provider for Terraform
+provider "helm" {
+  version = "~> 1.2.3"
+
+  kubernetes {
+    load_config_file       = false
+    host                   = module.aks.kube_config_block.0.host
+    username               = module.aks.kube_config_block.0.username
+    password               = module.aks.kube_config_block.0.password
+    client_certificate     = base64decode(module.aks.kube_config_block.0.client_certificate)
+    client_key             = base64decode(module.aks.kube_config_block.0.client_key)
+    cluster_ca_certificate = base64decode(module.aks.kube_config_block.0.cluster_ca_certificate)
+  }
+}
 
 
 
 #-------------------------------
-# Private Variables  (common.tf)
+# Private Variables
 #-------------------------------
 locals {
   // sanitize names
@@ -80,33 +112,37 @@ locals {
   resource_group_name = format("%s-%s-%s-rg", var.prefix, local.workspace, random_string.workspace_scope.result)
   retention_policy    = var.log_retention_days == 0 ? false : true
 
-  // airflow.tf
-  storage_name           = "${replace(local.base_name_21, "-", "")}config"
-  storage_account_name   = "airflow-storage"
-  storage_key_name       = "${local.storage_account_name}-key"
-  redis_cache_name       = "${local.base_name}-cache"
-  postgresql_name        = "${local.base_name}-pg"
-  postgres_password      = coalesce(var.postgres_password, random_password.postgres[0].result)
-  airflow_admin_password = coalesce(var.airflow_admin_password, random_password.airflow_admin_password[0].result)
+  storage_name = "${replace(local.base_name_21, "-", "")}config"
 
-  // network.tf
+  redis_cache_name = "${local.base_name}-cache"
+  postgresql_name  = "${local.base_name}-pg"
+
   vnet_name           = "${local.base_name_60}-vnet"
   fe_subnet_name      = "${local.base_name_21}-fe-subnet"
   aks_subnet_name     = "${local.base_name_21}-aks-subnet"
   be_subnet_name      = "${local.base_name_21}-be-subnet"
   app_gw_name         = "${local.base_name_60}-gw"
   appgw_identity_name = format("%s-agic-identity", local.app_gw_name)
-  ssl_cert_name       = "appgw-ssl-cert"
 
-  // cluster.tf
+
   aks_cluster_name  = "${local.base_name_21}-aks"
   aks_identity_name = format("%s-pod-identity", local.aks_cluster_name)
   aks_dns_prefix    = local.base_name_60
+
+  role = "Contributor"
+  rbac_principals = [
+    // OSDU Identity
+    data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id,
+
+    // Service Principal
+    data.terraform_remote_state.central_resources.outputs.principal_objectId
+  ]
 }
 
 
+
 #-------------------------------
-# Common Resources  (common.tf)
+# Common Resources
 #-------------------------------
 data "azurerm_client_config" "current" {}
 data "azurerm_subscription" "current" {}
@@ -134,6 +170,7 @@ resource "random_string" "workspace_scope" {
 }
 
 
+
 #-------------------------------
 # Resource Group
 #-------------------------------
@@ -150,6 +187,26 @@ resource "azurerm_resource_group" "main" {
 
 
 #-------------------------------
+# User Assigned Identities
+#-------------------------------
+
+// Create an Identity for Pod Identity
+resource "azurerm_user_assigned_identity" "podidentity" {
+  name                = local.aks_identity_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+// Create and Identity for AGIC
+resource "azurerm_user_assigned_identity" "agicidentity" {
+  name                = local.appgw_identity_name
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
+
+
+#-------------------------------
 # Storage
 #-------------------------------
 module "storage_account" {
@@ -161,28 +218,177 @@ module "storage_account" {
   share_names         = var.storage_shares
   queue_names         = var.storage_queues
   kind                = "StorageV2"
-  replication_type    = "LRS"
+  replication_type    = var.storage_replication_type
 
   resource_tags = var.resource_tags
 }
 
-// Add the Storage Account Name to the Vault
-resource "azurerm_key_vault_secret" "storage_name" {
-  name         = local.storage_account_name
-  value        = module.storage_account.name
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+// Add Contributor Role Access
+resource "azurerm_role_assignment" "storage_access" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = local.role
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.storage_account.id
 }
 
-// Add the Storage Key to the Vault
-resource "azurerm_key_vault_secret" "storage_key" {
-  name         = local.storage_key_name
-  value        = module.storage_account.primary_access_key
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+// Add Storage Queue Data Reader Role Access 
+resource "azurerm_role_assignment" "queue_reader" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = "Storage Queue Data Reader"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.storage_account.id
 }
+
+// Add Storage Queue Data Message Processor Role Access 
+resource "azurerm_role_assignment" "airflow_log_queue_processor_roles" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = "Storage Queue Data Message Processor"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.storage_account.id
+}
+
 
 
 #-------------------------------
-# PostgreSQL (main.tf)
+# Network
+#-------------------------------
+module "network" {
+  source = "../../../modules/providers/azure/network"
+
+  name                = local.vnet_name
+  resource_group_name = azurerm_resource_group.main.name
+  address_space       = var.address_space
+  subnet_prefixes     = [var.subnet_fe_prefix, var.subnet_aks_prefix]
+  subnet_names        = [local.fe_subnet_name, local.aks_subnet_name]
+  subnet_service_endpoints = {
+    (local.aks_subnet_name) = ["Microsoft.Storage",
+      "Microsoft.Sql",
+      "Microsoft.AzureCosmosDB",
+      "Microsoft.KeyVault",
+      "Microsoft.ServiceBus",
+    "Microsoft.EventHub"]
+  }
+
+  resource_tags = var.resource_tags
+}
+
+module "appgateway" {
+  source = "../../../modules/providers/azure/aks-appgw"
+
+  name                = local.app_gw_name
+  resource_group_name = azurerm_resource_group.main.name
+
+  vnet_name            = module.network.name
+  vnet_subnet_id       = module.network.subnets.0
+  keyvault_id          = data.terraform_remote_state.central_resources.outputs.keyvault_id
+  keyvault_secret_id   = azurerm_key_vault_certificate.default.0.secret_id
+  ssl_certificate_name = local.ssl_cert_name
+
+  resource_tags = var.resource_tags
+}
+
+// Give AGIC Identity Access rights to Change the Application Gateway
+resource "azurerm_role_assignment" "appgwcontributor" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = module.appgateway.id
+  role_definition_name = "Contributor"
+}
+
+// Give AGIC Identity the rights to look at the Resource Group
+resource "azurerm_role_assignment" "agic_resourcegroup_reader" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = azurerm_resource_group.main.id
+  role_definition_name = "Reader"
+}
+
+// Give AGIC Identity rights to Operate the Gateway Identity
+resource "azurerm_role_assignment" "agic_app_gw_mi" {
+  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
+  scope                = module.appgateway.managed_identity_resource_id
+  role_definition_name = "Managed Identity Operator"
+}
+
+
+
+#-------------------------------
+# Azure AKS
+#-------------------------------
+module "aks" {
+  source = "../../../modules/providers/azure/aks"
+
+  name                = local.aks_cluster_name
+  resource_group_name = azurerm_resource_group.main.name
+
+  dns_prefix         = local.aks_dns_prefix
+  agent_vm_count     = var.aks_agent_vm_count
+  agent_vm_size      = var.aks_agent_vm_size
+  vnet_subnet_id     = module.network.subnets.1
+  ssh_public_key     = file(var.ssh_public_key_file)
+  kubernetes_version = var.kubernetes_version
+  log_analytics_id   = data.terraform_remote_state.central_resources.outputs.log_analytics_id
+
+  msi_enabled               = true
+  oms_agent_enabled         = true
+  auto_scaling_default_node = true
+  kubeconfig_to_disk        = false
+  enable_kube_dashboard     = false
+
+  resource_tags = var.resource_tags
+}
+
+data "azurerm_resource_group" "aks_node_resource_group" {
+  name = module.aks.node_resource_group
+}
+
+// Give AKS Access rights to Operate the Node Resource Group
+resource "azurerm_role_assignment" "all_mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Give AKS Access to Create and Remove VM's in Node Resource Group
+resource "azurerm_role_assignment" "vm_contributor" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.azurerm_resource_group.aks_node_resource_group.id
+  role_definition_name = "Virtual Machine Contributor"
+}
+
+// Give AKS Access to Pull from ACR
+resource "azurerm_role_assignment" "acr_reader" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.terraform_remote_state.central_resources.outputs.container_registry_id
+  role_definition_name = "AcrPull"
+}
+
+// Give AKS Rights to operate the AGIC Identity
+resource "azurerm_role_assignment" "mi_ag_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = azurerm_user_assigned_identity.agicidentity.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Give AKS Access Rights to operate the Pod Identity
+resource "azurerm_role_assignment" "mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = azurerm_user_assigned_identity.podidentity.id
+  role_definition_name = "Managed Identity Operator"
+}
+
+// Give AKS Access Rights to operate the OSDU Identity
+resource "azurerm_role_assignment" "osdu_identity_mi_operator" {
+  principal_id         = module.aks.kubelet_object_id
+  scope                = data.terraform_remote_state.central_resources.outputs.osdu_identity_id
+  role_definition_name = "Managed Identity Operator"
+}
+
+
+
+#-------------------------------
+# PostgreSQL
 #-------------------------------
 resource "random_password" "postgres" {
   count = var.postgres_password == "" ? 1 : 0
@@ -214,62 +420,29 @@ module "postgreSQL" {
   auto_grow_enabled            = true
   ssl_enforcement_enabled      = true
 
+  public_network_access = true
+  firewall_rules = [{
+    start_ip = "0.0.0.0"
+    end_ip   = "0.0.0.0"
+  }]
+
   resource_tags = var.resource_tags
 }
 
-resource "azurerm_key_vault_secret" "postgres_password" {
-  name         = "postgres-password"
-  value        = local.postgres_password
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
+// Add Contributor Role Access
+resource "azurerm_role_assignment" "postgres_access" {
+  count = length(local.rbac_principals)
 
-// Diagnostics Setup
-resource "azurerm_monitor_diagnostic_setting" "postgres_diagnostics" {
-  name                       = "postgres_diagnostics"
-  target_resource_id         = module.postgreSQL.server_id
-  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
-
-  log {
-    category = "PostgreSQLLogs"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "QueryStoreRuntimeStatistics"
-
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  log {
-    category = "QueryStoreWaitStatistics"
-
-    retention_policy {
-      enabled = false
-    }
-  }
-
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
+  role_definition_name = local.role
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.postgreSQL.server_id
 }
 
 
-#-------------------------------
-# Azure Redis Cache (main.tf)
-#-------------------------------
 
+#-------------------------------
+# Azure Redis Cache
+#-------------------------------
 module "redis_cache" {
   source = "../../../modules/providers/azure/redis-cache"
 
@@ -283,444 +456,11 @@ module "redis_cache" {
   resource_tags = var.resource_tags
 }
 
-resource "azurerm_key_vault_secret" "redis_password" {
-  name         = "redis-password"
-  value        = module.redis_cache.primary_access_key
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-// Diagnostics Setup
-resource "azurerm_monitor_diagnostic_setting" "redis_diagnostics" {
-  name                       = "redis_diagnostics"
-  target_resource_id         = module.redis_cache.id
-  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
-
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
-
-
-#-------------------------------
-# Airflow (main.tf)
-#-------------------------------
-
-resource "random_password" "airflow_admin_password" {
-  count = var.airflow_admin_password == "" ? 1 : 0
-
-  length           = 8
-  special          = true
-  override_special = "_%@"
-  min_upper        = 1
-  min_lower        = 1
-  min_numeric      = 1
-  min_special      = 1
-}
-
-resource "random_string" "airflow_fernete_key_rnd" {
-  keepers = {
-    postgresql_name = local.postgresql_name
-  }
-  length      = 32
-  special     = true
-  min_upper   = 1
-  min_lower   = 1
-  min_numeric = 1
-  min_special = 1
-}
-
-resource "azurerm_key_vault_secret" "airflow_fernet_key_secret" {
-  name         = "airflow-fernet-key"
-  value        = base64encode(random_string.airflow_fernete_key_rnd.result)
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-resource "azurerm_key_vault_secret" "airflow_admin_password" {
-  name         = "airflow-admin-password"
-  value        = local.airflow_admin_password
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-}
-
-
-#-------------------------------
-# Network (main.tf)
-#-------------------------------
-module "network" {
-  source = "../../../modules/providers/azure/network"
-
-  name                = local.vnet_name
-  resource_group_name = azurerm_resource_group.main.name
-  address_space       = var.address_space
-  subnet_prefixes     = [var.subnet_fe_prefix, var.subnet_aks_prefix, var.subnet_be_prefix]
-  subnet_names        = [local.fe_subnet_name, local.aks_subnet_name, local.be_subnet_name]
-
-  resource_tags = var.resource_tags
-}
-
-// Diagnostics Setup
-resource "azurerm_monitor_diagnostic_setting" "vnet_diagnostics" {
-  name                       = "vnet_diagnostics"
-  target_resource_id         = module.network.id
-  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
-
-  log {
-    category = "VMProtectionAlerts"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
-
-# Create a Default SSL Certificate.
-resource "azurerm_key_vault_certificate" "default" {
-  count = var.ssl_certificate_file == "" ? 1 : 0
-
-  name         = local.ssl_cert_name
-  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = true
-    }
-
-    lifetime_action {
-      action {
-        action_type = "AutoRenew"
-      }
-
-      trigger {
-        days_before_expiry = 30
-      }
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-
-    x509_certificate_properties {
-      # Server Authentication = 1.3.6.1.5.5.7.3.1
-      # Client Authentication = 1.3.6.1.5.5.7.3.2
-      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
-
-      key_usage = [
-        "cRLSign",
-        "dataEncipherment",
-        "digitalSignature",
-        "keyAgreement",
-        "keyCertSign",
-        "keyEncipherment",
-      ]
-
-      subject_alternative_names {
-        dns_names = [var.dns_name, "${local.base_name}-gw.${azurerm_resource_group.main.location}.cloudapp.azure.com"]
-      }
-
-      subject            = "CN=*.contoso.com"
-      validity_in_months = 12
-    }
-  }
-}
-
-module "appgateway" {
-  source = "../../../modules/providers/azure/aks-appgw"
-
-  name                = local.app_gw_name
-  resource_group_name = azurerm_resource_group.main.name
-
-  vnet_name            = module.network.name
-  vnet_subnet_id       = module.network.subnets.0
-  keyvault_id          = data.terraform_remote_state.central_resources.outputs.keyvault_id
-  keyvault_secret_id   = azurerm_key_vault_certificate.default.0.secret_id
-  ssl_certificate_name = local.ssl_cert_name
-
-  resource_tags = var.resource_tags
-}
-
-// Identity for AGIC
-resource "azurerm_user_assigned_identity" "agicidentity" {
-  name                = local.appgw_identity_name
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-}
-
-// Managed Identity Operator role for AKS to AGIC Identity
-resource "azurerm_role_assignment" "mi_ag_operator" {
-  principal_id         = module.aks.kubelet_object_id
-  scope                = azurerm_user_assigned_identity.agicidentity.id
-  role_definition_name = "Managed Identity Operator"
-}
-
-// Contributor Role for AGIC to the AppGateway
-resource "azurerm_role_assignment" "appgwcontributor" {
-  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
-  scope                = module.appgateway.id
-  role_definition_name = "Contributor"
-}
-
-// Reader Role for AGIC to the Resource Group
-resource "azurerm_role_assignment" "agic_resourcegroup_reader" {
-  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
-  scope                = azurerm_resource_group.main.id
-  role_definition_name = "Reader"
-}
-
-// Managed Identity Operator Role for AGIC to AppGateway Managed Identity
-resource "azurerm_role_assignment" "agic_app_gw_mi" {
-  principal_id         = azurerm_user_assigned_identity.agicidentity.principal_id
-  scope                = module.appgateway.managed_identity_resource_id
-  role_definition_name = "Managed Identity Operator"
-}
-
-// Diagnostics Setup
-resource "azurerm_monitor_diagnostic_setting" "gw_diagnostics" {
-  name                       = "gw_diagnostics"
-  target_resource_id         = module.appgateway.id
-  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
-
-
-  log {
-    category = "ApplicationGatewayAccessLog"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "ApplicationGatewayPerformanceLog"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "ApplicationGatewayFirewallLog"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
-
-#-------------------------------
-# Azure AKS  (cluster.tf)
-#-------------------------------
-module "aks" {
-  source = "../../../modules/providers/azure/aks"
-
-  name                = local.aks_cluster_name
-  resource_group_name = azurerm_resource_group.main.name
-
-  dns_prefix         = local.aks_dns_prefix
-  agent_vm_count     = var.aks_agent_vm_count
-  agent_vm_size      = var.aks_agent_vm_size
-  vnet_subnet_id     = module.network.subnets.1
-  ssh_public_key     = file(var.ssh_public_key_file)
-  kubernetes_version = var.kubernetes_version
-  log_analytics_id   = data.terraform_remote_state.central_resources.outputs.log_analytics_id
-
-  msi_enabled               = true
-  oms_agent_enabled         = true
-  auto_scaling_default_node = true
-  kubeconfig_to_disk        = false
-  enable_kube_dashboard     = false
-
-  resource_tags = var.resource_tags
-}
-
-data "azurerm_resource_group" "aks_node_resource_group" {
-  name = module.aks.node_resource_group
-}
-
-// Identity for Pod Identity
-resource "azurerm_user_assigned_identity" "podidentity" {
-  name                = local.aks_identity_name
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-}
-
-// Managed Identity Operator role for AKS to Node Resource Group
-resource "azurerm_role_assignment" "all_mi_operator" {
-  principal_id         = module.aks.kubelet_object_id
-  scope                = data.azurerm_resource_group.aks_node_resource_group.id
-  role_definition_name = "Managed Identity Operator"
-}
-
-// Virtual Machine Contributor role for AKS to Node Resource Group
-resource "azurerm_role_assignment" "vm_contributor" {
-  principal_id         = module.aks.kubelet_object_id
-  scope                = data.azurerm_resource_group.aks_node_resource_group.id
-  role_definition_name = "Virtual Machine Contributor"
-}
-
-// Azure Container Registry Reader role for AKS to ACR
-resource "azurerm_role_assignment" "acr_reader" {
-  principal_id         = module.aks.kubelet_object_id
-  scope                = data.terraform_remote_state.central_resources.outputs.container_registry_id
-  role_definition_name = "AcrPull"
-}
-
-// Managed Identity Operator role for AKS to Pod Identity
-resource "azurerm_role_assignment" "mi_operator" {
-  principal_id         = module.aks.kubelet_object_id
-  scope                = azurerm_user_assigned_identity.podidentity.id
-  role_definition_name = "Managed Identity Operator"
-}
-
-// Managed Identity Operator role for AKS to the OSDU Identity
-resource "azurerm_role_assignment" "osdu_identity_mi_operator" {
-  principal_id         = module.aks.kubelet_object_id
-  scope                = data.terraform_remote_state.central_resources.outputs.osdu_identity_id
-  role_definition_name = "Managed Identity Operator"
-}
-
-// Diagnostics Setup
-resource "azurerm_monitor_diagnostic_setting" "aks_diagnostics" {
-  name                       = "aks_diagnostics"
-  target_resource_id         = module.aks.id
-  log_analytics_workspace_id = data.terraform_remote_state.central_resources.outputs.log_analytics_id
-
-  log {
-    category = "cluster-autoscaler"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "guard"
-    enabled  = false
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  log {
-    category = "kube-apiserver"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "kube-audit"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "kube-audit-admin"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "kube-controller-manager"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  log {
-    category = "kube-scheduler"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      days    = var.log_retention_days
-      enabled = local.retention_policy
-    }
-  }
-}
-
-
-#-------------------------------
-# Providers  (common.tf)
-#-------------------------------
-
-// Hook-up kubectl Provider for Terraform
-provider "kubernetes" {
-  version                = "~> 1.11.3"
-  load_config_file       = false
-  host                   = module.aks.kube_config_block.0.host
-  username               = module.aks.kube_config_block.0.username
-  password               = module.aks.kube_config_block.0.password
-  client_certificate     = base64decode(module.aks.kube_config_block.0.client_certificate)
-  client_key             = base64decode(module.aks.kube_config_block.0.client_key)
-  cluster_ca_certificate = base64decode(module.aks.kube_config_block.0.cluster_ca_certificate)
-}
-
-// Hook-up helm Provider for Terraform
-provider "helm" {
-  version = "~> 1.2.3"
-
-  kubernetes {
-    load_config_file       = false
-    host                   = module.aks.kube_config_block.0.host
-    username               = module.aks.kube_config_block.0.username
-    password               = module.aks.kube_config_block.0.password
-    client_certificate     = base64decode(module.aks.kube_config_block.0.client_certificate)
-    client_key             = base64decode(module.aks.kube_config_block.0.client_key)
-    cluster_ca_certificate = base64decode(module.aks.kube_config_block.0.cluster_ca_certificate)
-  }
+// Add Contributor Role Access
+resource "azurerm_role_assignment" "redis_cache" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = local.role
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.redis_cache.id
 }

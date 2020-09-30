@@ -12,6 +12,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+
+#-------------------------------
+# Kubernetes Config Map
+#-------------------------------
 locals {
   osdu_ns = "osdu"
 }
@@ -39,15 +43,9 @@ resource "kubernetes_config_map" "osduconfigmap" {
     ENV_SUBSCRIPTION_NAME = data.azurerm_subscription.current.display_name
     ENV_REGISTRY          = data.terraform_remote_state.central_resources.outputs.container_registry_name
     ENV_KEYVAULT          = format("https://%s.vault.azure.net/", data.terraform_remote_state.central_resources.outputs.keyvault_name)
+    ENV_LOG_WORKSPACE_ID  = data.terraform_remote_state.central_resources.outputs.log_analytics_id
     ENV_POSTGRES_USERNAME = var.postgres_username
-    ENV_ELASTIC_ENDPOINT  = data.terraform_remote_state.central_resources.outputs.elasticsearch_endpoint
-    ENV_ELASTIC_USERNAME  = data.terraform_remote_state.central_resources.outputs.elasticsearch_username
-
-    // These are now different for each Data Partition and we don't have access to it.
-    # ENV_STORAGE_ACCOUNT      = data.terraform_remote_state.data_resources.outputs.storage_account
-    # ENV_COSMOSDB             = data.terraform_remote_state.data_resources.outputs.cosmosdb_account_name
-    # ENV_COSMOSDB_HOST        = format("https://%s.documents.azure.com:443", data.terraform_remote_state.data_resources.outputs.cosmosdb_account_name)
-    # ENV_SERVICEBUS_NAMESPACE = data.terraform_remote_state.data_resources.outputs.sb_namespace_name
+    ENV_POSTGRES_HOSTNAME = module.postgreSQL.server_fqdn
   }
 
   depends_on = [kubernetes_namespace.osdu]

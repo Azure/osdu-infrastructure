@@ -40,21 +40,60 @@ resource "azurerm_resource_group" "main" {
   location = local.location
 }
 
+# This Example Creates a Service Principal
+# module "service_principal" {
+#   source = "../"
+
+#   name     = format("${local.name}-%s-ad-app-management", random_id.main.hex)
+#   role     = "Contributor"
+#   scopes   = [azurerm_resource_group.main.id]
+#   end_date = "1W"
+
+#   api_permissions = [
+#     {
+#       name = "Microsoft Graph"
+#       app_roles = [
+#         "User.Read.All",
+#         "Directory.Read.All"
+#       ]
+#     }
+#   ]
+# }
+
+# This Example Uses an Existing Service Principal
 module "service_principal" {
   source = "../"
 
-  name     = format("${local.name}-%s-ad-app-management", random_id.main.hex)
-  role     = "Contributor"
-  scopes   = [azurerm_resource_group.main.id]
-  end_date = "1W"
+  name   = "iac-osdu-246-ad-app-management"
+  scopes = [azurerm_resource_group.main.id]
+  role   = "Contributor"
 
-  api_permissions = [
-    {
-      name = "Microsoft Graph"
-      app_roles = [
-        "Directory.Read.All"
-      ]
-    }
-  ]
+  create_for_rbac = false
+  object_id       = "1586d1ed-dd0b-45ce-a698-f155a7becc8b"
 
+  principal = {
+    name     = "iac-osdu-246-ad-app-management"
+    appId    = "2357b068-2541-4244-8866-27e23aa0a112"
+    password = "******************************"
+  }
+}
+
+output "id" {
+  description = "The ID of the Azure AD Service Principal"
+  value       = module.service_principal.id
+}
+
+output "name" {
+  description = "The Display Name of the Azure AD Application associated with this Service Principal"
+  value       = module.service_principal.name
+}
+
+output "client_id" {
+  description = "The ID of the Azure AD Application"
+  value       = module.service_principal.client_id
+}
+
+output "client_secret" {
+  description = "The password of the generated service principal. This is only exported when create_for_rbac is true."
+  value       = module.service_principal.client_secret
 }

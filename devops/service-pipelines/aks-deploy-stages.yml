@@ -1,0 +1,49 @@
+#  Copyright © Microsoft Corporation
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+
+parameters:
+  providers: []
+  generateName: ""
+  skipDeploy: "false"
+  hldRegPath: "providers/azure/hld-registry"
+
+stages: 
+  - ${{ each provider in parameters.providers }}:
+    - ${{ each environment in provider.environments }}:
+      - stage: 'Deploy_${{ provider.name }}_${{ environment }}'
+
+        variables:
+          - group: 'Azure - Common'
+          - group: 'Azure Common Secrets'
+          - group: '${{ provider.name }} Target Env - ${{ environment }}'
+
+        jobs:
+        - deployment: Deploy
+          pool:
+            name: $(AGENT_POOL)
+          environment: ${{ environment }}
+          strategy:
+            runOnce:
+              deploy:
+                steps:
+                - download: none
+
+                - template: tasks/aks-deployment-steps.yml
+                  parameters:
+                    providerName: ${{ provider.name }}
+                    environment: ${{ environment }}
+                    skipDeploy: ${{ parameters.skipDeploy }}
+                    generateName: ${{ parameters.generateName }}
+                    hldRegPath: ${{ parameters.hldRegPath }}

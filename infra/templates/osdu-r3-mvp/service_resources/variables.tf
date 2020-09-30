@@ -21,7 +21,7 @@
 
 
 #-------------------------------
-# Application Variables  (var.tf)
+# Application Variables
 #-------------------------------
 variable "prefix" {
   description = "(Required) An identifier used to construct the names of all resources in this template."
@@ -64,6 +64,12 @@ variable "log_retention_days" {
   description = "Number of days to retain logs."
   type        = number
   default     = 100
+}
+
+variable "storage_replication_type" {
+  description = "Defines the type of replication to use for this storage account. Valid options are LRS*, GRS, RAGRS and ZRS."
+  type        = string
+  default     = "LRS"
 }
 
 variable "storage_containers" {
@@ -204,7 +210,7 @@ variable "aks_agent_vm_size" {
 
 variable "kubernetes_version" {
   type    = string
-  default = "1.17.7"
+  default = "1.17.11"
 }
 
 variable "ssh_public_key_file" {

@@ -2,13 +2,17 @@
 
 Module for managing a service principal for Azure Active Directory with the following characteristics:
 
-- Create a Principal and Assign to a role or use an existing principal.
+- Create a Principal and Assign to a role.
+- Use an existing Principal and Assign to a role.
 
-> __This module requires the Terraform Principal to have Azure Active Directory Graph - `Application.ReadWrite.OwnedBy` Permissions.__
+> __This module requires the Terraform Principal to have Azure Active Directory Graph - `Application.ReadWrite.OwnedBy` Permissions if creating a principal.__
 
 
 ## Usage
 
+__Sample 1:__ Create a Service Principal
+
+_terraform_
 ```
 locals {
   name     = "iac-osdu"
@@ -50,27 +54,101 @@ module "service_principal" {
 }
 ```
 
-## Inputs
 
-| Variable Name | Type       | Description                          | 
-| ------------- | ---------- | ------------------------------------ |
-| `name`        | _string_   | The name of the service principal.     |
-| `password`    | _string_   | A password for the service principal. (Optional).  |
-| `end_date`    | _string_   | The relative duration or RFC3339 date after which the password expire.|
-| `role`        | _string_   | The name of a role for the service principal. |
-| `scopes`      | _list_     | List of scopes the role assignment applies to. |
-| `object_id`   | string     | Object Id of an existing service principle to be assigned to a role. |
+__Sample 2:__ Bring your own Service Principal
+
+_cli commands_
+```bash
+UNIQUE=$(echo $((RANDOM%999+100)))
+NAME="iac-osdu-$UNIQUE-ad-app-management"
+
+# Create a Service Principal
+SECRET=$(az ad sp create-for-rbac --name $NAME --skip-assignment --query password -otsv)
+
+# Retrieve the Principal Metadata Information
+az ad sp list --display-name $NAME --query [].'{objectId:objectId, appId:appId, name:displayName}' -ojson
+
+# Result
+[
+  {
+    "appId": "2357b068-2541-4244-8866-27e23aa0a112",
+    "name": "iac-osdu-246-ad-app-management",
+    "objectId": "1586d1ed-dd0b-45ce-a698-f155a7becc8b"
+  }
+]
+
+# Retrieve the AD Application Metadata Information
+az ad app list --display-name $NAME --query [].'{object_id:objectId, name:displayName, appId:appId}' -ojson
+
+# Result
+[
+  {
+    "appId": "2357b068-2541-4244-8866-27e23aa0a112",
+    "name": "iac-osdu-246-ad-app-management",
+    "object_id": "32f1438a-6b3a-47d8-9c71-bf7fc8efbdfd"
+  }
+]
 
 
-## Outputs
+# Assign any API Permissions Desired
+# Microsoft Graph -- Application Permissions -- Directory.Read.All  ** GRANT ADMIN-CONSENT
+adObjectId=$(az ad app list --display-name $NAME --query [].objectId -otsv)
+graphId=$(az ad sp list --query "[?appDisplayName=='Microsoft Graph'].appId | [0]" --all -otsv)
+directoryReadAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Directory.Read.All'].id | [0]" -otsv)=Role
 
-Once the deployments are completed successfully, the output for the current module will be in the format mentioned below:
+az ad app permission add --id $adObjectId --api $graphId --api-permissions $directoryReadAll
 
-- `name`: The Service Principal Display Name.
-- `object_id`: The Service Principal Object Id.
-- `tenant_id`: The Service Principal Tenant Id.
-- `client_id`: The Service Principal Client Id (Application Id)
-- `client_secret`: The Service Principal Client Secret (Application Password).
+# Grant Admin Consent
+# ** REQUIRES ADMIN AD ACCESS **
+az ad app permission admin-consent --id $appId 
+```
+
+_terraform_
+```hcl
+locals {
+  name     = "iac-osdu"
+  location = "southcentralus"
+}
+
+resource "random_id" "main" {
+  keepers = {
+    name = local.name
+  }
+
+  byte_length = 8
+}
+
+resource "azurerm_resource_group" "main" {
+  name     = format("${local.name}-%s", random_id.main.hex)
+  location = local.location
+}
+
+module "service_principal" {
+  source = "../"
+
+  name     = "iac-osdu-246-ad-app-management"
+  
+  scopes   = [azurerm_resource_group.main.id]
+  role     = "Contributor"
+
+  create_for_rbac = false
+  object_id = "1586d1ed-dd0b-45ce-a698-f155a7becc8b"
+  
+  principal = {
+    name = "iac-osdu-246-ad-app-management"
+    appId = "2357b068-2541-4244-8866-27e23aa0a112"
+    password = "******************************"
+  }
+}
+```
+
+### Input Variables
+
+Please refer to [variables.tf](./variables.tf).
+
+### Output Variables
+
+Please refer to [output.tf](./output.tf).
 
 
 ## License

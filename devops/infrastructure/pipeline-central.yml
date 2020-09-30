@@ -27,8 +27,10 @@
 
 # Required Env Group Variables - `Infrastructure Pipeline - {configurations.jobName} - {env_name}`
   # TF_VAR_resource_group_location
-  # TF_VAR_cosmosdb_replica_location
-  
+  # TF_VAR_principal_appId
+  # TF_VAR_principal_name
+  # TF_VAR_principal_password
+  # TF_VAR_principal_objectId 
 
 
 # Deploy and validate infra changes once changes have been merged into
@@ -80,6 +82,10 @@ stages:
     - name: 'dev'
       enablePrIsolation: false
       resourceNameIsolationLevel: 8  
+    - ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+      - name: 'glab'
+        enablePrIsolation: false
+        resourceNameIsolationLevel: 8  
 
     configurations:
     - jobName: central_resources

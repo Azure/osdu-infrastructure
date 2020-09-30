@@ -12,6 +12,9 @@
     "service.search.admin",
     "service.search.user",
     "data.default.viewers",
-    "data.default.owners"
+    "data.default.owners",
+    "service.schema-service.viewers",
+    "service.schema-service.editors",
+    "service.entitlements.admin"
   ]
 }

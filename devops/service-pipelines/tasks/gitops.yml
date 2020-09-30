@@ -1,0 +1,99 @@
+#  Copyright © Microsoft Corporation
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+#####################
+# README: GitOPS operations manifest repo tasks.
+#####################
+
+parameters:
+  branchName: "azure-evd"
+  skipDeploy: "false"
+  generateName: "osdu-common"
+  hldRegPath: "providers/azure/hld-registry"
+
+steps:
+  - task: Bash@3
+    displayName: "Commit to Branch"
+    env:
+      BRANCH_NAME: ${{ parameters.branchName }}
+      skipDeploy: ${{parameters.skipDeploy}}
+      GENERATE_NAME: ${{parameters.generateName}}
+      HLD_REG_PATH: ${{parameters.hldRegPath}}
+    inputs:
+      targetType: "inline"
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+
+        GITOPS_MANIFEST_DIRECTORY=$(Build.SourcesDirectory)/$(Build.Repository.Name)/$(HELM_CHART_PATH)/$(MANIFEST_GENERATION_PATH)
+        cd $(Build.SourcesDirectory)/$(MANIFEST_REPO)
+
+        function configure_git_profile() {
+          git config --global user.email "gitops@azure.com"
+          git config --global user.name "osdu bot"
+        }
+
+        function git_checkout() {
+          echo "GIT CHECKOUT $BRANCH_NAME"
+
+          if ! git checkout "$BRANCH_NAME" ; then
+              git checkout -b "$BRANCH_NAME"
+          fi
+
+          echo "GIT STATUS"
+          git status
+        }
+
+        function git_commit() {
+          # echo "GIT REMOVE"
+          # Cannot delete as all the manifests from multiple repos would be coming over to here.
+          # rm -rf ./$(MANIFEST_GENERATION_PATH)/*/
+
+          echo "COPY YAML FILES FROM $GITOPS_MANIFEST_DIRECTORY..."
+          cp -rf $GITOPS_MANIFEST_DIRECTORY .
+
+          echo "SKIP DEPLOY SET TO: $skipDeploy, HLD-REG SET TO: $HLD_REG_PATH"
+          if [[ $skipDeploy == "false" ]]
+          then
+              echo "COPYING YAML FILES TO HLD-REGISTRY..."
+              cp -rf $GITOPS_MANIFEST_DIRECTORY/$GENERATE_NAME/templates/* ./$HLD_REG_PATH
+          else
+              echo "Deploy through flux skipped."
+          fi
+
+          git add -A
+
+          if [[ $(git status --porcelain) ]]; then
+              echo "GIT COMMIT"
+              git commit -m "Updated k8s manifest files post commit: $(Build.SourceVersionMessage)"
+          else
+              echo "NOTHING TO COMMIT"
+          fi
+        }
+
+        function git_pull(){
+          if [[ $(git ls-remote --heads origin $BRANCH_NAME | wc -l) -eq 1 ]]; then
+             git pull origin $BRANCH_NAME
+          fi
+        }
+
+        function git_push(){
+          git push origin $BRANCH_NAME
+        }
+
+        configure_git_profile
+        git_checkout
+        git_commit
+        git_pull
+        git_push

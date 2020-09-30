@@ -39,10 +39,7 @@ trigger:
     - master
   paths:
     include:
-    - /devops/infrastructure/*
-    - /infra/modules/providers/*
     - /infra/templates/osdu-r3-resources/configurations/service_resources/*
-    - /test-harness/terratest-extensions/*
     exclude:
     - /**/*.md
 
@@ -53,10 +50,7 @@ pr:
     - '*'
   paths:
     include:
-    - /devops/infrastructure/*
-    - /infra/modules/providers/*
     - /infra/templates/osdu-r3-resources/configurations/service_resources/*
-    - /test-harness/terratest-extensions/*
     exclude:
     - /**/*.md
 

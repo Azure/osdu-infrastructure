@@ -12,6 +12,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+
+#-------------------------------
+# Pod Identity
+#-------------------------------
 locals {
   pod_identity_name         = "${local.aks_cluster_name}-pod-identity"
   helm_pod_identity_name    = "aad-pod-identity"

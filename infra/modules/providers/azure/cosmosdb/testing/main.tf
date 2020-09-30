@@ -9,54 +9,39 @@ module "resource_group" {
   location = "eastus2"
 }
 
-module "cosmosdb" {
+
+module "cosmosdb_autoscale" {
   source = "../"
 
-  name                = "osdu-module-db-${module.resource_group.random}"
+  name                = "osdu-module-db2-${module.resource_group.random}"
   resource_group_name = module.resource_group.name
 
   kind                     = "GlobalDocumentDB"
-  automatic_failover       = false
+  automatic_failover       = true
   consistency_level        = "Session"
   primary_replica_location = module.resource_group.location
+
   databases = [
     {
-      name       = "osdu-module-database1"
-      throughput = 400
-    },
-    {
-      name       = "osdu-module-database2"
-      throughput = 400
+      name       = "osdu-module-database"
+      throughput = 4000 # This is max throughput Minimum level is 4000
     }
   ]
   sql_collections = [
     {
       name               = "osdu-module-container1"
-      database_name      = "osdu-module-database1"
+      database_name      = "osdu-module-database"
       partition_key_path = "/id"
-      throughput         = 400
+
     },
     {
       name               = "osdu-module-container2"
-      database_name      = "osdu-module-database1"
+      database_name      = "osdu-module-database"
       partition_key_path = "/id"
-      throughput         = 400
-    },
-    {
-      name               = "osdu-module-container1"
-      database_name      = "osdu-module-database2"
-      partition_key_path = "/id"
-      throughput         = 400
-    },
-    {
-      name               = "osdu-module-container2"
-      database_name      = "osdu-module-database2"
-      partition_key_path = "/id"
-      throughput         = 400
     }
   ]
 
-  tags = {
+  resource_tags = {
     source = "terraform",
   }
 }

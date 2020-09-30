@@ -12,6 +12,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+
+#-------------------------------
+# Keda
+#-------------------------------
 locals {
   helm_keda_name    = "keda"
   helm_keda_ns      = "keda"

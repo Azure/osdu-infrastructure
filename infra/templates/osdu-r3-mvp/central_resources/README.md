@@ -6,6 +6,46 @@ __PreRequisites__
 
 Requires the use of [direnv](https://direnv.net/) for environment variable management.
 
+Requires a preexisting Service Principal to be created to be used for this OSDU Environment.
+
+```bash
+ENV=$USER  # This is helpful to set to your expected OSDU environment name.
+NAME="osdu-mvp-$ENV-principal"
+
+# Create a Service Principal
+az ad sp create-for-rbac --name $NAME --skip-assignment -ojson
+
+# Result
+{
+  "appId": "<guid>",                # -> Use this for TF_VAR_principal_appId
+  "displayName": "<name>",          # -> Use this for TF_VAR_principal_name
+  "name": "http://<name>",
+  "password": "****************",   # -> Use this for TF_VAR_principal_password
+  "tenant": "<ad_tenant>"
+}
+
+# Retrieve the AD Application Metadata Information
+az ad app list --display-name $NAME --query [].objectId -ojson
+
+# Result
+[
+  "<guid>"                          # -> Use this for TF_VAR_principal_objectId
+]
+
+
+# Assign API Permissions
+# Microsoft Graph -- Application Permissions -- Directory.Read.All  ** GRANT ADMIN-CONSENT
+adObjectId=$(az ad app list --display-name $NAME --query [].objectId -otsv)
+graphId=$(az ad sp list --query "[?appDisplayName=='Microsoft Graph'].appId | [0]" --all -otsv)
+directoryReadAll=$(az ad sp show --id $graphId --query "appRoles[?value=='Directory.Read.All'].id | [0]" -otsv)=Role
+
+az ad app permission add --id $adObjectId --api $graphId --api-permissions $directoryReadAll
+
+# Grant Admin Consent
+# ** REQUIRES ADMIN AD ACCESS **
+az ad app permission admin-consent --id $appId 
+```
+
 ## Deployment Steps
 
 1. Set up your local environment variables

@@ -27,7 +27,7 @@ cosmosdb_consistency_level = "Session"
 cosmos_databases = [
   {
     name       = "osdu-db"
-    throughput = 400
+    throughput = 4000
   }
 ]
 cosmos_sql_collections = [
@@ -35,73 +35,81 @@ cosmos_sql_collections = [
     name               = "LegalTag"
     database_name      = "osdu-db"
     partition_key_path = "/id"
-    throughput         = 400
   },
   {
     name               = "StorageRecord"
     database_name      = "osdu-db"
     partition_key_path = "/id"
-    throughput         = 400
   },
   {
     name               = "StorageSchema"
     database_name      = "osdu-db"
     partition_key_path = "/kind"
-    throughput         = 400
   },
   {
     name               = "TenantInfo"
     database_name      = "osdu-db"
     partition_key_path = "/id"
-    throughput         = 400
   },
   {
     name               = "UserInfo"
     database_name      = "osdu-db"
     partition_key_path = "/id"
-    throughput         = 400
   },
   {
     name               = "Authority"
     database_name      = "osdu-db"
     partition_key_path = "/dataPartitionId"
-    throughput         = 400
   },
   {
     name               = "EntityType"
     database_name      = "osdu-db"
     partition_key_path = "/dataPartitionId"
-    throughput         = 400
   },
   {
     name               = "SchemaInfo"
     database_name      = "osdu-db"
     partition_key_path = "/dataPartitionId"
-    throughput         = 400
   },
   {
     name               = "Source"
     database_name      = "osdu-db"
     partition_key_path = "/dataPartitionId"
-    throughput         = 400
   },
   {
     name               = "RegisterAction"
     database_name      = "osdu-db"
     partition_key_path = "/dataPartitionId"
-    throughput         = 400
   },
   {
     name               = "RegisterDdms"
     database_name      = "osdu-db"
     partition_key_path = "/dataPartitionId"
-    throughput         = 400
   },
   {
     name               = "RegisterSubscription"
     database_name      = "osdu-db"
     partition_key_path = "/dataPartitionId"
-    throughput         = 400
+  },
+  {
+    name               = "IngestionStrategy"
+    database_name      = "osdu-db"
+    partition_key_path = "/workflowType"
+  },
+  {
+    name               = "WorkflowStatus"
+    database_name      = "osdu-db"
+    partition_key_path = "/workflowId"
+  },
+  {
+    name               = "Workflow"
+    database_name      = "osdu-db"
+    partition_key_path = "/workflowId"
+  },
+  {
+    name               = "WorkflowRun"
+    database_name      = "osdu-db"
+    partition_key_path = "/workflowId"
   }
 ]
 

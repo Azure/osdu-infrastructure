@@ -30,15 +30,8 @@ This project is an active project and the master branch changes frequently to su
 
 
 - [R2 on AKS - Azure OSDU AKS Architecture Solution](infra/templates/osdu-r3-resources)  
-
-  _common-resources_  
-  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infrastructure-r3-cr?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1186&branchName=master)
-
-  _data-resources_  
-  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infrastructure-r3-dr?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1190&branchName=master) 
-
-  _service-resources_  
-  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infrastructure-r3-sr?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1191&branchName=master)
+  > Retired, no longer maintained _9/22_
+  
 
 - [R2 - Azure OSDU AppService Architecture Solution](infra/templates/osdu-r2-resources)
   > Retired, no longer maintained _9/1_

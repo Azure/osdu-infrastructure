@@ -48,10 +48,17 @@ variable "create_for_rbac" {
 }
 
 variable "object_id" {
-  description = "Object Id of an existing service principle to be assigned to a role."
+  description = "Object Id of an existing AD app to be assigned to a role."
   type        = string
   default     = ""
 }
+
+variable "principal" {
+  description = "Bring your own Principal metainformation. Optional: {name, appId, password}"
+  type        = map(string)
+  default     = {}
+}
+
 
 variable "api_permissions" {
   type        = any

@@ -32,7 +32,7 @@ terraform {
 # Providers
 #-------------------------------
 provider "azurerm" {
-  version = "~> 2.26.0"
+  version = "~> 2.29.0"
   features {}
 }
 
@@ -114,7 +114,6 @@ variable "cosmos_sql_collections" {
     name               = string
     database_name      = string
     partition_key_path = string
-    throughput         = number
   }))
   default = []
 }
