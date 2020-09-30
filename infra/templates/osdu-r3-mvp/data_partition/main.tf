@@ -93,7 +93,6 @@ locals {
   eventgrid_name          = "${local.base_name_21}-grid"
   eventgrid_records_topic = format("%s-recordstopic", local.eventgrid_name)
 
-  role = "Contributor"
   rbac_principals = [
     data.terraform_remote_state.central_resources.outputs.osdu_identity_principal_id,
     data.terraform_remote_state.central_resources.outputs.principal_objectId
@@ -164,7 +163,7 @@ module "storage_account" {
 resource "azurerm_role_assignment" "storage_access" {
   count = length(local.rbac_principals)
 
-  role_definition_name = local.role
+  role_definition_name = "Contributor"
   principal_id         = local.rbac_principals[count.index]
   scope                = module.storage_account.id
 }
@@ -185,7 +184,7 @@ module "sdms_storage_account" {
 resource "azurerm_role_assignment" "sdms_storage_access" {
   count = length(local.rbac_principals)
 
-  role_definition_name = local.role
+  role_definition_name = "Contributor"
   principal_id         = local.rbac_principals[count.index]
   scope                = module.sdms_storage_account.id
 }
@@ -212,7 +211,7 @@ module "cosmosdb_account" {
 resource "azurerm_role_assignment" "cosmos_access" {
   count = length(local.rbac_principals)
 
-  role_definition_name = local.role
+  role_definition_name = "Contributor"
   principal_id         = local.rbac_principals[count.index]
   scope                = module.cosmosdb_account.account_id
 }
@@ -233,11 +232,12 @@ module "service_bus" {
   resource_tags = var.resource_tags
 }
 
+
 // Add Access Control to Principal
 resource "azurerm_role_assignment" "sb_access" {
   count = length(local.rbac_principals)
 
-  role_definition_name = local.role
+  role_definition_name = "Azure Service Bus Data Sender"
   principal_id         = local.rbac_principals[count.index]
   scope                = module.service_bus.id
 }
@@ -265,7 +265,7 @@ module "event_grid" {
 resource "azurerm_role_assignment" "eventgrid_access" {
   count = length(local.rbac_principals)
 
-  role_definition_name = local.role
+  role_definition_name = "Contributor"
   principal_id         = local.rbac_principals[count.index]
   scope                = module.event_grid.id
 }
