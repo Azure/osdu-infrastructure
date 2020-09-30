@@ -48,7 +48,7 @@ variable "create_for_rbac" {
 }
 
 variable "object_id" {
-  description = "Object Id of an existing AD app to be assigned to a role."
+  description = "Object Id of an existing AD service principal to be assigned to a role."
   type        = string
   default     = ""
 }
