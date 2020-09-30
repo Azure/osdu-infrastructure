@@ -25,7 +25,7 @@ az ad sp create-for-rbac --name $NAME --skip-assignment -ojson
 }
 
 # Retrieve the AD Application Metadata Information
-az ad app list --display-name $NAME --query [].objectId -ojson
+az ad sp list --display-name $NAME --query [].objectId -ojson
 
 # Result
 [
