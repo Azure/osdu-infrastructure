@@ -24,7 +24,7 @@ az ad sp create-for-rbac --name $NAME --skip-assignment -ojson
   "tenant": "<ad_tenant>"
 }
 
-# Retrieve the AD Application Metadata Information
+# Retrieve the AD Service Pricipal ID
 az ad sp list --display-name $NAME --query [].objectId -ojson
 
 # Result
