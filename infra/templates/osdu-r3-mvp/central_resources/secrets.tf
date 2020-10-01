@@ -145,6 +145,6 @@ resource "azurerm_key_vault_secret" "application_id" {
 // Add Application Information to KV
 resource "azurerm_key_vault_secret" "identity_id" {
   name         = "osdu-identity-id"
-  value        = azurerm_user_assigned_identity.osduidentity.id
+  value        = azurerm_user_assigned_identity.osduidentity.principal_id
   key_vault_id = module.keyvault.keyvault_id
 }
