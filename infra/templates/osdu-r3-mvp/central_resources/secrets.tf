@@ -54,6 +54,12 @@ resource "azurerm_key_vault_secret" "tenant_id" {
   key_vault_id = module.keyvault.keyvault_id
 }
 
+resource "azurerm_key_vault_secret" "subscription_id" {
+  name         = "subscription-id"
+  value        = data.azurerm_client_config.current.subscription_id
+  key_vault_id = module.keyvault.keyvault_id
+}
+
 
 #-------------------------------
 # Container Registry
