@@ -25,10 +25,6 @@
 # Private Variables
 #-------------------------------
 locals {
-  ai_key_name = "appinsights-key"
-
-  container_registry_name = "container-registry"
-
   storage_account_name = format("tbl-storage")
   storage_key_name     = format("%s-key", local.storage_account_name)
 
@@ -54,6 +50,16 @@ resource "azurerm_key_vault_secret" "resource_group" {
 
 
 #-------------------------------
+# Container Registry
+#-------------------------------
+resource "azurerm_key_vault_secret" "container_registry_name" {
+  name         = "container-registry"
+  value        = module.container_registry.container_registry_name
+  key_vault_id = module.keyvault.keyvault_id
+}
+
+
+#-------------------------------
 # Storage
 #-------------------------------
 resource "azurerm_key_vault_secret" "storage_name" {
@@ -69,21 +75,12 @@ resource "azurerm_key_vault_secret" "storage_key" {
 }
 
 
-#-------------------------------
-# Container Registry
-#-------------------------------
-resource "azurerm_key_vault_secret" "container_registry_name" {
-  name         = local.container_registry_name
-  value        = module.container_registry.container_registry_name
-  key_vault_id = module.keyvault.keyvault_id
-}
-
 
 #-------------------------------
 # Application Insights
 #-------------------------------
 resource "azurerm_key_vault_secret" "insights" {
-  name         = local.ai_key_name
+  name         = "appinsights-key"
   value        = module.app_insights.app_insights_instrumentation_key
   key_vault_id = module.keyvault.keyvault_id
 }
@@ -124,5 +121,12 @@ resource "azurerm_key_vault_secret" "principal_secret" {
 resource "azurerm_key_vault_secret" "principal_object_id" {
   name         = "app-dev-sp-id"
   value        = module.service_principal.id
+  key_vault_id = module.keyvault.keyvault_id
+}
+
+// Add Application Information to KV
+resource "azurerm_key_vault_secret" "application_id" {
+  name         = "aad-client-id"
+  value        = module.ad_application.id
   key_vault_id = module.keyvault.keyvault_id
 }

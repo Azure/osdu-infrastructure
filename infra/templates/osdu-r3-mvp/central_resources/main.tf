@@ -291,13 +291,6 @@ module "ad_application" {
   ]
 }
 
-// Add Application Information to KV
-resource "azurerm_key_vault_secret" "application_id" {
-  name         = "aad-client-id"
-  value        = module.ad_application.id
-  key_vault_id = module.keyvault.keyvault_id
-}
-
 
 
 #-------------------------------
