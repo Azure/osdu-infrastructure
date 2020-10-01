@@ -48,6 +48,12 @@ resource "azurerm_key_vault_secret" "resource_group" {
   key_vault_id = module.keyvault.keyvault_id
 }
 
+resource "azurerm_key_vault_secret" "tenant_id" {
+  name         = "tenant-id"
+  value        = data.azurerm_client_config.current.tenant_id
+  key_vault_id = module.keyvault.keyvault_id
+}
+
 
 #-------------------------------
 # Container Registry
@@ -128,5 +134,17 @@ resource "azurerm_key_vault_secret" "principal_object_id" {
 resource "azurerm_key_vault_secret" "application_id" {
   name         = "aad-client-id"
   value        = module.ad_application.id
+  key_vault_id = module.keyvault.keyvault_id
+}
+
+
+#-------------------------------
+# OSDU Identity
+#-------------------------------
+
+// Add Application Information to KV
+resource "azurerm_key_vault_secret" "identity_id" {
+  name         = "osdu-identity-id"
+  value        = azurerm_user_assigned_identity.osduidentity.id
   key_vault_id = module.keyvault.keyvault_id
 }
