@@ -36,15 +36,9 @@ locals {
 #-------------------------------
 # Misc
 #-------------------------------
-resource "azurerm_key_vault_secret" "base_name_21" {
-  name         = "base-name-21"
-  value        = local.base_name_21
-  key_vault_id = module.keyvault.keyvault_id
-}
-
-resource "azurerm_key_vault_secret" "resource_group" {
-  name         = "cr-resource-group"
-  value        = local.resource_group_name
+resource "azurerm_key_vault_secret" "base_name_cr" {
+  name         = "base-name-cr"
+  value        = local.base_name_60
   key_vault_id = module.keyvault.keyvault_id
 }
 
