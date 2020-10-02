@@ -104,7 +104,7 @@ variable "aks_agent_vm_size" {
 
 variable "kubernetes_version" {
   type    = string
-  default = "1.17.7"
+  default = "1.17.11"
 }
 
 variable "flux_recreate" {
