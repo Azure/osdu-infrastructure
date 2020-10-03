@@ -26,7 +26,7 @@
 resource "azurerm_key_vault_secret" "base_name_sr" {
   name         = "base-name-sr"
   value        = local.base_name_60
-  key_vault_id = module.keyvault.keyvault_id
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
 
