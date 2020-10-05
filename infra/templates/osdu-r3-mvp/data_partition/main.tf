@@ -168,6 +168,15 @@ resource "azurerm_role_assignment" "storage_access" {
   scope                = module.storage_account.id
 }
 
+// Add Data Contributor Role to Principal
+resource "azurerm_role_assignment" "storage_access" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.storage_account.id
+}
+
 module "sdms_storage_account" {
   source = "../../../modules/providers/azure/storage-account"
 
@@ -189,6 +198,14 @@ resource "azurerm_role_assignment" "sdms_storage_access" {
   scope                = module.sdms_storage_account.id
 }
 
+// Add Data Contributor Role to Principal
+resource "azurerm_role_assignment" "storage_access" {
+  count = length(local.rbac_principals)
+
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = local.rbac_principals[count.index]
+  scope                = module.sdms_storage_account.id
+}
 
 #-------------------------------
 # CosmosDB
