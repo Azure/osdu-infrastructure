@@ -63,20 +63,33 @@ Cloud administrators who are versed with both Cobalt templating and Kubernetes.
 
 Azure environment cost ballpark [estimate](). This is subject to change and is driven from the resource pricing tiers configured when the template is deployed.
 
-### Install the required tooling
+## Install the required tooling
 
 This document assumes one is running a current version of Ubuntu. Windows users can install the [Ubuntu Terminal](https://www.microsoft.com/store/productId/9NBLGGH4MSV6) from the Microsoft Store. The Ubuntu Terminal enables Linux command-line utilities, including bash, ssh, and git that will be useful for the following deployment. _Note: You will need the Windows Subsystem for Linux installed to use the Ubuntu Terminal on Windows_.
 
 Ensure that the [required tools](https://github.com/microsoft/bedrock/tree/master/cluster#required-tools), are installed in your environment. Alternatively, there are [scripts](https://github.com/microsoft/bedrock/tree/master/tools/prereqs) that will install `helm`, `terraform` and `kubectl`. In this case, use `setup_kubernetes_tools.sh` and `setup_terraform.sh`. The scripts install the tools into `/usr/local/bin`.
 
-### Install the Azure CLI
+## Install the Azure CLI
 
 For information specific to your operating system, see the [Azure CLI install guide](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest). You can also use [this script](https://github.com/microsoft/bedrock/blob/master/tools/prereqs/setup_azure_cli.sh) if running on a Unix based machine.
 
 
-# Set Up Flux Manifest Repository
+## Setup the Common KeyVault
 
-We will deploy the Bedrock environment using the empty repo and then add a Kubernetes manifest that defines a simple Web application. The change to the repo will automatically update the deployment.
+The script ./scripts/install.sh will conveniently setup the common things that are necessary to execute a pipeline.
+- Run the script with your subscription ID as the first argument.
+- Note the files (azure-aks-gitops-ssh-key and azure-aks-node-ssh-key.pub) that have appeared in the .ssh directory.
+You will need these in a later step. 
+
+### Installed Common Resources
+
+1. Resource Group
+2. Storage Account
+3. Key Vault
+4. Applications for Integration Testing (2)
+5. AD User for Integration Testing
+
+### Set Up Flux Manifest Repository
 
 To prepare the Flux manifest repository, we must:
 
@@ -95,6 +108,7 @@ git commit --allow-empty -m "Initializing the Flux Manifest Repository"
 ```
 
 ## Generate an RSA Key Pair to use as the Manifest Repository Deploy Key
+> Note: This is done by the install.sh script automatically.
 
 Generate the [deploy key](https://developer.github.com/v3/guides/managing-deploy-keys/#deploy-keys) using `ssh-keygen`. The public portion of the key pair will be uploaded to GitHub as a deploy key.
 
@@ -118,6 +132,7 @@ This will create public and private keys for the Flux repository. We will assign
 
 
 ## Create an RSA Key Pair to use as Node Key
+> Note: This is done by the install.sh script automatically.
 
 The Terraform scripts use this node key to setup log-in credentials on the nodes in the AKS cluster. We will use this key when setting up the Terraform deployment variables. Generate the Node Key:
 
@@ -143,9 +158,7 @@ The public key of the [RSA key pair](#create-an-rsa-key-pair-for-a-deploy-key-fo
 
 Use the contents of the Secret as shown above.
 
-
 Next, in your Azure DevOPS Project, follow these [steps](https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops&tabs=current-page#step-2--add-the-public-key-to-azure-devops-servicestfs) to add your public SSH key to your ADO environment.
-
 
 
 # Deployment Steps
