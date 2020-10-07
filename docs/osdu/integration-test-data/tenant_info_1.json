@@ -16,6 +16,9 @@
     "data.default.owners",
     "service.schema-service.viewers",
     "service.schema-service.editors",
-    "service.entitlements.admin"
+    "service.entitlements.admin",
+    "service.workflow.creator",
+    "service.workflow.viewer",
+    "service.workflow.admin"
   ]
 }

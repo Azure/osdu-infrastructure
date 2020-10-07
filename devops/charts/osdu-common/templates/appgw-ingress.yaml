@@ -52,3 +52,7 @@ spec:
               serviceName: register
               servicePort: 80
             path: /api/register/v1/*
+          - backend:
+              serviceName: file
+              servicePort: 80
+            path: /api/file/v2/*
