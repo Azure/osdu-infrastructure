@@ -15,7 +15,10 @@
         "service.search.user",
         "data.default.viewers",
         "data.default.owners",
-        "service.entitlements.admin"
+        "service.entitlements.admin",
+        "users.datalake.ops",
+        "cron.job",
+        "notification.pubsub"
       ]
     },
     {
@@ -32,7 +35,10 @@
         "service.search.user",
         "data.default.viewers",
         "data.default.owners",
-        "service.entitlements.admin"
+        "service.entitlements.admin",
+        "users.datalake.ops",
+        "cron.job",
+        "notification.pubsub"
       ]
     }
   ]
