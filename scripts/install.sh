@@ -419,7 +419,6 @@ CreateADUser "Integration" "Test"
 tput setaf 2; echo 'Creating SSH Keys...' ; tput sgr0
 GITOPS_KEY="azure-aks-gitops-ssh-key"
 CreateSSHKeys $AZURE_AKS_USER $GITOPS_KEY
-AddKeyToVault $AZURE_VAULT "azure-aks-gitops-ssh-key" ".ssh/${GITOPS_KEY}" "file"
 
 CreateSSHKeys $AZURE_AKS_USER "azure-aks-node-ssh-key"
 
