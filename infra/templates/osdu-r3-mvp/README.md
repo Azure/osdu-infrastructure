@@ -173,17 +173,17 @@ Download the required keys from the common Key Vault
 ```
 AZURE_VAULT=<common_vault_name>
 
-az keyvault secret show --vault-name $AZURE_VAULT -n "node-ssh-key-pub" --query value -otsv > ~/.ssh/node-ssh-key.pub
-az keyvault secret show --vault-name $AZURE_VAULT -n "gitops-ssh-key" --query value -otsv > ~/.ssh/gitops-ssh-key
-chmod 644 ~/.ssh/node-ssh-key.pub
-chmod 600 ~/.ssh/gitops-ssh-key
+az keyvault secret show --vault-name $AZURE_VAULT -n "azure-aks-node-ssh-key-pub" --query value -otsv > ~/.ssh/azure-aks-node-ssh-key-pub
+az keyvault secret show --vault-name $AZURE_VAULT -n "azure-aks-gitops-ssh-key" --query value -otsv > ~/.ssh/azure-aks-gitops-ssh-key
+chmod 644 ~/.ssh/azure-aks-node-ssh-key-pub
+chmod 600 ~/.ssh/azure-aks-gitops-ssh-key
 ```
 
 Update your `.env` file with the paths to your public and private SSH keys for Node and GitOPS repo access.
 
 ```
-TF_VAR_ssh_public_key_file=/home/$USER/.ssh/node-ssh-key.pub
-TF_VAR_gitops_ssh_key_file=/home/$USER/.ssh/gitops-ssh-key
+TF_VAR_ssh_public_key_file=/home/$USER/.ssh/azure-aks-node-ssh-key-pub
+TF_VAR_gitops_ssh_key_file=/home/$USER/.ssh/azure-aks-gitops-ssh-key
 ```
 
 ### Deploy Common Resources
