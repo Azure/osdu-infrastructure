@@ -417,10 +417,12 @@ tput setaf 2; echo 'Creating AD User...' ; tput sgr0
 CreateADUser "Integration" "Test"
 
 tput setaf 2; echo 'Creating SSH Keys...' ; tput sgr0
+
 GITOPS_KEY="azure-aks-gitops-ssh-key"
 CreateSSHKeys $AZURE_AKS_USER $GITOPS_KEY
 
-CreateSSHKeys $AZURE_AKS_USER "azure-aks-node-ssh-key"
+NODE_KEY="azure-aks-node-ssh-key"
+CreateSSHKeys $AZURE_AKS_USER $NODE_KEY
 
 tput setaf 2; echo 'Extracting Key Information...' ; tput sgr0
 tput setaf 3; echo "------------------------------------" ; tput sgr0
