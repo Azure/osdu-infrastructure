@@ -75,9 +75,9 @@ For information specific to your operating system, see the [Azure CLI install gu
 
 ## Setup the Common KeyVault
 
-The script ./scripts/install.sh will conveniently setup the common things that are necessary to execute a pipeline.
+The script ./scripts/install.sh will conveniently setup the common things that are necessary to execute a pipeline. You must be logged in as an administrator of the tenant to run this script because it is creating an active directory user for integration testing purposes.
 - Run the script with your subscription ID as the first argument.
-- Note the files (azure-aks-gitops-ssh-key and azure-aks-node-ssh-key.pub) that have appeared in the .ssh directory.
+- Note the files (azure-aks-gitops-ssh-key and azure-aks-node-ssh-key.pub) that have appeared in the scripts/.ssh directory.
 You will need these in a later step. 
 
 ### Installed Common Resources
