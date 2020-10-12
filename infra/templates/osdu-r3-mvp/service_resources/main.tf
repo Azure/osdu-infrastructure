@@ -479,5 +479,5 @@ resource "azurerm_role_assignment" "event_grid_topics_role" {
   count                = length(local.rbac_principals)
   role_definition_name = "Contributor"
   principal_id         = local.rbac_principals[count.index]
-  scope                =  data.terraform_remote_state.data_resources.outputs.topics.topic.id
+  scope                =  data.terraform_remote_state.data_resources.outputs.eg_topics.topic.id
 }
