@@ -157,6 +157,16 @@ data "terraform_remote_state" "central_resources" {
   }
 }
 
+data "terraform_remote_state" "data_resources" {
+  backend = "azurerm"
+
+  config = {
+    storage_account_name = var.remote_state_account
+    container_name       = var.remote_state_container
+    key                  = format("terraform.tfstateenv:%s", var.data_resources_workspace_name)
+  }
+}
+
 resource "random_string" "workspace_scope" {
   keepers = {
     # Generate a new id each time we switch to a new workspace or app id
@@ -463,4 +473,11 @@ resource "azurerm_role_assignment" "redis_cache" {
   role_definition_name = local.role
   principal_id         = local.rbac_principals[count.index]
   scope                = module.redis_cache.id
+}
+
+resource "azurerm_role_assignment" "event_grid_topics_role" {
+  count                = length(local.rbac_principals)
+  role_definition_name = "Contributor"
+  principal_id         = local.rbac_principals[count.index]
+  scope                =  data.terraform_remote_state.data_resources.outputs.topics.topic.id
 }

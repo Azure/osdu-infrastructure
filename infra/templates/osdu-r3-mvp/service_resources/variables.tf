@@ -49,6 +49,11 @@ variable "central_resources_workspace_name" {
   type        = string
 }
 
+variable "data_resources_workspace_name" {
+  description = "(Required) The workspace name for the data_resources terraform environment / template to reference for this template."
+  type        = string
+}
+
 variable "resource_group_location" {
   description = "(Required) The Azure region where all resources in this template should be created."
   type        = string

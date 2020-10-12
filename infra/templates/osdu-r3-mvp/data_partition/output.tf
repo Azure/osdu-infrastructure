@@ -56,3 +56,8 @@ output "cosmosdb_properties" {
   description = "Properties of the deployed CosmosDB account."
   value       = module.cosmosdb_account.properties
 }
+
+output "eg_topics" {
+  description = "Event Grid Topics list"
+  value       = module.event_grid.topics
+}

@@ -26,3 +26,14 @@ output "primary_access_key" {
   description = "The primary shared access key associated with the eventgrid Domain."
   value       = azurerm_eventgrid_domain.main.primary_access_key
 }
+
+output "topics" {
+  description = "The ID and Name mapping of the Topics."
+  value       = {
+                  for topic in azurerm_eventgrid_topic.main:
+                    "topic" => {
+                      id = topic.id
+                      name = topic.name
+                    }
+                  }
+}
