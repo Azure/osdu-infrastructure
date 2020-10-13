@@ -33,6 +33,8 @@ storage_containers = [
 ]
 storage_shares = [
   "airflowdags"
+  "unit"
+  "crs"
 ]
 storage_queues = [
   "airflowlogqueue"
