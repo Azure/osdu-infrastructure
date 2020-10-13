@@ -143,7 +143,7 @@ resource "azurerm_key_vault_secret" "postgres_password" {
 # Azure Redis Cache
 #-------------------------------
 locals {
-  redis_hostname = "redis-hostname"
+  redis_hostname      = "redis-hostname"
   redis_password_name = "redis-password"
 }
 
