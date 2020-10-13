@@ -48,12 +48,11 @@ Cloud administrators who are versed with both Cobalt templating and Kubernetes.
 ## Prerequisites
 
 1. Azure Subscription
-1. An available Service Principal capable of creating resources.
+1. An available Service Principal with API Permissions granted with Admin Consent within Azure app registration. The required Azure Active Directory Graph app role is Application.ReadWrite.OwnedBy
 1. Terraform and Go are locally installed
 1. Azure Storage Account is [setup](https://docs.microsoft.com/en-us/azure/terraform/terraform-backend) to store Terraform state
 1. Local environment variables are [setup](https://github.com/microsoft/cobalt/blob/f31aff95e7732efde96c91b2779e94e16c1d538e/docs/2_QUICK_START_GUIDE.md#step-3-setup-local-environment-variables)
 1. Deployment Service Principal is granted Owner level role assignment for the target Azure subscription
-![image](../../../docs/osdu/images/service_principal.png)
 1. Enroll as an Azure subscriber. The free trial subscription does not support enough cores to run this tutorial.
 1. Terraform `common_resources` environment module is [provisoned](environments/common_resources/README.md) to your Azure Environment
 1. Terraform `data_resources` environment module is [provisoned](environments/data_resources/README.md) to your Azure Environment
