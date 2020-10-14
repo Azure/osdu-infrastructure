@@ -137,7 +137,8 @@ resource "azurerm_key_vault_secret" "sb_connection" {
 locals {
   event_grid_resourcegroup_name  = "event-grid-resourcegroup"
   azure_subscription_id_name     = "azure-subscription-id"
-  encryption_key_identifier_name ="encryption-key-identifier"
+  encryption_key_identifier_name = "encryption-key-identifier"
+  encryption_key_name            = "encryption-key-name"
 }
 resource "azurerm_key_vault_secret" "eventgrid_name" {
   name         = local.eventgrid_domain_name
@@ -162,28 +163,31 @@ resource "azurerm_key_vault_secret" "eventgrid_resource_group" {
   value        = azurerm_resource_group.main.name
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
-
-resource "azurerm_key_vault_secret" "azure-subscription-id" {
+//
+resource "azurerm_key_vault_secret" "azure_subscription_id_secret" {
   name         = local.azure_subscription_id_name
   value        = data.azurerm_subscription.current.subscription_id
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-resource "azurerm_key_vault_key" "generated" {
-  name         = local.encryption_key_identifier_name
+resource "azurerm_key_vault_key" "encryption_key" {
+  name         = local.encryption_key_name
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
   key_type     = "RSA"
   key_size     = 2048
 
   key_opts = [
     "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
+    "encrypt"
   ]
 }
+//
+resource "azurerm_key_vault_secret" "encryption_key_identifier_secret" {
+  name         = local.encryption_key_identifier_name
+  value        = azurerm_key_vault_key.encryption_key.id
+  key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
+}
+
 
 #-------------------------------
 # Elastic
