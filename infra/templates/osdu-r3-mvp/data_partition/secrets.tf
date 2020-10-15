@@ -138,7 +138,7 @@ locals {
   event_grid_resourcegroup_name  = "event-grid-resourcegroup"
   azure_subscription_id_name     = "azure-subscription-id"
   encryption_key_identifier_name = "encryption-key-identifier"
-  encryption_key_name            = "encryption-key-name"
+  encryption_key_name            = "encryption-key"
 }
 resource "azurerm_key_vault_secret" "eventgrid_name" {
   name         = local.eventgrid_domain_name
