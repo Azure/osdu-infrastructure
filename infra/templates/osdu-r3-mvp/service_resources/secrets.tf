@@ -53,7 +53,7 @@ resource "azurerm_key_vault_secret" "storage_key" {
 
 resource "azurerm_key_vault_secret" "storage_connection" {
   name         = local.storage_connection_name
-  value        = format("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=core.windows.net", local.storage_account_name, module.storage_account.primary_access_key)
+  value        = format("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=core.windows.net", module.storage_account.name, module.storage_account.primary_access_key)
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 

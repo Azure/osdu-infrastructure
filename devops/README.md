@@ -1,5 +1,7 @@
 # Helm Installation Instructions
 
+> NOTE: These charts are officially obsolete and have move been moved to the following [location](https://community.opengroup.org/osdu/platform/deployment-and-operations/infra-azure-provisioning/-/tree/master/charts).  
+
 1. Download [helm-config.yaml](https://raw.githubusercontent.com/Azure/osdu-infrastructure/master/devops/helm-config.yaml), which will configure OSDU on Azure.
 
 ```bash
