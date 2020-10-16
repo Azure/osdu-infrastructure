@@ -44,6 +44,10 @@ locals {
   eventgrid_domain_key_name        = format("%s-key", local.eventgrid_domain_name)
   eventgrid_records_topic_name     = format("%s-recordstopic", local.eventgrid_domain_name)
   eventgrid_records_topic_endpoint = format("https://%s.%s-1.eventgrid.azure.net/api/events", local.eventgrid_records_topic, var.resource_group_location)
+  event_grid_resourcegroup_name  = format("%s-event-grid-resourcegroup", var.data_partition_name)
+  azure_subscription_id_name     = format("%s-azure-subscription-id", var.data_partition_name)
+  encryption_key_identifier_name = format("%s-encryption-key-identifier", var.data_partition_name)
+  encryption_key_name            = format("%s-encryption-key", var.data_partition_name)
 
   elastic_endpoint = format("%s-elastic-endpoint", var.data_partition_name)
   elastic_username = format("%s-elastic-username", var.data_partition_name)
@@ -112,8 +116,6 @@ resource "azurerm_key_vault_secret" "cosmos_key" {
   key_vault_id = data.terraform_remote_state.central_resources.outputs.keyvault_id
 }
 
-
-
 #-------------------------------
 # Azure Service Bus
 #-------------------------------
@@ -134,12 +136,6 @@ resource "azurerm_key_vault_secret" "sb_connection" {
 #-------------------------------
 # Azure Event Grid
 #-------------------------------
-locals {
-  event_grid_resourcegroup_name  = "event-grid-resourcegroup"
-  azure_subscription_id_name     = "azure-subscription-id"
-  encryption_key_identifier_name = "encryption-key-identifier"
-  encryption_key_name            = "encryption-key"
-}
 resource "azurerm_key_vault_secret" "eventgrid_name" {
   name         = local.eventgrid_domain_name
   value        = module.event_grid.name
