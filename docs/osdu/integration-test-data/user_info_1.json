@@ -20,7 +20,11 @@
         "service.schema-service.editors",
         "service.workflow.creator",
         "service.workflow.viewer",
-        "service.workflow.admin"
+        "service.workflow.admin",
+        "service.entitlements.admin",
+        "users.datalake.ops",
+        "cron.job",
+        "notification.pubsub"
       ]
     },
     {
@@ -42,7 +46,11 @@
         "service.schema-service.editors",
         "service.workflow.creator",
         "service.workflow.viewer",
-        "service.workflow.admin"
+        "service.workflow.admin",
+        "service.entitlements.admin",
+        "users.datalake.ops",
+        "cron.job",
+        "notification.pubsub"
       ]
     }
   ]
