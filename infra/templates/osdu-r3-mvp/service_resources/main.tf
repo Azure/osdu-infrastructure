@@ -276,7 +276,7 @@ module "network" {
 }
 
 module "appgateway" {
-  source = "../../../modules/providers/azure/network"
+  source = "../../../modules/providers/azure/aks-appgw"
 
   name                            = local.app_gw_name
   resource_group_name             = azurerm_resource_group.main.name
