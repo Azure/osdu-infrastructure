@@ -181,6 +181,12 @@ resource "azurerm_application_gateway" "main" {
     name = format("https-%s", local.backend_address_pool_name)
   }
 
+  ssl_policy {
+    policy_type          = var.ssl_policy_type
+    cipher_suites        = var.ssl_policy_cipher_suites
+    min_protocol_version = var.ssl_policy_min_protocol_version
+  }
+
   lifecycle {
     ignore_changes = [
       ssl_certificate,
