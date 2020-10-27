@@ -278,8 +278,8 @@ module "network" {
 module "appgateway" {
   source = "../../../modules/providers/azure/network"
 
-  name                = local.app_gw_name
-  resource_group_name = azurerm_resource_group.main.name
+  name                            = local.app_gw_name
+  resource_group_name             = azurerm_resource_group.main.name
   vnet_name                       = module.network.name
   vnet_subnet_id                  = module.network.subnets.0
   keyvault_id                     = data.terraform_remote_state.central_resources.outputs.keyvault_id
