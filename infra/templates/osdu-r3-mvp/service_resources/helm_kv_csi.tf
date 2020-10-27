@@ -20,7 +20,7 @@ locals {
   helm_kv_csi_name    = "kvsecrets"
   helm_kv_csi_ns      = "kvsecrets"
   helm_kv_csi_repo    = "https://raw.githubusercontent.com/Azure/secrets-store-csi-driver-provider-azure/master/charts"
-  helm_kv_csi_version = "0.0.9"
+  helm_kv_csi_version = "0.0.13"
 }
 
 resource "kubernetes_namespace" "kvsecrets" {
