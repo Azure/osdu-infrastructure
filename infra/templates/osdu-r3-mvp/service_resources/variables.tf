@@ -245,3 +245,21 @@ variable "gitops_path" {
   description = "(Optional) The path for flux to watch"
   default     = "providers/azure/hld-registry"
 }
+
+variable "ssl_policy_type" {
+  description = "The Type of the Policy. Possible values are Predefined and Custom."
+  type        = string
+  default     = "Custom"
+}
+
+variable "ssl_policy_cipher_suites" {
+  description = "A List of accepted cipher suites."
+  type        = list(string)
+  default     = ["TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"]
+}
+
+variable "ssl_policy_min_protocol_version" {
+  description = "The minimal TLS version. Possible values are TLSv1_0, TLSv1_1 and TLSv1_2"
+  type        = string
+  default     = "TLSv1_2"
+}
