@@ -27,9 +27,9 @@ resource_tags = {
 
 # Kubernetes Settings
 kubernetes_version = "1.18.8"
-aks_agent_vm_size = "Standard_E4s_v3"
+aks_agent_vm_size  = "Standard_E4s_v3"
 aks_agent_vm_count = "5"
-subnet_aks_prefix = "10.10.2.0/23"
+subnet_aks_prefix  = "10.10.2.0/23"
 
 # Storage Settings
 storage_replication_type = "LRS"
