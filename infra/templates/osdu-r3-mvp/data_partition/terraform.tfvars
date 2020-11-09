@@ -39,7 +39,7 @@ cosmosdb_consistency_level = "Session"
 cosmos_databases = [
   {
     name       = "osdu-db"
-    throughput = 4000
+    throughput = 12000
   }
 ]
 cosmos_sql_collections = [
