@@ -56,3 +56,8 @@ output "cosmosdb_properties" {
   description = "Properties of the deployed CosmosDB account."
   value       = module.cosmosdb_account.properties
 }
+
+output "topics" {
+  description = "The Topic Name to Topic Id map for the given list of topics."
+  value       = { for item in local.topics_flattend : item.key => item.value }
+}

@@ -147,7 +147,7 @@ module "keyvault_policy" {
     azurerm_user_assigned_identity.osduidentity.principal_id,
     module.service_principal.id
   ]
-  key_permissions         = ["get"]
+  key_permissions         = ["get", "encrypt", "decrypt"]
   certificate_permissions = ["get"]
   secret_permissions      = ["get"]
 }
