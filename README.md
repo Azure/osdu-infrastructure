@@ -1,4 +1,4 @@
-This functionality has fully migrated to its permanent home in the [OSDU Gitlab](https://community.opengroup.org/osdu/platform/deployment-and-operations/infra-azure-provisioning) it is no longer maintained or supported at this location.
+> This functionality has fully migrated to its permanent home in the [OSDU Gitlab](https://community.opengroup.org/osdu/platform/deployment-and-operations/infra-azure-provisioning) it is no longer maintained or supported at this location.
 
 # osdu-infrastructure
 
