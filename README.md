@@ -1,3 +1,5 @@
+This functionality has fully migrated to its permanent home in the [OSDU Gitlab](https://community.opengroup.org/osdu/platform/deployment-and-operations/infra-azure-provisioning) it is no longer maintained or supported at this location.
+
 # osdu-infrastructure
 
 
@@ -18,15 +20,7 @@ This project is an active project and the master branch changes frequently to su
 ## Architecture Solutions
 
 - [R3 MVP - Azure OSDU R3 MVP Architecture Solution](infra/templates/osdu-r3-mvp)  
-
-  _central-resources_  
-  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infra-mvp-cr?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1206&branchName=master)
-
-  _service-resources_  
-  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infra-mvp-services?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1207&branchName=master)
-
-  _data-partition_  
-  [![Build Status](https://dev.azure.com/osdu-demo/OSDU_Rx/_apis/build/status/github-osdu-infra-mvp-partitions?branchName=master)](https://dev.azure.com/osdu-demo/OSDU_Rx/_build/latest?definitionId=1208&branchName=master)
+  > Retired, no longer maintained _11/1_
 
 
 - [R2 on AKS - Azure OSDU AKS Architecture Solution](infra/templates/osdu-r3-resources)  
