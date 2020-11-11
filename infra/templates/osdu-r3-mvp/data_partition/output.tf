@@ -57,7 +57,7 @@ output "cosmosdb_properties" {
   value       = module.cosmosdb_account.properties
 }
 
-output "topics" {
-  description = "The Topic Name to Topic Id map for the given list of topics."
-  value       = { for item in local.topics_flattend : item.key => item.value }
+output "eventgrid_topics" {
+  description = "Properties of the event grid topics."
+  value       = module.event_grid.topics
 }
