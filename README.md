@@ -1,34 +1,8 @@
-> This functionality has fully migrated to its permanent home in the [OSDU Gitlab](https://community.opengroup.org/osdu/platform/deployment-and-operations/infra-azure-provisioning) it is no longer maintained or supported at this location.
-
 # osdu-infrastructure
 
+The official home for infrastructure can be found at [Open Subsurface Data Universe](https://community.opengroup.org/osdu/platform/deployment-and-operations/infrastructure-templates) (OSDU) infrastructure.
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/Azure/osdu-infrastructure)](https://goreportcard.com/report/github.com/Azure/osdu-infrastructure)
-
-This project is an implementation of the Infrastructure as Code and Pipelines necessary to build and deploy the required infrastructure necessary for the [Open Subsurface Data Universe](https://community.opengroup.org/osdu) (OSDU). Links and additional information is located in [GitLab](https://community.opengroup.org/osdu/platform/deployment-and-operations/infrastructure-templates) for OSDU discoverability.
-
-
-Patterns used here derived from concepts in other Microsoft Projects, for detailed design principals, operation and tutorials on some of these patterns it is best to review information directly from those projects. 
-
-1. [Project Cobalt](https://github.com/microsoft/cobalt)
-2. [Project Bedrock](https://github.com/microsoft/bedrock)
-
-Please be aware that branching strategies are aligned with OSDU and the master branch is intended to be used as a [Current Delivery](https://docs.microsoft.com/en-us/azure/devops/learn/what-is-continuous-delivery) mechanism that aligns with master branches for the [OSDU Platform]((https://community.opengroup.org/osdu/platform))
-
-This project is an active project and the master branch changes frequently to support OSDU features.  The intent is for Master to be in sync with OSDU Service master branches.
-
-## Architecture Solutions
-
-- [R3 MVP - Azure OSDU R3 MVP Architecture Solution](infra/templates/osdu-r3-mvp)  
-  > Retired, no longer maintained _11/1_
-
-
-- [R2 on AKS - Azure OSDU AKS Architecture Solution](infra/templates/osdu-r3-resources)  
-  > Retired, no longer maintained _9/22_
-  
-
-- [R2 - Azure OSDU AppService Architecture Solution](infra/templates/osdu-r2-resources)
-  > Retired, no longer maintained _9/1_
+## Platform Software Development Kit (SDK)
 
 
 
@@ -48,7 +22,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-For project level questions, please contact [Daniel Scholl](mailto:Daniel.Scholl@microsoft.com) or [Dania Kodeih](mailto:Dania.Kodeih@microsoft.com).
+For project level questions, please contact [Daniel Scholl](mailto:Daniel.Scholl@microsoft.com).
 
 
 ## License
