@@ -1,0 +1,5823 @@
+openapi: 3.0.0
+info:
+  title: Platform APIs
+  version: 0.11.0
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+tags:
+  - name: Partition
+    description: >-
+      The partition service provides internal APIs to dynamically pull the correct connection information at runtime to connect to a partition.
+
+      https://community.opengroup.org/osdu/platform/system/partition/-/blob/master/docs/tutorial/Partition.md
+  - name: Entitlement
+    description: >-
+      The entitlement service provides the enablement of users and RBAC.
+
+      https://community.opengroup.org/osdu/platform/security-and-compliance/entitlements/-/blob/master/docs/tutorial/Entitlements-Service.md
+  - name: Legal
+    description: >-
+      The legal service provides platform legal compliance.
+
+      https://community.opengroup.org/osdu/platform/security-and-compliance/legal/-/blob/master/docs/tutorial/ComplianceService.md
+  - name: Schema
+    description: >-
+      The schema service provides platform schema management.
+
+      https://community.opengroup.org/osdu/platform/system/schema-service/-/blob/master/docs/SchemaService-OSDU.md
+  - name: Storage
+    description: >-
+      The storage service provides platform record managment.
+
+      https://community.opengroup.org/osdu/platform/system/storage/-/blob/master/docs/tutorial/StorageService.md
+  - name: Search
+    description: >-
+      The search service supports full text search on string fields, range queries on date, numeric or string fields, along with geo-spatial search.
+
+      https://community.opengroup.org/osdu/platform/system/search-service
+  - name: File
+    description: >-
+      The file service provides internal and external APIs to request for file location data.
+
+      https://community.opengroup.org/osdu/platform/system/file/-/blob/master/docs/File-Service.md
+  - name: Workflow
+    description: >-
+      The workflow service provides execution and status of workflows.
+
+      https://community.opengroup.org/osdu/platform/data-flow/ingestion/ingestion-workflow
+  - name: Register
+    description: >-
+      The register service provides registration of actions.
+
+      https://community.opengroup.org/osdu/platform/system/register/-/blob/master/docs/tutorial/ActionService.md
+  - name: Notification
+    description: >-
+      The notification service provides platform pub/sub capability.
+
+      https://community.opengroup.org/osdu/platform/system/notification/-/blob/master/docs/tutorial/DataNotification.md
+paths:
+  /api/partition/v1/partitions:
+    get:
+      tags:
+        - Partition
+      summary: List Partitions
+      operationId: listUsingGET
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      security:
+        - Bearer: []
+  /api/partition/v1/partitions/{partitionId}:
+    get:
+      tags:
+        - Partition
+      summary: Get Single Partition
+      description: >
+        By passing in a partition Id, you can retrieve the partition
+        information.
+      operationId: getUsingGET
+      parameters:
+        - name: partitionId
+          in: path
+          description: partitionId
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/PartitionProperty'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      security:
+        - Bearer: []
+    post:
+      tags:
+        - Partition
+      summary: Create Partition
+      description: >
+        By passing in a partition Id and a partition info object you can create
+        a partition.
+      operationId: createUsingPOST
+      parameters:
+        - name: partitionId
+          in: path
+          description: partitionId
+          required: true
+          example: common
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/PartitionDto'
+      responses:
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      security:
+        - Bearer: []
+    patch:
+      tags:
+        - Partition
+      summary: Update Partition
+      description: >
+        By passing in a partition Id and a partition info object you can update
+        a partition.
+      operationId: updateUsingPATCH
+      parameters:
+        - name: partitionId
+          in: path
+          description: partitionId
+          required: true
+          example: common
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/PartitionDto'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - Partition
+      summary: Delete Partition
+      description: |
+        By passing in a single partition Id, you can delete a partition.
+      operationId: deleteUsingDELETE
+      parameters:
+        - name: partitionId
+          in: path
+          description: partitionId
+          required: true
+          example: common
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      security:
+        - Bearer: []
+  /api/entitlements/v2/groups:
+    get:
+      tags:
+        - Entitlement
+      summary: List Assigned Groups
+      operationId: listGroupsUsingGET
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: tenant
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntitlementGroupResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      security:
+        - Bearer: []
+    post:
+      tags:
+        - Entitlement
+      summary: Create a Group
+      operationId: createGroupUsingPOST
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      security:
+        - Bearer: []
+  /api/entitlements/v2/groups/{group_email}/members:
+    get:
+      tags:
+        - Entitlement
+      summary: List Group Members
+      operationId: listGroupMembersUsingGET
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Data Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: group_email
+          in: path
+          description: group_email
+          required: true
+          example: users@opendes.contoso.com
+          schema:
+            type: string
+        - name: role
+          in: query
+          description: role
+          required: false
+          schema:
+            type: string
+            enum:
+              - MEMBER
+              - OWNER
+        - name: includeType
+          in: query
+          description: includeType
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      security:
+        - Bearer: []
+    post:
+      tags:
+        - Entitlement
+      summary: Add Member to Group
+      operationId: addMemberUsingPOST
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Partition Name
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: group_email
+          in: path
+          description: group_email
+          required: true
+          example: users@opendes.contoso.com
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntitlementMemberDto'
+        description: partitionInfo
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntitlementMemberDto'
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+      security:
+        - Bearer: []
+  /api/entitlements/v2/groups/{group_email}/members/{member_email}:
+    delete:
+      tags:
+        - Entitlement
+      summary: Remove Member from Group
+      operationId: deleteMemberUsingDELETE_1
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Data Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: group_email
+          in: path
+          description: group_email
+          required: true
+          example: users@opendes.contoso.com
+          schema:
+            type: string
+        - name: member_email
+          in: path
+          description: member_email
+          required: true
+          example: email@domain.com
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      security:
+        - Bearer: []
+  /api/entitlements/v2/groups/{group_email}:
+    delete:
+      tags:
+        - Entitlement
+      summary: Delete a Group
+      operationId: deleteGroupUsingDELETE
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: tenant
+          required: true
+          example: common
+          schema:
+            type: string
+        - name: group_email
+          in: path
+          description: group_email
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      security:
+        - Bearer: []
+    patch:
+      tags:
+        - Entitlement
+      summary: Updates Items in Group
+      operationId: updateGroupUsingPATCH
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: tenant
+          required: true
+          example: common
+          schema:
+            type: string
+        - name: group_email
+          in: path
+          description: group_email
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      security:
+        - Bearer: []
+  /api/entitlements/v2/members/{member_email}:
+    delete:
+      tags:
+        - Entitlement
+      summary: Delete a User
+      operationId: deleteMemberUsingDELETE
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Data Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: member_email
+          in: path
+          description: member_email
+          required: true
+          example: email@domain.com
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      security:
+        - Bearer: []
+  /api/entitlements/v2/members/{member_email}/groups:
+    get:
+      tags:
+        - Entitlement
+      summary: List Assigned Groups for User
+      operationId: listGroupsOnBehalfOfUsingGET
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: tenant
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: member_email
+          in: path
+          description: member_email
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: type
+          required: false
+          schema:
+            type: string
+        - name: appid
+          in: query
+          description: appid
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      security:
+        - Bearer: []
+  /api/legal/v1/legaltags:properties:
+    get:
+      tags:
+        - Legal
+      summary: Gets LegalTag property values.
+      description: This allows for the retrieval of allowed values for LegalTag properties.
+      operationId: getLegalTagProperties
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Retrieved proeprties successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalTagPropertyValues'
+        '401':
+          description: You do not have permissions to access this API.
+      security:
+        - Bearer: []
+  /api/legal/v1/legaltags:validate:
+    post:
+      tags:
+        - Legal
+      summary: Retrieves the invalid LegalTag names with reasons for the given names.
+      description: >-
+        This allows for the retrieval of the reason why your LegalTag is not
+        valid. A maximum of 25 can be retrieved at once.
+      operationId: validateLegalTags
+      parameters:
+        - name: OSDU-Account-Id
+          in: header
+          description: Users account e.g. OSDU
+          required: true
+          schema:
+            type: string
+        - name: OSDU-On-Behalf-Of
+          in: header
+          description: User's email or auth token
+          required: false
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/LegalTagRequest'
+      responses:
+        '200':
+          description: Retrieved LegalTag names with reason successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalTagInvalidResponseList'
+        '400':
+          description: Invalid parameters were given on request.
+        '401':
+          description: You do not have permissions to access this API.
+        '404':
+          description: LegalTag names were not found.
+      security:
+        - Bearer: []
+  /api/legal/v1/legaltags:batchRetrieve:
+    post:
+      tags:
+        - Legal
+      summary: Retrieves the LegalTags for the given names.
+      description: >-
+        This allows for the retrieval of your LegalTags using the 'name'
+        associated with it. A maximum of 25 can be retrieved at once.
+      operationId: getLegalTags
+      parameters:
+        - name: OSDU-Account-Id
+          in: header
+          description: Users account e.g. OSDU
+          required: true
+          schema:
+            type: string
+        - name: OSDU-On-Behalf-Of
+          in: header
+          description: User's email or auth token
+          required: false
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/LegalTagRequest'
+      responses:
+        '200':
+          description: Retrieved LegalTags successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalTagDtos'
+        '400':
+          description: Invalid parameters were given on request.
+        '401':
+          description: You do not have permissions to access this API.
+        '404':
+          description: One or more requested LegalTags were not found.
+      security:
+        - Bearer: []
+  /api/legal/v1/legaltags:
+    get:
+      tags:
+        - Legal
+      summary: Gets all LegalTags.
+      description: This allows for the retrieval of all LegalTags.
+      operationId: listLegalTags
+      parameters:
+        - name: valid
+          in: query
+          description: >-
+            If true returns only valid LegalTags, if false returns only invalid
+            LegalTags.  Default value is true.
+          required: false
+          schema:
+            type: boolean
+            default: true
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Retrieved LegalTags successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalTagDtos'
+        '400':
+          description: Invalid parameters were given on request.
+        '401':
+          description: You do not have permissions to access this API.
+      security:
+        - Bearer: []
+    post:
+      tags:
+        - Legal
+      summary: Creates the LegalTag for the given 'name'.
+      description: >-
+        This allows for the creation of your LegalTag. There can only be 1
+        LegalTag per 'name'. A LegalTag must be created before you can start
+        ingesting data for that name.
+      operationId: createLegalTag
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegalTagDto'
+      responses:
+        '201':
+          description: Created LegalTag successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalTagDto'
+        '400':
+          description: Invalid parameters were given on request.
+        '401':
+          description: You do not have permissions to access this API.
+        '409':
+          description: A LegalTag with the given name already exists.
+      security:
+        - Bearer: []
+    put:
+      tags:
+        - Legal
+      summary: Updates the LegalTag for the given 'name'.
+      description: >-
+        This allows to update certain properties of your LegalTag using the
+        'name' associated with it.
+      operationId: updateLegalTag
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegalTagUpdateDto'
+      responses:
+        '200':
+          description: Updated LegalTag successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalTagDto'
+        '400':
+          description: Invalid parameters were given on request.
+        '401':
+          description: You do not have permissions to access this API.
+        '404':
+          description: Requested LegalTag to update was not found.
+      security:
+        - Bearer: []
+  /api/legal/v1/legaltags/{name}:
+    get:
+      tags:
+        - Legal
+      summary: Gets a LegalTag for the given 'name'.
+      description: >-
+        This allows for the retrieval of your LegalTag using the 'name'
+        associated with it.
+      operationId: getLegalTag
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          example: opendes-public-usa-swagger
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Retrieved LegalTag successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalTagDto'
+        '400':
+          description: Invalid parameters were given on request.
+        '401':
+          description: You do not have permissions to access this API.
+        '404':
+          description: Requested LegalTag was not found.
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - Legal
+      summary: Delete Legal Tag
+      description: >
+        This allows for the deletion of your LegalTag using the 'name'
+        associated with it.
+      operationId: deleteLegalTag
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          example: opendes-public-usa-test-1
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      security:
+        - Bearer: []
+  /api/schema-service/v1/schema:
+    post:
+      tags:
+        - Schema
+      summary: Adds a schema to the schema repository.
+      description: >-
+        Adds a schema to the schema repository. The schemaIdentity must be
+        unique. The `authority`, `source` and `entityType` will be registered if
+        not present. If lower minor versions are registered the service
+        validates the new schema against breaking changes; if breaking changes
+        are discovered the request fails. **Note:** The schema must not
+        reference other schemas with status `DEVELOPMENT`. Scope to a schema
+        will be set by system based on partition id (`SHARED` for common tenant
+        and `INTERNAL` for private tenant). Required roles
+        'users.datalake.editors' or 'users.datalake.admins' groups to create
+        schema.
+      operationId: Create Schema
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the data partition to use. This should be either the
+            partition name or crm account ID associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaRequest'
+        required: true
+      responses:
+        '201':
+          description: Schema created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfo'
+        '400':
+          description: >-
+            Bad user input. Mandatory fields missing or unacceptable value
+            passed to API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaErrorResponseFormat'
+        '401':
+          description: Unknown or invalid user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaErrorResponseFormat'
+        '403':
+          description: User not authorised to access the API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaErrorResponseFormat'
+      security:
+        - Bearer: []
+    put:
+      tags:
+        - Schema
+      summary: Creates/Updates a schema in development status
+      description: >-
+        Creates a new schema or updates an already existing schema with status
+        `DEVELOPMENT` in the schema repository. If a user tries to create/update
+        a schema with status other then `DEVELOPMENT`, API will throw an
+        exception. Any schema instance with the same schemaIdentity is replaced
+        (in contrast to the immutability of `PUBLISHED` or `OBSOLETE` schemas).
+        A schema state can also be changed from `DEVELOPMENT` to `PUBLISHED` or
+        `OBSOLETE` while updating schema content or by providing the same schema
+        content. **Note:** The schema may refer to other schema definitions in
+        `DEVELOPMENT` state. If those schemas are updated themselves, it is the
+        developer's responsibility to PUT the dependent schemas again to update
+        the schemas. Scope for a schema can't be updated, its a system defined
+        value. Required roles  'users.datalake.editors' or
+        'users.datalake.admins' groups to update schema.
+      operationId: Update Schema
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the data partition to use. This should be either the
+            partition name or crm account ID associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaRequest'
+        description: SchemaRequest
+        required: true
+      responses:
+        '200':
+          description: Schema updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfo'
+        '201':
+          description: Schema created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfo'
+        '400':
+          description: >-
+            Bad user input. Mandatory fields missing or unacceptable value
+            passed to API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaErrorResponseFormat'
+        '401':
+          description: Unknown or invalid user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaErrorResponseFormat'
+        '403':
+          description: User not authorised to access the API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaErrorResponseFormat'
+      security:
+        - Bearer: []
+    get:
+      tags:
+        - Schema
+      summary: Searches schemaInfo repository
+      description: >-
+        Searches for information of available schema (SchemInfo) in schema
+        repository. Supports options to filter out the search contents. Required
+        roles 'users.datalake.viewers' or 'users.datalake.editors' or
+        'users.datalake.admins' groups to get the schema.
+      operationId: searchSchemaInfoRepository
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the data partition to use. This should be either the
+            partition name or crm account ID associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - in: query
+          name: authority
+          description: pass an optional string to search for a specific authority
+          required: false
+          example: osdu
+          schema:
+            type: string
+            default: '*'
+        - in: query
+          name: source
+          description: pass an optional string to search for a specific source
+          required: false
+          example: wks
+          schema:
+            type: string
+            default: '*'
+        - in: query
+          name: entityType
+          description: pass an optional string to search for a specific entityType
+          required: false
+          example: wellbore
+          schema:
+            type: string
+            default: '*'
+        - in: query
+          name: schemaVersionMajor
+          description: pass an optional string to search for a specific schemaVersionMajor
+          required: false
+          example: 1
+          schema:
+            type: string
+            default: '*'
+        - in: query
+          name: schemaVersionMinor
+          description: pass an optional string to search for a specific schemaVersionMinor
+          required: false
+          example: 1
+          schema:
+            type: string
+            default: '*'
+        - in: query
+          name: status
+          description: The schema status specification
+          example: PUBLISHED
+          schema:
+            type: string
+            enum:
+              - PUBLISHED
+              - DEVELOPMENT
+              - OBSOLETE
+            default: PUBLISHED
+        - in: query
+          name: scope
+          description: The scope or schema visibility specification
+          example: INTERNAL
+          schema:
+            type: string
+            enum:
+              - SHARED
+              - INTERNAL
+            default: INTERNAL
+        - in: query
+          name: latestVersion
+          description: if True, only return the latest version
+          required: false
+          example: true
+          schema:
+            type: boolean
+            default: false
+        - in: query
+          name: limit
+          description: maximum number of schema records to return
+          example: 10
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100
+        - in: query
+          name: offset
+          description: number of records to skip for pagination
+          example: 0
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfoResponse'
+        '400':
+          description: >-
+            Bad user input. Mandatory fields missing or unacceptable value
+            passed to API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaErrorResponseFormat'
+        '401':
+          description: Unknown or invalid user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaErrorResponseFormat'
+        '403':
+          description: User not authorised to access the API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaErrorResponseFormat'
+      security:
+        - Bearer: []
+  /api/schema-service/v1/schema/{id}:
+    get:
+      tags:
+        - Schema
+      summary: Gets schema from the schema repository.
+      description: >-
+        Retrieve a schema using its system defined id. Required roles
+        'users.datalake.viewers' or 'users.datalake.editors' or
+        'users.datalake.admins' groups to get the schema.
+      operationId: Get Schema
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the data partition to use. This should be either the
+            partition name or crm account ID associated with the partition.
+          required: true
+          example: osdu
+          schema:
+            type: string
+        - name: id
+          in: path
+          description: the system id of the schema
+          required: true
+          example: osdu:wks:wellbore:1.0.0
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  $schema: http://json-schema.org/draft-07/schema#
+                  description: The entity shapefile.
+                  title: ShapeFile
+                  type: object
+                  definitions: {}
+                  properties: {}
+        '400':
+          description: >-
+            Bad user input. Mandatory fields missing or unacceptable value
+            passed to API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaErrorResponseFormat'
+        '401':
+          description: Unknown or invalid user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaErrorResponseFormat'
+        '403':
+          description: User not authorised to access the API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaErrorResponseFormat'
+        '404':
+          description: Requested Schema not found in repository
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaErrorResponseFormat'
+      security:
+        - Bearer: []
+  /api/storage/v2/query/records:
+    get:
+      tags:
+        - Storage
+      summary: Get all record from kind
+      description: >-
+        The API returns a list of all record ids which belong to the specified
+        kind. Allowed roles: service.storage.admin.
+      operationId: Get all record from kind
+      parameters:
+        - name: cursor
+          in: query
+          description: Cursor
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Page Size
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 10
+        - name: kind
+          in: query
+          description: Filter Kind
+          required: false
+          schema:
+            type: string
+            default: tenant1:public:well:1.0.2
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: frame-of-reference
+          in: header
+          description: reference
+          required: false
+          example: none
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Record Ids retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageQueryResponse'
+        '404':
+          description: Kind or cursor not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageErrorResponse'
+      security:
+        - Bearer: []
+    post:
+      tags:
+        - Storage
+      summary: Fetch records
+      description: >-
+        The API fetches multiple records at once. Allowed roles:
+        service.storage.viewer, service.storage.creator and
+        service.storage.admin.
+      operationId: Fetch records
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: frame-of-reference
+          in: header
+          description: reference
+          required: false
+          example: none
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorageMultiRecordIds'
+      responses:
+        '200':
+          description: Fetch multiple records successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageMultiRecordIds'
+        '500':
+          description: Unknown storage error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageErrorResponse'
+      security:
+        - Bearer: []
+  /api/records/{id}:delete:
+    post:
+      tags:
+        - Storage
+      summary: Delete record
+      description: >-
+        The API performs a logical deletion of the given record. This operation
+        can be reverted later. Allowed roles: service.storage.creator and
+        service.storage.admin.
+      operationId: Delete record
+      parameters:
+        - name: id
+          in: path
+          description: Record id
+          required: true
+          schema:
+            type: string
+            default: tenant1:well:123456789
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: frame-of-reference
+          in: header
+          description: reference
+          required: false
+          example: none
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Record deleted successfully.
+        '404':
+          description: Record not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageErrorResponse'
+      security:
+        - Bearer: []
+  /api/storage/v2/records/delete:
+    post:
+      tags:
+        - Storage
+      summary: Soft delete of multiple records
+      description: >-
+        The API performs a soft deletion of the given list of records. Required
+        roles: 'users.datalake.editors' or 'users.datalake.admins'.
+      operationId: Delete records
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: partitionInfo
+        required: true
+      responses:
+        '204':
+          description: All records deleted successfully.
+        '207':
+          description: Some of the records weren't deleted successfully.
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StorageDeleteRecordError'
+        '400':
+          description: Invalid id format
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/StorageErrorResponse'
+      security:
+        - Bearer: []
+  /api/storage/v2/records/{id}:
+    get:
+      tags:
+        - Storage
+      summary: Get record
+      description: >-
+        This API returns the latest version of the given record. Allowed roles:
+        service.storage.viewer, service.storage.creator and
+        service.storage.admin.
+      operationId: Get record
+      parameters:
+        - name: id
+          in: path
+          description: Record id
+          required: true
+          schema:
+            type: string
+            default: tenant1:well:123456789
+        - name: attribute
+          in: query
+          description: >-
+            Filter attributes to restrict the returned fields of the record.
+            Usage: data.{record-data-field-name}.
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              default: data.wellName
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: frame-of-reference
+          in: header
+          description: reference
+          required: false
+          example: none
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Record retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageRecordData'
+        '404':
+          description: Record not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageErrorResponse'
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - Storage
+      summary: Purge record
+      description: >-
+        The API performs the physical deletion of the given record and all of
+        its versions. This operation cannot be undone. Allowed roles:
+        service.storage.admin.
+      operationId: Purge record
+      parameters:
+        - name: id
+          in: path
+          description: Record id
+          required: true
+          schema:
+            type: string
+            default: tenant1:well:123456789
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: frame-of-reference
+          in: header
+          description: reference
+          required: false
+          example: none
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Record purged successfully.
+        '404':
+          description: Record not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageErrorResponse'
+      security:
+        - Bearer: []
+  /api/storage/v2/records/{id}/{version}:
+    get:
+      tags:
+        - Storage
+      summary: Get record version
+      description: >-
+        The API retrieves the specific version of the given record. Allowed
+        roles: service.storage.viewer, service.storage.creator and
+        service.storage.admin.
+      operationId: Get record version
+      parameters:
+        - name: id
+          in: path
+          description: Record id
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          description: Record version
+          required: true
+          schema:
+            type: integer
+            format: int64
+            default: 123456789
+        - name: attribute
+          in: query
+          description: >-
+            Filter attributes to restrict the returned fields of the record.
+            Usage: data.{record-data-field-name}.
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              default: data.wellName
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: frame-of-reference
+          in: header
+          description: reference
+          required: false
+          example: none
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Record retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageRecordData'
+        '404':
+          description: Record id or version not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageErrorResponse'
+      security:
+        - Bearer: []
+  /api/storage/v2/records/versions/{id}:
+    get:
+      tags:
+        - Storage
+      summary: Get all record versions
+      description: >-
+        The API returns a list containing all versions for the given record id.
+        Allowed roles: service.storage.viewer, service.storage.creator and
+        service.storage.admin.
+      operationId: Get all record versions
+      parameters:
+        - name: id
+          in: path
+          description: Record id
+          required: true
+          schema:
+            type: string
+            default: tenant1:well:123456789
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: frame-of-reference
+          in: header
+          description: reference
+          required: false
+          example: none
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Record versions retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageRecordVersions'
+        '404':
+          description: Record id or version not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageErrorResponse'
+      security:
+        - Bearer: []
+  /api/storage/v2/records:
+    put:
+      tags:
+        - Storage
+      summary: Create or update records
+      description: >-
+        The API represents the main injection mechanism into the Data Lake. It
+        allows records creation and/or update. When no record id is provided or
+        when the provided id is not already present in the Data Lake then a new
+        record is created. If the id is related to an existing record in the
+        Data Lake then an update operation takes place and a new version of the
+        record is created. Allowed roles: service.storage.creator and
+        service.storage.admin.
+      operationId: Create or update records
+      parameters:
+        - name: skipdupes
+          in: query
+          description: Skip duplicates when updating records with the same value.
+          required: false
+          schema:
+            type: boolean
+            default: true
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: frame-of-reference
+          in: header
+          description: reference
+          required: false
+          example: none
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/StorageRecord'
+      responses:
+        '201':
+          description: Records created and/or updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageRecord'
+        '400':
+          description: Invalid record format.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageErrorResponse'
+        '403':
+          description: User not authorized to perform the action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageErrorResponse'
+        '404':
+          description: Invalid acl group.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageErrorResponse'
+      security:
+        - Bearer: []
+    patch:
+      tags:
+        - Storage
+      summary: Modify record metadata attributes using patch operations
+      description: >-
+        The API represents the patch update mechanism for records. It allows
+        updating multiple records in one request. The currently supported
+        operations are replace, add, and remove for Legal Tags, ACLs, and Tags.
+        Required roles: 'users.datalake.editors' or 'users.datalake.admins'.
+      operationId: Patch update records
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: frame-of-reference
+          in: header
+          description: reference
+          required: false
+          example: none
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/StorageRecordBulkUpdateParam'
+      responses:
+        '200':
+          description: Records updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageBulkUpdateRecordsResponse'
+        '206':
+          description: Records updated successful partially.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageBulkUpdateRecordsResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageErrorResponse'
+        '403':
+          description: User not authorized to perform the action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageErrorResponse'
+      security:
+        - Bearer: []
+  /api/search/v2/query:
+    post:
+      tags:
+        - Search
+      summary: Queries the index for the specified kind using the input query string.
+      description: >-
+        The API supports full text search on string fields, range queries on
+        date, numeric or string fields, along with geo-spatial search. Required
+        access levels to use this API are service.search.user,
+        service.search.admin. In addition, users must be a member of data groups
+        to access the data.
+      operationId: queryRecords
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchQueryRequest'
+        description: >-
+          Specifies the API parameters. The only required parameter is the kind
+          which needs to be formatted correctly.
+        required: true
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchQueryResponse'
+        '400':
+          description: >-
+            Invalid parameters were given on request / Unrecognized fields found
+            on request/ Bad JSON format.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchAppError'
+        '403':
+          description: User not authorized to perform the action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchAppError'
+        '404':
+          description: Resource you are trying to find does not exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchAppError'
+      security:
+        - Bearer: []
+  /api/search/v2/query_with_cursor:
+    post:
+      tags:
+        - Search
+      summary: >-
+        Query the index using cursor and optionally return only requested
+        fields.
+      description: >-
+        The API supports full text search on string fields, range queries on
+        date, numeric or string fields, along with geo-spatial search. Required
+        access levels to use this API are service.search.user,
+        service.search.admin. In addition, users must be a member of data groups
+        to access the data. It can be used to retrieve large numbers of results
+        (or even all results) from a single search request, in much the same way
+        as you would use a cursor on a traditional database.
+      operationId: queryWithCursor
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: Partition Id
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchCursorQueryRequest'
+        description: >-
+          Specifies the API parameters. The only required parameter is the kind
+          which needs to be formatted correctly.
+        required: true
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchCursorQueryResponse'
+        '400':
+          description: >-
+            Invalid parameters were given on request / Unrecognized fields found
+            on request/ Bad JSON format.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchAppError'
+        '403':
+          description: User not authorized to perform the action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchAppError'
+        '404':
+          description: Resource you are trying to find does not exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchAppError'
+      security:
+        - Bearer: []
+  /api/file/v2/getLocation:
+    post:
+      tags:
+        - File
+      summary: Get a location in Landing Zone to upload a file.
+      operationId: Get a location in Landing Zone to upload a file.
+      description: >
+        Create a new location in the landing zone to upload a file.
+
+        **Required roles**: 'users.datalake.editors' or 'users.datalake.admins'
+        or 'users.datalake.ops'.
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the data partition to use. This should either be the
+            partition name or crm account ID associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileLocationRequest'
+      responses:
+        '200':
+          description: Created location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileLandingZoneLocationResponse'
+        '400':
+          description: >-
+            Bad user input. Mandatory fields missing or unacceptable value
+            passed to API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '404':
+          description: Record Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+      security:
+        - Bearer: []
+  /api/file/v2/files/uploadURL:
+    get:
+      tags:
+        - File
+      summary: Get a location in Landing Zone to upload a file.
+      description: >-
+        Gets a temporary signed URL to upload a file.The generated URL is time
+        bound and expires after 24 hours.
+
+        User will receive a FileSource in the response.This is the relative path
+        where the uploaded file will persist.
+
+        Once the file is uploaded, FileSource can then be used to post metadata
+        of the file. The uploaded file gets automatically deleted, if the
+        metadata is not posted within 24 hours of uploading the file.
+
+        **Required roles**: 'users.datalake.viewers' or 'users.datalake.editors'
+        or 'users.datalake.admins' or 'users.datalake.ops'.
+      operationId: Get the location to upload a file
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the data partition to use. This should either be the
+            partition name or crm account ID associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '200':
+          description: |
+            Created location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileSourceLocationResponse'
+        '400':
+          description: >-
+            Bad user input. Mandatory fields missing or unacceptable value
+            passed to API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '403':
+          description: Forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+      security:
+        - Bearer: []
+  /api/file/v2/files/metadata:
+    post:
+      tags:
+        - File
+      summary: Creates metadata for a file
+      description: >-
+        This API creates a metadata record for a file that is already uploaded.
+        The Metadata is linked to the file via `FileSource` provided in the
+        request body.
+
+        If `FileSource` attribute is missing in the request body or there is no
+        file present, then the request fails with an error.
+
+        When metadata is successfully updated in the system, it returns the `Id`
+        of the file metadata record.
+
+        **Required roles**: 'users.datalake.viewers' or 'users.datalake.editors'
+        or 'users.datalake.admins' or 'users.datalake.ops'.
+      operationId: Publish file metadata for a file.
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the data partition to use. This should either be the
+            partition name or crm account ID associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileMetadata'
+        description: File metadata content
+      responses:
+        '201':
+          description: Metadata created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileMetadataResponse'
+        '400':
+          description: >-
+            Bad user input. Mandatory fields missing or unacceptable value
+            passed to API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '404':
+          description: Record Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+      security:
+        - Bearer: []
+  /api/file/v2/files/{Id}/metadata:
+    get:
+      tags:
+        - File
+      description: >-
+        Gets the latest version of File metadata record identified by the given
+        id. **Required roles**: 'users.datalake.viewers' or
+        'users.datalake.editors' or 'users.datalake.admins' or
+        'users.datalake.ops'.
+      operationId: Gets metadata record for the given id
+      summary: Gets metadata record for the given id
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the data partition to use. This should either be the
+            partition name or crm account ID associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: Id
+          description: File metadata record Id.
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileRecordVersion'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '404':
+          description: Record Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - File
+      description: >-
+        Deletes the File metadata record identified by the given id and file
+        associated with that metadata record. **Required roles**:
+        'users.datalake.editors'  or 'users.datalake.admins'.
+      operationId: Deletes metadata record & File for the given id
+      summary: >-
+        Deletes metadata record & file assocaited with that record for the given
+        id
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the data partition to use. This should either be the
+            partition name or crm account ID associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: Id
+          description: File metadata record Id.
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Record deleted successfully.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '404':
+          description: Record Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+      security:
+        - Bearer: []
+  /api/file/v2/files/{Id}/DownloadURL:
+    get:
+      tags:
+        - File
+      summary: Gets a URL to download the file
+      description: >-
+        Gets a URL for downloading the file associated with the unique `id`.
+
+        **Required roles**: 'users.datalake.viewers' or 'users.datalake.editors'
+        or 'users.datalake.admins' or 'users.datalake.ops'.
+      operationId: Gets URL to download the file associated with the given id.
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the data partition to use. This should either be the
+            partition name or crm account ID associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+        - name: Id
+          in: path
+          description: File Metadata record Id.
+          required: true
+          schema:
+            type: string
+        - name: expiryTime
+          description: >-
+            The Time for which Signed URL to be valid. Accepted Regex patterns
+            are "^[0-9]+M$", "^[0-9]+H$", "^[0-9]+D$" denoting Integer values in
+            Minutes, Hours, Days respectively. In absence of this parameter the
+            URL would be valid for 7 Days.
+          required: false
+          in: query
+          example: 5M
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileDownloadResponse'
+        '400':
+          description: >-
+            Bad user input. Mandatory fields missing or unacceptable value
+            passed to API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '404':
+          description: Record Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+      security:
+        - Bearer: []
+  /api/file/v2/delivery/getFileSignedUrl:
+    post:
+      tags:
+        - File
+      description: Returns delivery instructions for File(s) using SRNs
+      operationId: Returns delivery instructions for File(s) using SRNs
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the data partition to use. This should either be the
+            partition name or crm account ID associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileDeliveryGetFileSignedURLRequest'
+      responses:
+        '200':
+          description: File location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileDeliveryGetFileSignedURLResponse'
+        '400':
+          description: >-
+            Bad user input. Mandatory fields missing or unacceptable value
+            passed to API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileApplicationError'
+      security:
+        - Bearer: []
+  /api/workflow/v1/workflow:
+    post:
+      tags:
+        - Workflow
+      summary: Creates workflow definition with standard orchestrator operators.
+      operationId: deployWorkflow
+      description: API to create a new workflow using standard operators of orchestrator.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workflow'
+        description: Request payload for deploying new workflow.
+      responses:
+        '200':
+          description: Workflow created\updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+      security:
+        - Bearer: []
+    get:
+      tags:
+        - Workflow
+      summary: List all the workflow applicable for a tenant.
+      operationId: listAllWorkflow
+      description: List all the workflows for the tenant.
+      parameters:
+        - name: prefix
+          in: query
+          description: Filter workflow names which start with  the full prefix specified.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of all the workflows.
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Workflow'
+                type: array
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+      security:
+        - Bearer: []
+  /api/workflow/v1/workflow/{workflow_name}:
+    delete:
+      tags:
+        - Workflow
+      summary: Delete a workflow defintion.
+      operationId: deleteWorkflow
+      description: Delete a workflow by it's name.
+      parameters:
+        - name: workflow_name
+          in: path
+          description: Unique Name of the Workflow to be deleted.
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Workflow deleted successfully.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+      security:
+        - Bearer: []
+    get:
+      tags:
+        - Workflow
+      summary: Get complete details for a workflow.
+      operationId: viewWorkflow
+      description: Get complete details for an workflow.
+      parameters:
+        - name: workflow_name
+          in: path
+          description: Name of the Workflow.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Workflow Details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+      security:
+        - Bearer: []
+  /api/workflow/v1/workflow/{workflow_name}/workflowRun:
+    post:
+      tags:
+        - Workflow
+      summary: Trigger a workflow.
+      operationId: triggerWorkflow
+      description: Trigger a workflow mentioned in payload.
+      parameters:
+        - name: workflow_name
+          in: path
+          description: Unique Name of the Workflow to run.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowTriggerRequest'
+      responses:
+        '200':
+          description: Workflow successully triggered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowRun'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+      security:
+        - Bearer: []
+    get:
+      tags:
+        - Workflow
+      summary: Get all run instances of a workflow.
+      operationId: getAllWorkflowRuns
+      description: Get all run instances for a worflow.
+      parameters:
+        - name: workflow_name
+          in: path
+          description: >-
+            Unique Name of the Workflow for which the execution details has to
+            be fetched.
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: query
+          description: >-
+            A prefix used when generating the runId of the workflow run. Prefix
+            cannot contain the word "backfill"
+          required: false
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          description: >-
+            The start date where this call should start creating workflow runs
+            from (inclusive)
+          required: false
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          description: >-
+            The end date where this call should stop creating workflow runs at
+            (inclusive)
+          required: false
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          description: >-
+            The maximum number of workflow runs to create in a single request.
+            Maximum is 500.
+          required: false
+          schema:
+            type: integer
+        - name: cursor
+          in: query
+          description: Cursor for subsequent request.
+          required: false
+          schema:
+            type: string
+        - name: partial
+          in: query
+          description: >-
+            Whether or not a partial batch can be created. If true, and the
+            number of workflow runs that would be created between the start and
+            end exceeds the limit, no workflow runs will be created.
+          required: false
+          schema:
+            type: boolean
+        - name: conf
+          in: query
+          description: JSON configuration added to the Workflow run conf attribute
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: History of workflow runs.
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/WorkflowRun'
+                type: array
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+      security:
+        - Bearer: []
+  /api/workflow/v1/workflow/{workflow_name}/workflowRun/{runId}:
+    get:
+      tags:
+        - Workflow
+      summary: Get details for a speciffic workflow run instance.
+      operationId: getWorkflowRun
+      description: Get an execution instances for a workflow.
+      parameters:
+        - name: workflow_name
+          in: path
+          description: Unique Name of Workflow.
+          required: true
+          schema:
+            type: string
+        - name: runId
+          in: path
+          description: Run id for the worfkow.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Workflow execution detail.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/WorkflowRun'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '403':
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+      security:
+        - Bearer: []
+    put:
+      tags:
+        - Workflow
+      summary: Update the workflow run instance.
+      operationId: updateWorkflowRun
+      description: Update workflow run.
+      parameters:
+        - name: workflow_name
+          in: path
+          description: Unique Name of Workflow.
+          required: true
+          schema:
+            type: string
+        - name: runId
+          in: path
+          description: Run id for the worfkow.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowRun'
+      responses:
+        '200':
+          description: Workflow updated successfully.
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Workflow'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '401':
+          description: Invalid/Expired Credential
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '403':
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '404':
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/WorkflowError'
+      security:
+        - Bearer: []
+  /api/register/v1/ddms/{id}:
+    get:
+      tags:
+        - Register
+      summary: Get a DDMS registration
+      description: >-
+        Get a DDMS registration with the given id. Required roles:
+        'users.datalake.viewers' or 'users.datalake.editors' or
+        'users.datalake.admins'
+      operationId: Get a DDMS registration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[A-Za-z0-9-]{2,50}
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterDdms'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - Register
+      summary: Delete a DDMS registration
+      description: >-
+        Delete a DDMS registration with the given id. Required roles:
+        'users.datalake.admins'
+      operationId: Delete a DDMS registration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[A-Za-z0-9-]{2,50}
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+  /api/register/v1/ddms:
+    post:
+      tags:
+        - Register
+      summary: Create a DDMS registration
+      description: >-
+        Create a DDMS registration using an OpenApi spec V3 document. Required
+        roles: 'users.datalake.editors' or 'users.datalake.admins'
+      operationId: Create a DDMS registration
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDdms'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterDdms'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+    get:
+      tags:
+        - Register
+      summary: Query for DDMS registrations
+      description: >-
+        Query for DDMS registrations allowing retrievals by type. Required
+        roles: 'users.datalake.viewers' or 'users.datalake.editors' or
+        'users.datalake.admins'
+      operationId: Query a DDMS registration
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: ^[A-Za-z0-9 ]{2,50}
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RegisterDdms'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+  /api/register/v1/action/{id}:
+    get:
+      tags:
+        - Register
+      summary: Get an action registration
+      description: >-
+        Get an action registration with the given id. Required roles:
+        'users.datalake.viewers' or 'users.datalake.editors' or
+        'users.datalake.admins'
+      operationId: Get an action registration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[A-Za-z0-9-]{2,50}
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAction'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - Register
+      summary: Delete an action  registration
+      description: >-
+        Delete an action registration with the given id. Required role:
+        'users.datalake.admins'
+      operationId: Delete an action registration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[A-Za-z0-9-]{2,50}
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+  /api/register/v1/action:
+    post:
+      tags:
+        - Register
+      summary: Create an action registration
+      description: 'Create an action registration. Required role: ''users.datalake.admins'''
+      operationId: Create an action registration
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterCreateAction'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAction'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+  /api/register/v1/action:test:
+    post:
+      tags:
+        - Register
+      summary: Test an action registration
+      description: >-
+        Test an action registration. Required roles: 'users.datalake.viewers' or
+        'users.datalake.editors' or 'users.datalake.admins'
+      operationId: Test an action registration
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterTestAction'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterTestActionResult'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+  /api/register/v1/action:retrieve:
+    post:
+      tags:
+        - Register
+      summary: >-
+        Query for action registrations and substitutes any action with the given
+        parameters
+      description: >-
+        Retrieve an action registration. Required roles:
+        'users.datalake.viewers' or 'users.datalake.editors' or
+        'users.datalake.admins'
+      operationId: Retrieve an action registration
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          schema:
+            type: string
+            default: opendes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRecord'
+        description: The Record to find matching actions for and apply the template for.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RegisterAction'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+  /api/register/v1/subscription:
+    post:
+      tags:
+        - Register
+      summary: Create a subscription
+      description: >-
+        Create a subscription. Required roles: 'users.datalake.editors' or
+        'users.datalake.admins'
+      operationId: Create a subscription
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterSubscription'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterSubscriptionCreateResult'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+  /api/register/v1/subscription/{id}:
+    get:
+      tags:
+        - Register
+      summary: Get a subscription
+      description: >-
+        Get a subscription with its Id. Required role: 'users.datalake.editors'
+        or 'users.datalake.admins'
+      operationId: Get a subscription by Id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterGetSubscriptionResult'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - Register
+      summary: Delete a subscription
+      description: >-
+        Delete a subscription with its Id. Required role:
+        'users.datalake.admins'
+      operationId: Delete a subscription by Id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+  /api/register/v1/subscription/{id}/secret:
+    put:
+      tags:
+        - Register
+      summary: Update secret for subscription
+      description: >-
+        Update secret for a subscription. Required role:
+        'users.datalake.editors' or 'users.datalake.admins'
+      operationId: Update secret for subscription
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterSecret'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+  /api/register/v1/topics:
+    get:
+      tags:
+        - Register
+      summary: List all topics
+      description: >-
+        List all topics that you can create a subscription for, along with the
+        corresponding sample messages. Required role: 'users.datalake.editors'
+        or 'users.datalake.admins'
+      operationId: List all topics
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: >-
+            Specifies the partition to use. This should be either the partition
+            name associated with the partition.
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RegisterTopic'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '502':
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterAppError'
+      security:
+        - Bearer: []
+  /api/notification/v1/push-handlers/records-changed:
+    post:
+      tags:
+        - Notification
+      summary: Notifies subscribers that records have changed
+      operationId: recordChangedUsingPOST
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: tenant
+          required: true
+          example: opendes
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/NotificationResponseEntity'
+        '201':
+          description: Created
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+      security:
+        - Bearer: []
+components:
+  requestBodies:
+    LegalTagRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/LegalTagRequest'
+    PartitionDto:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PartitionDto'
+      description: partitionInfo
+      required: true
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    PartitionProperty:
+      type: object
+      properties:
+        sensitive:
+          type: boolean
+        value:
+          type: object
+    PartitionDto:
+      type: object
+      required:
+        - properties
+      properties:
+        properties:
+          type: object
+          description: >-
+            Free form key value pair object for any data partition specific
+            values
+          additionalProperties:
+            $ref: '#/components/schemas/PartitionProperty'
+      example:
+        properties:
+          compliance-ruleset:
+            sensitive: false
+            value: shared
+          elastic-endpoint:
+            sensitive: true
+            value: elastic-endpoint
+          cosmos-connection:
+            sensitive: true
+            value: cosmos-connection
+    EntitlementGroupProperties:
+      type: object
+      required:
+        - name
+        - description
+        - email
+      properties:
+        name:
+          type: string
+          example: service.entitlements.user
+          description: The name of an entitlement or group.
+        description:
+          type: string
+          example: A service entitlement
+          description: The description of an entitlement or group.
+        email:
+          type: string
+          example: service.entitlements.user@partition.contoso.com
+          description: The fully qualified group name.
+      description: Group properties
+    EntitlementGroupResponse:
+      type: object
+      properties:
+        desId:
+          type: string
+        memberEmail:
+          type: string
+        groups:
+          type: array
+          description: A collection of groups.
+          items:
+            $ref: '#/components/schemas/EntitlementGroupProperties'
+    EntitlementMemberDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: email@domain.com
+          description: Object ID or Email Address
+        role:
+          type: string
+          example: MEMBER
+          description: Role Name
+    LegalTagProperties:
+      type: object
+      required:
+        - contractId
+        - countryOfOrigin
+        - dataType
+        - expirationDate
+        - exportClassification
+        - originator
+        - personalData
+        - securityClassification
+      properties:
+        contractId:
+          type: string
+          example: A1234
+          description: >-
+            The Id of the physical contract associated with the data being
+            ingested.
+        countryOfOrigin:
+          type: array
+          example: [US]
+          description: The ISO Alpha 2 country code(s) of where the data relates to.
+          items:
+            type: string
+        dataType:
+          type: string
+          example: Transferred Data
+          description: The type of data being ingested.
+        expirationDate:
+          type: string
+          example: 2023-12-31
+          description: >-
+            The optional expiration date of the contract in the format
+            YYYY-MM-DD
+        exportClassification:
+          type: string
+          example: EAR99
+          description: The ECCN value of the data if one applies.
+        originator:
+          type: string
+          example: Contoso
+          description: The company who owns the data.
+        personalData:
+          type: string
+          example: No Personal Data
+          description: Whether the data contains any personally identifiable data.
+        securityClassification:
+          type: string
+          example: Public
+          description: The security classification of the data.
+      description: LegalTag properties
+    LegalTagPropertyValues:
+      type: object
+      properties:
+        countriesOfOrigin:
+          type: object
+          description: >-
+            The values of all the allowed Countries of Origin with the ISO Alpha
+            2 code and country name.
+          additionalProperties:
+            type: string
+        otherRelevantDataCountries:
+          type: object
+          description: >-
+            The values of all the allowed Other Relevant Data Countries with the
+            ISO Alpha 2 code and country name.
+          additionalProperties:
+            type: string
+        securityClassifications:
+          type: array
+          description: The values of all the allowed Security Classifications.
+          uniqueItems: true
+          items:
+            type: string
+        exportClassificationControlNumbers:
+          type: array
+          description: The name of all the allowed Export Classifications.
+          uniqueItems: true
+          items:
+            type: string
+        personalDataTypes:
+          type: array
+          description: The name of all the allowed Personal Data Type values.
+          uniqueItems: true
+          items:
+            type: string
+      description: Shows the allowed values of the fields of a LegalTag.
+    LegalTagInvalidResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the LegalTag.
+        reason:
+          type: string
+          description: The reason the LegalTag is currently invalid.
+      description: Represents a single invalid LegalTag.
+    LegalTagInvalidResponseList:
+      type: object
+      properties:
+        invalidLegalTags:
+          type: array
+          description: A collection of invalid LegalTags.
+          items:
+            $ref: '#/components/schemas/LegalTagInvalidResponse'
+      description: Represents a collection invalid LegalTags.
+    LegalTagRequest:
+      type: object
+      required:
+        - names
+      properties:
+        names:
+          type: array
+          description: The name of all the LegalTags to retrieve.
+          items:
+            type: string
+          maxItems: 25
+          minItems: 1
+      description: The model to retrieve multiple LegalTags in batch.
+    LegalTagDto:
+      type: object
+      properties:
+        name:
+          type: string
+          example: public-usa-test-1
+          description: The name of the LegalTag.
+        description:
+          type: string
+          example: A sample legal tag
+          description: The description of the LegalTag.
+        properties:
+          $ref: '#/components/schemas/LegalTagProperties'
+      description: Represents a single LegalTag.
+    LegalTagDtos:
+      type: object
+      properties:
+        legalTags:
+          type: array
+          description: A collection of complete LegalTags
+          items:
+            $ref: '#/components/schemas/LegalTagDto'
+      description: Represents a collection of LegalTags.
+    LegalTagUpdateDto:
+      type: object
+      required:
+        - contractId
+        - name
+      properties:
+        name:
+          type: string
+          description: The name of the LegalTag.
+        contractId:
+          type: string
+          example: No Contract Related
+          description: >-
+            The Id of the physical contract associated with the data being
+            ingested.
+        description:
+          type: string
+          description: >-
+            The optional description if the LegalTag to allow for easier
+            discoverability of Legaltags overtime.
+        expirationDate:
+          type: string
+          example: '2025-12-25'
+          description: >-
+            The optional expiration date of the contract in the format
+            YYYY-MM-DD
+      description: The model to update an existing LegalTag
+    StorageQueryResponse:
+      type: object
+      properties:
+        cursor:
+          type: string
+        results:
+          type: array
+          items:
+            type: string
+    StorageErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        reason:
+          type: string
+        message:
+          type: string
+      description: An error that occurs during normal application logic
+    StorageMultiRecordIds:
+      type: object
+      required:
+        - records
+      properties:
+        records:
+          type: array
+          example: tenant1:well:123456789
+          description: >-
+            List of record ids. Each record id must follow the naming convention
+            {OSDU-Account-Id}:{dataset-name}:{record-type}:{version}.
+          items:
+            type: string
+        attributes:
+          type: array
+          example: data.wellName
+          description: >-
+            Filter attributes to restrict the returned fields of the record.
+            Usage: data.{record-data-field-name}.
+          items:
+            type: string
+      description: Multiple storage record ids and filter attributes.
+      example:
+        records:
+          - tenant1:well:123456789
+          - tenant1:wellTop:abc789456
+          - tenant1:wellLog:654abc987
+        attributes:
+          - data.msg
+    StorageDeleteRecordError:
+      type: object
+      properties:
+        notDeletedRecordId:
+          type: string
+          example: common:welldb:123456
+          description: Record id which wasn't deleted successfully.
+        message:
+          type: string
+          example: Record with id 'common:welldb:123456' not found
+          description: Brief description of the cause why record wasn't delete
+      description: Delete Records Response Body
+    StorageRecordData:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            type: object
+        meta:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: object
+      description: Storage record
+    StorageRecordVersions:
+      type: object
+      properties:
+        recordId:
+          type: string
+        versions:
+          type: array
+          items:
+            type: integer
+            format: int64
+      description: Storage record versions.
+    StorageRecord:
+      type: object
+      required:
+        - acl
+        - data
+        - kind
+        - legal
+      properties:
+        id:
+          type: string
+          example: tenant1:well:123456789
+          description: >-
+            Unique identifier in whole Data Lake. When not provided, Data Lake
+            will create and assign an id to the record. Must follow the naming
+            convention: {OSDU-Account-Id}:{object-type}:{uuid}.
+          pattern: ^[\w\-\.]+:[\w-\.\/]+:.+$
+        kind:
+          type: string
+          example: tenant1:public:well:1.0.2
+          description: >-
+            Kind of data it is being ingested. Must follow the naming
+            convention:
+            {OSDU-Account-Id}:{dataset-name}:{record-type}:{version}.
+          pattern: ^[\w\-\.]+:[\w\-\.]+:[\w\-\.\/]+:[0-9]+.[0-9]+.[0-9]+$
+        acl:
+          $ref: '#/components/schemas/StorageAcl'
+        legal:
+          $ref: '#/components/schemas/StorageLegal'
+        data:
+          type: object
+          description: Record payload represented as a list of key-value pairs.
+          additionalProperties:
+            type: object
+        history:
+          $ref: '#/components/schemas/StorageRecordHistory'
+      description: Storage record
+      example:
+        - id: tenant1:well:123456789
+          kind: tenant1:public:well:1.0.2
+          acl:
+            viewers:
+              - my-viewer-group@[OSDU].com
+            owners:
+              - my-owner-group@[OSDU].com
+          legal:
+            legaltags:
+              - sample-legal-tag
+            otherRelevantDataCountries:
+              - US
+          data:
+            msg: hello world from Data Lake
+          history:
+            parents:
+              - OSDU:parent-record:1.0.0
+    StorageAcl:
+      type: object
+      required:
+        - owners
+        - viewers
+      properties:
+        viewers:
+          type: array
+          description: >-
+            List of valid groups which will have view/read privileges over the
+            record.
+          items:
+            type: string
+        owners:
+          type: array
+          description: >-
+            List of valid groups which will have write privileges over the
+            record.
+          items:
+            type: string
+    StorageLegal:
+      type: object
+      properties:
+        legaltags:
+          type: array
+          description: List of legaltag names associated with the record.
+          uniqueItems: true
+          items:
+            type: string
+        otherRelevantDataCountries:
+          type: array
+          description: >-
+            List of other relevant data countries. Must have 2 values: where the
+            data was ingested from and where Data Lake stores the data.
+          uniqueItems: true
+          items:
+            type: string
+    StorageRecordHistory:
+      type: object
+      properties:
+        parents:
+          type: array
+          description: >-
+            List of parent records. Must follow the naming convention:
+            {parent-record-id}:{parent-record-version}.
+          uniqueItems: true
+          items:
+            type: string
+    StorageRecordBulkUpdateParam:
+      type: object
+      required:
+        - query
+        - ops
+      properties:
+        query:
+          $ref: '#/components/schemas/StorageRecordQuery'
+        ops:
+          type: array
+          description: List of operations for records pathc update
+          items:
+            $ref: '#/components/schemas/StoragePatchOperation'
+      description: Patch update input information
+      example:
+        query:
+          - ids:
+              - tenant:type:unique-identifier:version
+        ops:
+          - op: replace or add or remove
+            path: /acl/viewers or /acl/owners or /legal/legaltags
+            value:
+              - value1
+              - value2
+              - value3
+          - op: replace or add
+            path: /tags
+            value:
+              - key1:value1
+              - key2:value2
+              - key3:value3
+          - op: remove
+            path: /tags
+            value:
+              - key1
+              - key2
+              - key3
+    StoragePatchOperation:
+      type: object
+      required:
+        - op
+        - path
+        - value
+      properties:
+        op:
+          type: string
+          description: Type of patch operation
+          enum:
+            - add
+            - replace
+            - remove
+        path:
+          type: string
+          description: Path for batch operation
+        value:
+          type: array
+          description: Path for batch operation
+          items:
+            type: string
+      description: Patch api operation specific information
+    StorageBulkUpdateRecordsResponse:
+      type: object
+      properties:
+        recordCount:
+          type: integer
+          format: int32
+          description: Number of records which updated successfully.
+        recordIds:
+          type: array
+          description: List of successfully updated record ids.
+          items:
+            type: string
+        notFoundRecordIds:
+          type: array
+          description: List of record ids for whom RecordMetadata was not found
+          items:
+            type: string
+        unAuthorizedRecordIds:
+          type: array
+          description: List of record ids for whom user does not has owner permissions
+          items:
+            type: string
+        lockedRecordIds:
+          type: array
+          description: List of locked record ids
+          items:
+            type: string
+      description: Result of the record batch update request.
+    StorageRecordQuery:
+      type: object
+      required:
+        - ids
+      properties:
+        ids:
+          type: array
+          description: Records ids for whom patch operations going to be applied
+          items:
+            type: string
+      description: Patch api query specific information
+    SearchAppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        reason:
+          type: string
+        message:
+          type: string
+    SearchQueryResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: object
+        totalCount:
+          type: integer
+          format: int64
+    SearchByBoundingBox:
+      description: >-
+        A spatial filter criteria to allow to filter documents based on a point
+        location within a bounding box.
+      type: object
+      required:
+        - topLeft
+        - bottomRight
+      properties:
+        topLeft:
+          $ref: '#/components/schemas/SearchPoint'
+        bottomRight:
+          $ref: '#/components/schemas/SearchPoint'
+    SearchByDistance:
+      description: >-
+        A spatial filter criteria to filter documents that exist within a
+        specific distance from a geo point.
+      type: object
+      required:
+        - point
+      properties:
+        distance:
+          type: number
+          format: double
+          minimum: 0
+        point:
+          $ref: '#/components/schemas/SearchPoint'
+    SearchByGeoPolygon:
+      description: >-
+        A spatial filter criteria to filter documents which falls within a
+        polygon of points.
+      type: array
+      items:
+        $ref: '#/components/schemas/SearchPoint'
+      required:
+        - points
+      properties:
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchPoint'
+    SearchPoint:
+      description: Geo-point with latitude and longitude
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+    SearchQueryRequest:
+      description: Json object to query the Search API
+      type: object
+      required:
+        - kind
+      properties:
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
+          description: The starting offset from which to return results
+        kind:
+          type: string
+          description: The kind of the record to query e.g. 'tenant1:test:well:1.0.0'.
+        limit:
+          type: integer
+          format: int32
+          minimum: 0
+          description: >-
+            The maximum number of results to return from the given offset. If no
+            limit is provided, then it will return 10 items. Max number of items
+            which can be fetched by the query is 1000.
+        query:
+          type: string
+          description: The query string in Lucene query string syntax.
+        spatialFilter:
+          $ref: '#/components/schemas/SearchSpatialFilter'
+        returnedFields:
+          type: array
+          items:
+            type: string
+          description: The fields on which to project the results.
+      example:
+        offset: 10
+        kind: tenant1:test:well:1.0.0
+        limit: 30
+        query: Status:Active
+        spatialFilter:
+          field: Location
+          byBoundingBox:
+            topLeft:
+              latitude: 37.450727
+              longitude: -122.174762
+            bottomRight:
+              latitude: 36.450727
+              longitude: 122.174762
+        returnedFields:
+          - Location
+    SearchSpatialFilter:
+      description: >-
+        This filter is used to filter geo-point geo data which supports lat/lon
+        pairs. The queries in this group are Geo Distance, Geo Polygon and
+        Bounding Box. Only one spatial criteria can be used while defining
+        filter.
+      type: object
+      required:
+        - field
+      properties:
+        field:
+          type: string
+          description: geo-point field in the index on which filtering will be performed.
+        byBoundingBox:
+          $ref: '#/components/schemas/SearchByBoundingBox'
+        byDistance:
+          $ref: '#/components/schemas/SearchByDistance'
+        byGeoPolygon:
+          $ref: '#/components/schemas/SearchByGeoPolygon'
+    SearchCursorQueryResponse:
+      type: object
+      properties:
+        cursor:
+          type: string
+        results:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: object
+        totalCount:
+          type: integer
+          format: int64
+    SearchCursorQueryRequest:
+      description: Json object to query the Search API
+      type: object
+      required:
+        - kind
+      properties:
+        cursor:
+          type: string
+          description: The cursor value returned from a previous query.
+        kind:
+          type: string
+          description: The kind of the record to query e.g. 'tenant1:test:well:1.0.0'.
+        limit:
+          type: integer
+          format: int32
+          minimum: 0
+          description: >-
+            The maximum number of results to return from the given offset. If no
+            limit is provided, then it will return 10 items. Max number of items
+            which can be fetched by the query is 1000.
+        query:
+          type: string
+          description: The query string in Lucene query string syntax.
+        spatialFilter:
+          $ref: '#/components/schemas/SearchSpatialFilter'
+        returnedFields:
+          type: array
+          items:
+            type: string
+          description: The fields on which to project the results.
+      example:
+        cursor: yyyyyyy
+        kind: tenant1:test:well:1.0.0
+        limit: 30
+        query: Status:Active
+        spatialFilter:
+          field: Location
+          byBoundingBox:
+            topLeft:
+              latitude: 37.450727
+              longitude: -122.174762
+            bottomRight:
+              latitude: 36.450727
+              longitude: 122.174762
+        returnedFields:
+          - Location
+    SchemaError:
+      type: object
+      properties:
+        message:
+          type: string
+        reason:
+          type: string
+        domain:
+          type: string
+    SchemaErrorModel:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchemaError'
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    SchemaErrorResponseFormat:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/SchemaErrorModel'
+      description: An error that occurs during normal application logic
+    SchemaInfoResponse:
+      description: The response for a GET schema request
+      title: SchemaInfo Response
+      properties:
+        schemaInfos:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchemaInfo'
+        offset:
+          type: integer
+          description: The offset for the next query
+          title: Offset
+          minimum: 0
+        count:
+          type: integer
+          description: The number of schema versions in this response
+          title: Count
+          minimum: 0
+        totalCount:
+          type: integer
+          description: The total number of entity type codes in the repositories
+          title: Count
+          minimum: 0
+    SchemaInfo:
+      type: object
+      required:
+        - schemaIdentity
+        - status
+      properties:
+        createdBy:
+          type: string
+          example: user@opendes.com
+          description: >-
+            The user who created the schema. This value is taken from API caller
+            token.
+        dateCreated:
+          type: string
+          format: date-time
+          example: '2019-05-23T11:16:03.000Z'
+          description: The UTC date time of the entity creation
+        schemaIdentity:
+          $ref: '#/components/schemas/SchemaIdentity'
+        scope:
+          type: string
+          example: INTERNAL
+          description: >-
+            Schema Scope - is it internal or shared. This is a system defined
+            attribute based on partition-id passed.
+          enum:
+            - INTERNAL
+            - SHARED
+        status:
+          type: string
+          description: Schema lifecycle status
+          enum:
+            - PUBLISHED
+            - OBSOLETE
+            - DEVELOPMENT
+        supersededBy:
+          $ref: '#/components/schemas/SchemaIdentity'
+      title: Schema Info
+      description: Schema info including status, creation and schemaIdentity
+    SchemaIdentity:
+      type: object
+      required:
+        - authority
+        - entityType
+        - source
+        - schemaVersionMajor
+        - schemaVersionMinor
+        - schemaVersionPatch
+      properties:
+        authority:
+          type: string
+          example: osdu
+          description: Entity authority
+        entityType:
+          type: string
+          example: wellbore
+          description: EntityType Code
+        id:
+          type: string
+          example: osdu:wks:wellbore:1.0.0
+          description: A read-only system defined id used for referencing of a schema.
+        schemaVersionMajor:
+          type: integer
+          example: 1
+          description: Major Schema Version Number
+        schemaVersionMinor:
+          type: integer
+          example: 1
+          description: Minor Schema Version Number
+        schemaVersionPatch:
+          type: integer
+          example: 0
+          description: Patch Schema Version Number
+        source:
+          type: string
+          example: wks
+          description: Entity source
+      title: SchemaIdentity
+      description: Schema authority source and type description
+    SchemaRequest:
+      type: object
+      required:
+        - schema
+        - schemaInfo
+      properties:
+        schema:
+          type: object
+        schemaInfo:
+          $ref: '#/components/schemas/SchemaInfo'
+      title: SchemaRequest
+      example:
+        schemaInfo:
+          schemaIdentity:
+            authority: osdu
+            source: wks
+            entityType: wellbore
+            schemaVersionMajor: 1
+            schemaVersionMinor: 0
+            schemaVersionPatch: 0
+          status: PUBLISHED
+        schema: {}
+    FileExtensionProperties:
+      title: Extension Property
+      type: object
+      description: >-
+        Useful for providing the user defined attributes to be associated with
+        the file metadata record.
+      properties:
+        kind:
+          title: Extension Schema ID
+          type: string
+          description: The schema ID for this schema fragment
+          example: os:npd:csvFileExtDetails:1.0.0
+    FileMetaItem:
+      title: Frame of Reference Meta Data Item (FoR of File)
+      required:
+        - kind
+        - persistableReference
+      type: object
+      properties:
+        kind:
+          title: Reference Kind
+          type: string
+          description: The kind of reference, unit, measurement, CRS or azimuth reference.
+          enum:
+            - CRS
+            - Unit
+            - Measurement
+            - AzimuthReference
+            - DateTime
+        name:
+          title: Name or Symbol
+          type: string
+          description: The name of the CRS or the symbol/name of the unit
+          example: '["NAD27 * OGP-Usa Conus / North Dakota South [32021,15851]","ft"]'
+        persistableReference:
+          title: Persistable Reference
+          type: string
+          description: >-
+            The persistable reference string uniquely identifying the CRS or
+            Unit
+          example: >-
+            {"scaleOffset":{"scale":0.3048006096012192,"offset":0.0},"symbol":"ftUS","baseMeasurement":{"ancestry":"Length","type":"UM"},"type":"USO"}
+        propertyNames:
+          title: Attribute Names
+          type: array
+          description: >-
+            The list of property names, to which this meta data item provides
+            Unit/CRS context to. Data structures, which come in a single frame
+            of reference, can register the property name, others require a full
+            path like "data.structureA.propertyB" to define a unique context.
+          example:
+            - elevationFromMsl
+            - '"totalDepthMdDriller'
+            - wellHeadProjected
+          items:
+            type: string
+        propertyValues:
+          title: Attribute Names
+          type: array
+          description: >-
+            The list of property values, to which this meta data item provides
+            Unit/CRS context to. Typically a unit symbol is a value to a data
+            structure; this symbol is then registered in this propertyValues
+            array and the persistableReference provides the absolute reference.
+          example:
+            - F
+            - ftUS
+            - deg
+          items:
+            type: string
+        uncertainty:
+          title: Uncertainty
+          type: number
+          description: The uncertainty of the values measured given the unit or CRS unit.
+      description: >-
+        A meta data item, which allows the association of named properties or
+        property values to a Unit/Measurement/CRS/Azimuth/Time context.
+    FileLegal:
+      title: Legal Meta Data
+      type: object
+      properties:
+        legaltags:
+          title: Legal Tags
+          type: array
+          description: The list of legal tags, see compliance API.
+          items:
+            type: string
+        otherRelevantDataCountries:
+          title: Other Relevant Data Countries
+          type: array
+          description: >-
+            The list of other relevant data countries using the ISO 2-letter
+            codes, see compliance API.
+          items:
+            type: string
+        status:
+          title: Legal Status
+          type: string
+          description: The legal status.
+      description: Legal meta data like legal tags, relevant other countries, legal status.
+    FileAcl:
+      required:
+        - owners
+        - viewers
+      type: object
+      properties:
+        viewers:
+          type: array
+          description: >-
+            List of valid groups which will have view/read privileges over the
+            record.
+          items:
+            type: string
+        owners:
+          type: array
+          description: >-
+            List of valid groups which will have write privileges over the
+            record.
+          items:
+            type: string
+    FileMetadataResponse:
+      title: File Metadata response
+      properties:
+        Id:
+          type: string
+    FileDownloadResponse:
+      title: Download URL response
+      properties:
+        SignedURL:
+          type: string
+    FileError:
+      type: object
+      properties:
+        message:
+          type: string
+        reason:
+          type: string
+        domain:
+          type: string
+    FileErrorModel:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileError'
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    FileApplicationError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/FileErrorModel'
+      description: An error that occurs during normal application logic.
+    FileToManyRelationship:
+      properties:
+        confidences:
+          title: Relationship Confidences
+          type: array
+          description: >-
+            The confidences of the relationships. Keep all the arrays ordered
+            and aligned.
+          items:
+            type: number
+        ids:
+          title: Related Object Id
+          type: array
+          description: >-
+            The ids of the related objects. It is populated for an explicit
+            relationship where the target entity is present as a record in the
+            data ecosystem. Keep all the arrays ordered and aligned.
+          format: link
+          items:
+            type: string
+        names:
+          title: Related Object Names
+          type: array
+          description: >-
+            The names or natural keys of the related objects. Keep all the
+            arrays ordered and aligned.
+          items:
+            type: string
+        versions:
+          title: To Many Relationship
+          type: array
+          description: >-
+            The specific version numbers of the related instances. This is only
+            specified if a specific version is required. If not populated the
+            last version is implied. Keep all the arrays ordered and aligned.
+          items:
+            type: number
+            format: int64
+      description: >-
+        A relationship from this entity to many other entities either by natural
+        key (name) or explicit id, optionally classified by confidence level.
+    FileToOneRelationship:
+      title: To One Relationship
+      type: object
+      properties:
+        confidence:
+          title: Relationship Confidence
+          type: number
+          description: >-
+            The confidence of the relationship. If the property is absent a
+            well-known relation is implied.
+          example: 1
+        id:
+          title: Related Object Id
+          type: string
+          description: >-
+            The id of the related object in the Data Ecosystem. If set, the id
+            has priority over the natural key in the name property.
+          format: link
+          example: data_partition:namespace:entity_845934c40e8d922bc57b678990d55722
+        name:
+          title: Related Object Name
+          type: string
+          description: >-
+            The name or natural key of the related object. This property is
+            required if the target object id could not (yet) be identified.
+          example: Survey ST2016
+        version:
+          title: Entity Version Number
+          type: number
+          description: >-
+            The version number of the related entity. If no version number is
+            specified, the last version is implied.
+          format: int64
+      description: >-
+        A relationship from this entity to one other entity either by natural
+        key (name) or id, optionally classified by confidence level
+    FileRelationships:
+      title: Relationships
+      type: object
+      properties:
+        parentEntity:
+          $ref: '#/components/schemas/FileToOneRelationship'
+        relatedItems:
+          $ref: '#/components/schemas/FileToManyRelationship'
+      description: All relationships from this entity.
+    FileDeliveryGetFileSignedURLRequest:
+      type: object
+      properties:
+        srn:
+          description: A list of SRNs to fetch
+          type: array
+          items:
+            type: string
+      example:
+        srns:
+          - srn:some-valid-srn
+          - srn:some-invalid-srn
+    FileDeliveryGetFileSignedURLResponse:
+      type: object
+      properties:
+        unprocessed:
+          description: A list of SRNs which could not be processed
+          type: array
+          items:
+            type: string
+        processed:
+          description: Each key is equal to an SRN that was able to be processed
+          type: object
+          additionalProperties:
+            description: Signed URL and/or related properties for the processed SRN
+            type: object
+            properties:
+              signedUrl:
+                type: string
+      example:
+        unprocessed:
+          - srn:some-invalid-srn
+        processed:
+          srn:some-valid-srn:
+            signedUrl: https://...
+    FileDetails:
+      title: Opaque/Generic File Content Details
+      type: object
+      properties:
+        TargetKind:
+          title: Target Schema ID
+          type: string
+          description: The target kind or schema ID which is to be used by the parser.
+          example: os:npd:wellbore:1:*.*
+        FileType:
+          title: File Type
+          type: string
+          description: Type of File to decide what kind of ingestion to be triggered
+          example: csv
+        FrameOfReference:
+          title: Frame of Reference for data present in file.
+          type: array
+          description: >-
+            The list metaItem definitions which maps a named frame of reference
+            symbol or name to the self-contained persistableReference.
+          items:
+            $ref: '#/components/schemas/FileMetaItem'
+        ExtensionProperties:
+          $ref: '#/components/schemas/FileExtensionProperties'
+        ParentReference:
+          title: Parent Reference
+          type: string
+          description: The parent reference for this file.
+          example: CSBE0417
+      description: Further information about File being uploaded.
+    Files:
+      title: File Metadata
+      required:
+        - Name
+        - DatasetProperties
+        - Endian
+      type: object
+      properties:
+        Name:
+          type: string
+          description: >-
+            An optional name of the dataset, e.g. a user friendly file or file
+            collection name.
+        Description:
+          type: string
+          description: An optional, textual description of the dataset.
+        TotalSize:
+          type: string
+          description: >-
+            Total size of the dataset in bytes; for files it is the same as
+            declared in FileSourceInfo.FileSize or the sum of all individual
+            files. Implemented as string. The value must be convertible to a
+            long integer (sizes can become very large).
+          pattern: ^[0-9]+$
+        EncodingFormatTypeID:
+          type: string
+          description: Encoding Format Type ID
+          pattern: ^srn:<namespace>:reference-data\\/EncodingFormatType:[^:]+:[0-9]*$
+        SchemaFormatTypeID:
+          type: string
+          description: Schema Format Type ID
+          pattern: ^srn:<namespace>:reference-data\\/SchemaFormatType:[^:]+:[0-9]*$
+        Endian:
+          description: >-
+            Endianness of binary value. Enumeration- \BIG\ \LITTLE\.  If absent
+            applications will need to interpret from context indicators.
+          type: string
+          enum:
+            - BIG LITTLE
+        Checksum:
+          description: MD5 checksum of file bytes - a 32 byte hexadecimal number
+          type: string
+          pattern: ^[0-9a-fA-F]32}$
+        DatasetProperties:
+          type: object
+          required:
+            - FileSourceInfo
+          properties:
+            FileSourceInfo:
+              type: object
+              required:
+                - FileSource
+              properties:
+                Name:
+                  type: string
+                  description: user-friendly file name.
+                PreLoadFilePath:
+                  type: string
+                  description: >-
+                    File system path to the data file as it existed before
+                    loading to the data platform
+                FileSource:
+                  type: string
+                  description: Relative file path for the data in the file
+                PreloadFileCreateUser:
+                  type: string
+                  description: >-
+                    Optional user name or reference, who created the file prior
+                    to up-loading to the platform.
+                PreloadFileCreateDate:
+                  type: string
+                  description: >-
+                    Optional create date and time of the file prior to uploading
+                    to the platform.
+                PreloadFileModifyUser:
+                  type: string
+                  description: >-
+                    Optional user name or reference, who last modified the file
+                    prior to up-loading to the platform.
+                PreloadFileModifyDate:
+                  type: string
+                  description: >-
+                    Optional last modified date and time of the file prior to
+                    up-loading to the platform.
+                FileSize:
+                  type: string
+                  description: >-
+                    Length of file in bytes. Implemented as string. The value
+                    must be convertible to a long integer (sizes can become very
+                    large).
+                EncodingFormatTypeID:
+                  type: string
+                  description: Encoding Format Type ID
+                  pattern: >-
+                    ^srn:<namespace>:reference-data\\/EncodingFormatType:[^:]+:[0-9]*$
+        ExtensionProperties:
+          title: File DMS Extension Properties
+          type: object
+          properties:
+            Name:
+              description: >-
+                The name of the file. Note- this is an additional property,
+                which is not part of OSDU File.1.0.0
+              example: File
+              title: File Name
+              type: string
+            Classification:
+              description: The well-known entity classification code.
+              example: Raw File
+              title: File Classification
+              type: string
+            Description:
+              description: A text describing the entity.
+              example: An text further describing this file example.
+              title: Entity Description
+              type: string
+            ExternalIds:
+              description: >-
+                An array of identities (e.g. some kind if URL to be resolved in
+                an external data store) which links to external realizations of
+                the same entity.
+              format: link
+              items:
+                type: string
+              title: Array of External IDs
+              type: array
+            FileDateCreated:
+              description: The UTC date time of the file creation
+              example: '2013-03-22T11:16:03.000Z'
+              format: date-time
+              title: Creation Date and Time
+              type: string
+            FileDateModified:
+              description: The UTC date time of the last file modification
+              example: '2013-03-22T11:16:03.000Z'
+              format: date-time
+              title: Last Modification Date and Time
+              type: string
+            FileContentsDetails:
+              $ref: '#/components/schemas/FileDetails'
+            relationships:
+              $ref: '#/components/schemas/FileRelationships'
+      description: >-
+        The file data container containing all necessary details of the file
+        record
+    FileMetadata:
+      description: Metadata record.
+      type: object
+      required:
+        - legal
+        - data
+        - acl
+        - kind
+      properties:
+        id:
+          type: string
+          readOnly: true
+          description: >-
+            Unique identifier generated by the system for the file metadata
+            record.
+        kind:
+          type: string
+          example: osdu:wks:dataset--File.Generic:1.0.0
+          description: >-
+            Kind of data being ingested. Must follow the naming
+            convention:data-Partition-Id}:dataset-name}:record-type}:version}.
+        acl:
+          $ref: '#/components/schemas/FileAcl'
+        legal:
+          $ref: '#/components/schemas/FileLegal'
+        data:
+          $ref: '#/components/schemas/Files'
+        ancestry:
+          $ref: '#/components/schemas/FileAncestry'
+    FileRecordVersion:
+      description: Metadata record.
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+          description: >-
+            Unique identifier generated by the system for the file metadata
+            record.
+        kind:
+          type: string
+          example: osdu:wks:dataset--File.Generic:1.0.0
+          description: >-
+            Kind of data being ingested. Must follow the naming
+            convention:data-Partition-Id}:dataset-name}:record-type}:version}.
+        acl:
+          $ref: '#/components/schemas/FileAcl'
+        legal:
+          $ref: '#/components/schemas/FileLegal'
+        data:
+          $ref: '#/components/schemas/Files'
+        ancestry:
+          $ref: '#/components/schemas/FileAncestry'
+        version:
+          description: The version number of this OSDU resource; set by the framework.
+          title: Version Number
+          type: integer
+          format: int64
+          example: 1831253916104085
+    FileID:
+      type: string
+    FileLocationRequest:
+      type: object
+      properties:
+        FileID:
+          $ref: '#/components/schemas/FileID'
+    FileSourceLocationResponse:
+      type: object
+      properties:
+        FileID:
+          $ref: '#/components/schemas/FileID'
+        Location:
+          type: object
+          additionalProperties:
+            type: string
+    FileLandingZoneLocationResponse:
+      type: object
+      properties:
+        FileID:
+          $ref: '#/components/schemas/FileID'
+        Location:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            SignedURL: GCS signed URL
+    FileAncestry:
+      type: object
+      properties:
+        parents:
+          type: array
+          items:
+            type: string
+    WorkflowTriggerRequest:
+      title: Workflow Trigger Request
+      type: object
+      properties:
+        runId:
+          type: string
+          description: Optional. Explicit setting up workflow run id.
+        executionContext:
+          type: object
+          properties:
+            key1:
+              type: string
+              example: value1
+          description: Map to configure workflow speciffic key value pairs.
+    Workflow:
+      type: object
+      title: Workflow
+      properties:
+        workflowId:
+          readOnly: true
+          description: System generated id, which uniquely recongnizes a workflow.
+          type: string
+        workflowName:
+          description: Workfow name given as input from user while deploying the workflow.
+          type: string
+        registrationInstructions:
+          description: |
+            Workfow registration instructions which could contains:
+            - Name of already registered Airflow DAG
+            - Cotent of python DAG file
+            - etc
+            By default this is Airflow DAG named `workflowName`
+          type: object
+          properties:
+            dagName:
+              type: string
+              example: osdu-default
+            dagContent:
+              type: string
+              example: null
+            etc:
+              type: string
+        description:
+          type: string
+          description: >-
+            Description of workflow provided by user at time of creation of
+            workflow.
+        createdby:
+          readOnly: true
+          type: string
+          description: System captured user info who created workflow.
+        creationTimestamp:
+          readOnly: true
+          type: number
+          description: System date of creation of workflow.Epoch tiemstamp.
+        version:
+          readOnly: true
+          type: string
+          description: >-
+            Sematic versions of workflow. These numbers are assigned in
+            increasing order and correspond to edits\modifications to workflow
+            definitions.
+    WorkflowRun:
+      title: Workflow Run
+      description: Reperesent one workflow run.
+      type: object
+      properties:
+        workflowId:
+          readOnly: true
+          type: string
+          description: Workflow id for the workflow.
+        runId:
+          readOnly: true
+          type: string
+          description: Run id for the workflow.
+        startTimestamp:
+          readOnly: true
+          type: number
+          description: Start timestamp of the workflow run.Epoch time stamp.
+        endTimestamp:
+          readOnly: true
+          type: number
+          description: End timestamp of the workflow run.Epoch timestamp.
+        status:
+          description: Task execution status
+          enum:
+            - INPROGRESS
+            - PARTIAL_SUCCESS
+            - SUCCESS
+            - FAILED
+            - SUBMITTED
+          title: status
+          type: string
+        submittedBy:
+          readOnly: true
+          type: string
+          description: System captured user details which triggered the  run.
+    WorkflowError:
+      title: Error
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowErrorDetails'
+        message:
+          type: string
+    WorkflowErrorDetails:
+      title: Error Details
+      type: object
+      properties:
+        message:
+          type: string
+        reason:
+          type: string
+    RegisterDdms:
+      type: object
+      required:
+        - schema
+      properties:
+        id:
+          type: string
+          pattern: ^[A-Za-z0-9-]{2,50}
+        name:
+          type: string
+          pattern: ^[A-Za-z0-9- ]{2,50}
+        description:
+          type: string
+          pattern: ^[A-Za-z0-9. ]{0,255}
+        contactEmail:
+          type: string
+        interfaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegisterDdmsInterface'
+      example:
+        id: example-id-123
+        name: example-name
+        description: example-description
+        contactEmail: abc@test.com
+        interfaces:
+          - entityType: wellbore
+            schema: {}
+    RegisterAppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        reason:
+          type: string
+        message:
+          type: string
+      description: An error that occurs during normal application logic
+    RegisterDdmsInterface:
+      type: object
+      required:
+        - schema
+      properties:
+        entityType:
+          type: string
+          pattern: ^[A-Za-z0-9-]{2,50}
+        schema:
+          type: object
+    RegisterCreateAction:
+      type: object
+      required:
+        - schema
+      properties:
+        id:
+          type: string
+          pattern: ^[A-Za-z0-9-]{2,50}
+        name:
+          type: string
+          pattern: ^[A-Za-z0-9- ]{2,50}
+        description:
+          type: string
+          pattern: ^[A-Za-z0-9. ]{0,255}
+        contactEmail:
+          type: string
+        img:
+          type: string
+          pattern: >-
+            ^(https:\/\/)[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&\(\)\*\+,;=.]+$
+          description: >-
+            Reference link to an image file that can be usd in an UI to
+            represent the action.
+        url:
+          type: string
+          pattern: >-
+            ^(https:\/\/)[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&\(\)\*\+,;=.]+$
+          example: https://myapp.osdu.com/action/{type}/{id}
+        filter:
+          $ref: '#/components/schemas/RegisterFilter'
+      example:
+        id: petrel-launch-project
+        name: Petrel Project
+        description: >-
+          This action launches the Petrel projects landing page that holds the
+          selected data.
+        img: https://mycdn.com/img.png
+        contactEmail: abc@test.com
+        url: https://myapp.osdu.com/action/{type}/{id}
+        filter:
+          entityType:
+            - regularheightfield
+          source:
+            - petrel
+          version:
+            - '*'
+    RegisterTestAction:
+      type: object
+      required:
+        - schema
+      properties:
+        action:
+          $ref: '#/components/schemas/RegisterCreateAction'
+        testPayload:
+          type: object
+      example:
+        action:
+          id: petrel-launch-project
+          name: Petrel Project
+          description: >-
+            This action launches the Petrel projects landing page that holds the
+            selected data.
+          contactEmail: abc@test.com
+          img: https://mycdn.com/img.png
+          url: >-
+            https://myapp.osdu.com/action/{data.uri:^(?:[^\/]*(?:\/(?:\/[^\/]*\/?)?)?([^?]+)(?:\??.+)?)$}
+          filter:
+            entityType:
+              - regularheightfield
+              - project
+            source:
+              - petrel
+            version:
+              - '*'
+        testPayload:
+          id: common:regularheightfield:123456
+          kind: common:petrel:regularheightfield:1.0.0
+          data:
+            uri: https://myproj.com/abc123
+    RegisterTestActionResult:
+      type: object
+      required:
+        - schema
+      properties:
+        url:
+          type: string
+        errors:
+          type: string
+      example:
+        url: https://myapp.osdu.com/action/abc123
+        errors: ''
+    RegisterAction:
+      type: object
+      required:
+        - schema
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        contactEmail:
+          type: string
+        img:
+          type: string
+        url:
+          type: string
+          example: https://myapp.osdu.com/action/{type}/{id}
+        filter:
+          $ref: '#/components/schemas/RegisterFilter'
+        createdOnEpoch:
+          type: object
+          properties:
+            seconds:
+              type: integer
+            nanos:
+              type: integer
+    RegisterRecord:
+      type: object
+      required:
+        - schema
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        acl:
+          $ref: '#/components/schemas/RegisterAcl'
+        legal:
+          $ref: '#/components/schemas/RegisterLegal'
+        data:
+          $ref: '#/components/schemas/RegisterData'
+      example:
+        id: common:regularheightfield:123456
+        kind: common:petrel:regularheightfield:1.0.0
+        acl:
+          viewers:
+            - data.default.viewers@{datapartition}.{domain}.com
+          owners:
+            - data.default.owners@{datapartition}.{domain}.com
+        legal:
+          legaltags:
+            - common-sample-legaltag
+          otherRelevantDataCountries:
+            - US
+        data:
+          msg: Hello
+          uri: https://myproj.com/abc123
+    RegisterAcl:
+      type: object
+      required:
+        - schema
+      properties:
+        viewers:
+          type: array
+          items:
+            type: string
+            example:
+              - data.default.viewers@{datapartition}.{domain}.com
+        owners:
+          type: array
+          items:
+            type: string
+            example:
+              - data.default.owners@{datapartition}.{domain}.com
+    RegisterData:
+      type: object
+      required:
+        - schema
+      properties:
+        msg:
+          type: string
+          example: Hello
+        uri:
+          type: string
+          example: https://myproj.com/abc123
+    RegisterLegal:
+      type: object
+      required:
+        - schema
+      properties:
+        legaltags:
+          type: array
+          items:
+            type: string
+            example:
+              - common-sample-legaltag
+        otherRelevantDataCountries:
+          type: array
+          items:
+            type: string
+            example:
+              - US
+    RegisterFilter:
+      type: object
+      required:
+        - schema
+      properties:
+        entityType:
+          type: array
+          items:
+            type: string
+            pattern: ^[a-z0-9-]{0,50}
+            example:
+              - regularheightfield
+        source:
+          type: array
+          items:
+            type: string
+            pattern: ^[a-z0-9-]{0,50}
+            example:
+              - petrel
+        version:
+          type: array
+          items:
+            type: string
+            pattern: ^[0-9.]{0,10}
+            example:
+              - '*'
+    RegisterSubscription:
+      type: object
+      required:
+        - schema
+      properties:
+        name:
+          type: string
+          pattern: ^[A-Za-z0-9- ]{2,50}
+          example: test-subscription
+        description:
+          type: string
+          pattern: ^[A-Za-z0-9. ]{0,255}
+          example: test description
+        topic:
+          type: string
+          example: data-changed-v1
+        pushEndpoint:
+          type: string
+          example: https://myListener.com
+        secret:
+          $ref: '#/components/schemas/RegisterSecret'
+    RegisterGetSubscriptionResult:
+      type: object
+      required:
+        - schema
+      properties:
+        id:
+          type: string
+          example: dGVzdC1uYW1l
+        name:
+          type: string
+          example: test-subscription
+        description:
+          type: string
+          example: test description
+        topic:
+          type: string
+          example: data-changed-v1
+        pushEndpoint:
+          type: string
+          example: https://myListener.com
+        createdBy:
+          type: string
+          example: test@myapp.com
+        notificationId:
+          type: string
+          example: de-6ee609b9-620e-477b-86f9-3b8907643a12
+    RegisterSubscriptionCreateResult:
+      type: object
+      required:
+        - schema
+      properties:
+        id:
+          type: string
+          example: dGVzdC1uYW1l
+        name:
+          type: string
+          pattern: ^[A-Za-z0-9- ]{2,50}
+          example: test-subscription
+        description:
+          type: string
+          pattern: ^[A-Za-z0-9. ]{0,255}
+          example: test description
+        topic:
+          type: string
+          example: data-changed-v1
+        pushEndpoint:
+          type: string
+          example: https://myListener.com
+        createdBy:
+          type: string
+          example: test@myapp.com
+        notificationId:
+          type: string
+          example: de-6ee609b9-620e-477b-86f9-3b8907643a12
+        createdOnEpoch:
+          $ref: '#/components/schemas/RegisterCreatedOnEpoch'
+        secret:
+          $ref: '#/components/schemas/RegisterSecret'
+    RegisterSecret:
+      type: object
+      required:
+        - schema
+      properties:
+        secretType:
+          type: string
+          enum:
+            - HMAC
+            - GSA
+        value:
+          type: object
+          example: hmacsecret
+    RegisterCreatedOnEpoch:
+      type: object
+      required:
+        - schema
+      properties:
+        seconds:
+          type: integer
+          example: 1572275081
+        nanos:
+          type: integer
+          example: 51000000
+    RegisterTopic:
+      type: object
+      required:
+        - schema
+      properties:
+        name:
+          type: string
+          example: records-changed
+        description:
+          type: string
+          example: >-
+            This notification is sent whenever a record is created, updated or
+            deleted.
+        state:
+          type: string
+          example: ACTIVE
+        example:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegisterTopicExample'
+    RegisterTopicExample:
+      type: object
+      required:
+        - schema
+      properties:
+        id:
+          type: string
+          example: common:test:123
+        kind:
+          type: string
+          example: common:source:type:1.0.0
+        op:
+          type: string
+          example: deleted
+    NotificationResponseEntity:
+      type: object
+      properties:
+        body:
+          type: object
+        statusCode:
+          type: string
+        statusCodeValue:
+          type: integer
+          format: int32

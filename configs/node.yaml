@@ -1,0 +1,3 @@
+inputSpec: swagger.yaml
+outputDir: out/nodejs
+generatorName: javascript

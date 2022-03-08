@@ -1,0 +1,8 @@
+inputSpec: swagger.yaml
+outputDir: out/csharp-netcore
+generatorName: csharp-netcore
+additionalProperties:
+  packageGuid: "{5EF2236D-11BE-4077-B2CD-635B520A5E46}"
+  packageName: Org.Platform.Client
+  useCompareNetObjects: "true"
+

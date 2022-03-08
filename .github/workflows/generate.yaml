@@ -1,0 +1,20 @@
+name: 'SDK Generate'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generator:
+    runs-on: ubuntu-latest
+    name: Example
+    steps:
+
+      # Checkout your code
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Generate Client Library w/ the OpenAPITools Generator
+        uses: openapi-generators/openapitools-generator-action@v1.3.0
+        with:
+          generator: typescript-node
+          config-file: configs/node.yml
