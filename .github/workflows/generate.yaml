@@ -48,7 +48,7 @@ jobs:
           tar -czvf python.tar.gz python-legacy-client
 
       - name: Login to Azure
-      - uses: azure/login@v1
+        uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }} 
       # - uses: azure/CLI@v1
