@@ -60,41 +60,15 @@ jobs:
               --account-name $STORAGE_ACCOUNT \
               --auth-mode  key \
               --file openapi.yaml \
-              --overwrite \
               --container-name files \
               --name swagger.yaml
 
             az storage blob upload \
               --account-name $STORAGE_ACCOUNT \
               --auth-mode  key \
-              --overwrite \
               --file csharp-netcore.tar.gz \
               --container-name files \
               --name csharp-netcore.tar.gz
-
-            az storage blob upload \
-              --account-name $STORAGE_ACCOUNT \
-              --auth-mode  key \
-              --overwrite \
-              --file java.tar.gz \
-              --container-name files \
-              --name java.tar.gz
-
-            az storage blob upload \
-              --account-name $STORAGE_ACCOUNT \
-              --auth-mode  key \
-              --overwrite \
-              --file nodejs.tar.gz \
-              --container-name files \
-              --name nodejs.tar.gz
-
-            az storage blob upload \
-              --account-name $STORAGE_ACCOUNT \
-              --auth-mode  key \
-              --overwrite \
-              --file python.tar.gz \
-              --container-name files \
-              --name python.tar.gz
 
       - name: Azure logout
         run: |
