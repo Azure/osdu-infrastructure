@@ -54,8 +54,8 @@ jobs:
         uses: azure/CLI@v1
         with: 
           inlineScript: |
-            STORAGE_ACCOUNT= ${{ secrets.STORAGE_ACCOUNT }}
-
+            STORAGE_ACCOUNT= oakjumpstart
+            echo $STORAGE_ACCOUNT
             az storage blob upload \
               --account-name $STORAGE_ACCOUNT \
               --auth-mode  key \
