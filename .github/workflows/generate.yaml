@@ -50,42 +50,57 @@ jobs:
       - uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }} 
-      - name: Upload To Azure Blob Storage
+          
+      - name: Upload OpenAPI File
         uses: azure/CLI@v1
         with: 
           inlineScript: |
-            STORAGE_ACCOUNT=${{secrets.STORAGE_ACCOUNT}}
-
             az storage blob upload \
-              --account-name $STORAGE_ACCOUNT \
+              --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file openapi.yaml \
               --container-name files \
               --name swagger.yaml
 
+      - name: Upload DotNET Core SDK
+        uses: azure/CLI@v1
+        with: 
+          inlineScript: |
             az storage blob upload \
-              --account-name $STORAGE_ACCOUNT \
+              --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file csharp-netcore.tar.gz \
               --container-name files \
               --name csharp-netcore.tar.gz
 
+      - name: Upload Java SDK
+        uses: azure/CLI@v1
+        with: 
+          inlineScript: |
             az storage blob upload \
-              --account-name $STORAGE_ACCOUNT \
+              --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file java.tar.gz \
               --container-name files \
               --name java.tar.gz
 
+      - name: Upload NodeJS SDK
+        uses: azure/CLI@v1
+        with: 
+          inlineScript: |
             az storage blob upload \
-              --account-name $STORAGE_ACCOUNT \
+              --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file nodejs.tar.gz \
               --container-name files \
               --name nodejs.tar.gz
 
+      - name: Upload Python SDK
+        uses: azure/CLI@v1
+        with: 
+          inlineScript: |
             az storage blob upload \
-              --account-name $STORAGE_ACCOUNT \
+              --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file python.tar.gz \
               --container-name files \
