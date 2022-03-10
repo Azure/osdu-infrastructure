@@ -51,7 +51,7 @@ jobs:
       - uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }} 
-      - uses: azure/CLI@v1
+      # - uses: azure/CLI@v1
       # - name: Login to Azure
       #   run: |
       #     STORAGE_ACCOUNT= ${{secrets.STORAGE_ACCOUNT}}
