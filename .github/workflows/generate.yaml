@@ -55,41 +55,14 @@ jobs:
         with: 
           inlineScript: |
             STORAGE_ACCOUNT= ${{ secrets.STORAGE_ACCOUNT }}
-            
-      #       az storage blob upload \
-      #         --account-name $STORAGE_ACCOUNT \
-      #         --auth-mode  key \
-      #         --file csharp-netcore.tar.gz \
-      #         --container-name files \
-      #         --name csharp-netcore.tar.gz
-
-      # #     # az storage blob upload \
-      #     #   --account-name $STORAGE_ACCOUNT \
-      #     #   --account-key  $STORAGE_KEY \
-      #     #   --file java.tar.gz \
-      #     #   --container-name files \
-      #     #   --name java.tar.gz
-
-      #     # az storage blob upload \
-      #     #   --account-name $STORAGE_ACCOUNT \
-      #     #   --account-key  $STORAGE_KEY \
-      #     #   --file nodejs.tar.gz \
-      #     #   --container-name files \
-      #     #   --name nodejs.tar.gz
-
-      #     # az storage blob upload \
-      #     #   --account-name $STORAGE_ACCOUNT \
-      #     #   --account-key  $STORAGE_KEY \
-      #     #   --file python.tar.gz \
-      #     #   --container-name files \
-      #     #   --name python.tar.gz
 
             az storage blob upload \
               --account-name $STORAGE_ACCOUNT \
-              --auth-mode key \
+              --auth-mode  key \
               --file openapi.yaml \
               --container-name files \
               --name swagger.yaml
+      
       - name: Azure logout
         run: |
               az logout
