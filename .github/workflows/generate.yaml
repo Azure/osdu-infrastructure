@@ -54,9 +54,9 @@ jobs:
         uses: azure/CLI@v1
         with: 
           inlineScript: |
-          STORAGE_ACCOUNT= ${{secrets.STORAGE_ACCOUNT}}
-          RESOURCE_GROUP=${{secrets.RESOURCE_GROUP}}
-          STORAGE_KEY=$(az storage account keys list --account-name $STORAGE_ACCOUNT --resource-group $RESOURCE_GROUP --query '[0].value' --output tsv)
+            STORAGE_ACCOUNT= ${{secrets.STORAGE_ACCOUNT}}
+            RESOURCE_GROUP=${{secrets.RESOURCE_GROUP}}
+            STORAGE_KEY=$(az storage account keys list --account-name $STORAGE_ACCOUNT --resource-group $RESOURCE_GROUP --query '[0].value' --output tsv)
 
       #     # az storage blob upload \
       #     #   --account-name $STORAGE_ACCOUNT \
