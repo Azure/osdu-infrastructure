@@ -60,6 +60,7 @@ jobs:
               --account-name $STORAGE_ACCOUNT \
               --auth-mode  key \
               --file openapi.yaml \
+              --overwrite \
               --container-name files \
               --name swagger.yaml
       
