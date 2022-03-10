@@ -13,39 +13,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # - name: Generate Nodejs Client Library w/ the OpenAPITools Generator
-      #   uses: openapi-generators/openapitools-generator-action@v1.3.0
-      #   with:
-      #     generator: javascript
-      #     config-file: configs/node.yaml
-      #     openapi-file: openapi.yaml
+      - name: Generate Nodejs Client Library w/ the OpenAPITools Generator
+        uses: openapi-generators/openapitools-generator-action@v1.3.0
+        with:
+          generator: javascript
+          config-file: configs/node.yaml
+          openapi-file: openapi.yaml
 
-      # - name: Generate Java Client Library w/ the OpenAPITools Generator
-      #   uses: openapi-generators/openapitools-generator-action@v1.3.0
-      #   with:
-      #     generator: java
-      #     config-file: configs/java.yaml
-      #     openapi-file: openapi.yaml
+      - name: Generate Java Client Library w/ the OpenAPITools Generator
+        uses: openapi-generators/openapitools-generator-action@v1.3.0
+        with:
+          generator: java
+          config-file: configs/java.yaml
+          openapi-file: openapi.yaml
 
-      # - name: Generate DotNet Core Client Library w/ the OpenAPITools Generator
-      #   uses: openapi-generators/openapitools-generator-action@v1.3.0
-      #   with:
-      #     generator: csharp-netcore
-      #     config-file: configs/dotnet-core.yaml
-      #     openapi-file: openapi.yaml
+      - name: Generate DotNet Core Client Library w/ the OpenAPITools Generator
+        uses: openapi-generators/openapitools-generator-action@v1.3.0
+        with:
+          generator: csharp-netcore
+          config-file: configs/dotnet-core.yaml
+          openapi-file: openapi.yaml
 
-      # - name: Generate Nodejs Client Library w/ the OpenAPITools Generator
-      #   uses: openapi-generators/openapitools-generator-action@v1.3.0
-      #   with:
-      #     generator: python-legacy
-      #     config-file: configs/python.yaml
-      #     openapi-file: openapi.yaml
-      # - name: Create Archive
-      #   run: |
-      #     tar -czvf csharp-netcore.tar.gz csharp-netcore-client
-      #     tar -czvf java.tar.gz java-client
-      #     tar -czvf nodejs.tar.gz javascript-client
-      #     tar -czvf python.tar.gz python-legacy-client
+      - name: Generate Nodejs Client Library w/ the OpenAPITools Generator
+        uses: openapi-generators/openapitools-generator-action@v1.3.0
+        with:
+          generator: python-legacy
+          config-file: configs/python.yaml
+          openapi-file: openapi.yaml
+      - name: Create Archive
+        run: |
+          tar -czvf csharp-netcore.tar.gz csharp-netcore-client
+          tar -czvf java.tar.gz java-client
+          tar -czvf nodejs.tar.gz javascript-client
+          tar -czvf python.tar.gz python-legacy-client
 
       - uses: azure/login@v1
         with:
@@ -63,7 +63,39 @@ jobs:
               --overwrite \
               --container-name files \
               --name swagger.yaml
-      
+
+            az storage blob upload \
+              --account-name $STORAGE_ACCOUNT \
+              --auth-mode  key \
+              --overwrite \
+              --file csharp-netcore.tar.gz \
+              --container-name files \
+              --name csharp-netcore.tar.gz
+
+            az storage blob upload \
+              --account-name $STORAGE_ACCOUNT \
+              --auth-mode  key \
+              --overwrite \
+              --file java.tar.gz \
+              --container-name files \
+              --name java.tar.gz
+
+            az storage blob upload \
+              --account-name $STORAGE_ACCOUNT \
+              --auth-mode  key \
+              --overwrite \
+              --file nodejs.tar.gz \
+              --container-name files \
+              --name nodejs.tar.gz
+
+            az storage blob upload \
+              --account-name $STORAGE_ACCOUNT \
+              --auth-mode  key \
+              --overwrite \
+              --file python.tar.gz \
+              --container-name files \
+              --name python.tar.gz
+
       - name: Azure logout
         run: |
               az logout
