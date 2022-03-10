@@ -43,10 +43,9 @@ jobs:
 
       - name: Upload Code
         run: |
-          cd out
           ls -al
 
       - name: Publish Maven Artifacts
         run: |
-          cd out/java
+          ls -al
 
