@@ -40,8 +40,17 @@ jobs:
           generator: python-legacy
           config-file: configs/python.yaml
           openapi-file: openapi.yaml
+      - name: Create Archive
+        run: |
+        tar -czvf csharp-netcore.tar.gz csharp-netcore-client
+        tar -czvf java.tar.gz java-client
+        tar -czvf nodejs.tar.gz javascript-client
+        tar -czvf python.tar.gz python-legacy-client
 
       - name: Upload Code
+      # - uses: azure/login@v1
+      #   with:
+      #     creds: ${{ secrets.AZURE_CREDENTIALS }} 
         run: |
           ls -al
 
