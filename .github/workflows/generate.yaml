@@ -50,9 +50,10 @@ jobs:
       - uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }} 
-      - uses: azure/CLI@v1
       - name: Upload To Azure Blob Storage
-        run: |
+        uses: azure/CLI@v1
+        with: 
+          inlineScript: |
           STORAGE_ACCOUNT= ${{secrets.STORAGE_ACCOUNT}}
           RESOURCE_GROUP=${{secrets.RESOURCE_GROUP}}
           STORAGE_KEY=$(az storage account keys list --account-name $STORAGE_ACCOUNT --resource-group $RESOURCE_GROUP --query '[0].value' --output tsv)
@@ -90,7 +91,10 @@ jobs:
       #     #   --file openapi.yaml \
       #     #   --container-name files \
       #     #   --name swagger.yaml
-
+      - name: Azure logout
+        run: |
+              az logout
+        if: always()
       # - name: Publish Maven Artifacts
       #   run: |
       #     ls -al
