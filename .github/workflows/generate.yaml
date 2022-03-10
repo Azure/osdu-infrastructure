@@ -54,18 +54,14 @@ jobs:
         uses: azure/CLI@v1
         with: 
           inlineScript: |
-            STORAGE_ACCOUNT= ${{secrets.STORAGE_ACCOUNT}}
-            echo $STORAGE_ACCOUNT
-            RESOURCE_GROUP=${{secrets.RESOURCE_GROUP}}
-            echo $RESOURCE_GROUP
-            STORAGE_KEY=$(az storage account keys list --account-name $STORAGE_ACCOUNT --resource-group $RESOURCE_GROUP --query '[0].value' --output tsv)
-
-      #     # az storage blob upload \
-      #     #   --account-name $STORAGE_ACCOUNT \
-      #     #   --account-key  $STORAGE_KEY \
-      #     #   --file csharp-netcore.tar.gz \
-      #     #   --container-name files \
-      #     #   --name csharp-netcore.tar.gz
+            STORAGE_ACCOUNT= ${{ secrets.STORAGE_ACCOUNT }}
+            
+            az storage blob upload \
+              --account-name $STORAGE_ACCOUNT \
+              --auth-mode  key \
+              --file csharp-netcore.tar.gz \
+              --container-name files \
+              --name csharp-netcore.tar.gz
 
       #     # az storage blob upload \
       #     #   --account-name $STORAGE_ACCOUNT \
