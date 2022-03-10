@@ -13,39 +13,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Generate Nodejs Client Library w/ the OpenAPITools Generator
-        uses: openapi-generators/openapitools-generator-action@v1.3.0
-        with:
-          generator: javascript
-          config-file: configs/node.yaml
-          openapi-file: openapi.yaml
+      # - name: Generate Nodejs Client Library w/ the OpenAPITools Generator
+      #   uses: openapi-generators/openapitools-generator-action@v1.3.0
+      #   with:
+      #     generator: javascript
+      #     config-file: configs/node.yaml
+      #     openapi-file: openapi.yaml
 
-      - name: Generate Java Client Library w/ the OpenAPITools Generator
-        uses: openapi-generators/openapitools-generator-action@v1.3.0
-        with:
-          generator: java
-          config-file: configs/java.yaml
-          openapi-file: openapi.yaml
+      # - name: Generate Java Client Library w/ the OpenAPITools Generator
+      #   uses: openapi-generators/openapitools-generator-action@v1.3.0
+      #   with:
+      #     generator: java
+      #     config-file: configs/java.yaml
+      #     openapi-file: openapi.yaml
 
-      - name: Generate DotNet Core Client Library w/ the OpenAPITools Generator
-        uses: openapi-generators/openapitools-generator-action@v1.3.0
-        with:
-          generator: csharp-netcore
-          config-file: configs/dotnet-core.yaml
-          openapi-file: openapi.yaml
+      # - name: Generate DotNet Core Client Library w/ the OpenAPITools Generator
+      #   uses: openapi-generators/openapitools-generator-action@v1.3.0
+      #   with:
+      #     generator: csharp-netcore
+      #     config-file: configs/dotnet-core.yaml
+      #     openapi-file: openapi.yaml
 
-      - name: Generate Nodejs Client Library w/ the OpenAPITools Generator
-        uses: openapi-generators/openapitools-generator-action@v1.3.0
-        with:
-          generator: python-legacy
-          config-file: configs/python.yaml
-          openapi-file: openapi.yaml
-      - name: Create Archive
-        run: |
-          tar -czvf csharp-netcore.tar.gz csharp-netcore-client
-          tar -czvf java.tar.gz java-client
-          tar -czvf nodejs.tar.gz javascript-client
-          tar -czvf python.tar.gz python-legacy-client
+      # - name: Generate Nodejs Client Library w/ the OpenAPITools Generator
+      #   uses: openapi-generators/openapitools-generator-action@v1.3.0
+      #   with:
+      #     generator: python-legacy
+      #     config-file: configs/python.yaml
+      #     openapi-file: openapi.yaml
+      # - name: Create Archive
+      #   run: |
+      #     tar -czvf csharp-netcore.tar.gz csharp-netcore-client
+      #     tar -czvf java.tar.gz java-client
+      #     tar -czvf nodejs.tar.gz javascript-client
+      #     tar -czvf python.tar.gz python-legacy-client
 
       - uses: azure/login@v1
         with:
@@ -55,7 +55,9 @@ jobs:
         with: 
           inlineScript: |
             STORAGE_ACCOUNT= ${{secrets.STORAGE_ACCOUNT}}
+            echo $STORAGE_ACCOUNT
             RESOURCE_GROUP=${{secrets.RESOURCE_GROUP}}
+            echo $RESOURCE_GROUP
             STORAGE_KEY=$(az storage account keys list --account-name $STORAGE_ACCOUNT --resource-group $RESOURCE_GROUP --query '[0].value' --output tsv)
 
       #     # az storage blob upload \
