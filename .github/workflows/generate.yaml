@@ -48,11 +48,48 @@ jobs:
           tar -czvf python.tar.gz python-legacy-client
 
       - name: Upload Code
-      # - uses: azure/login@v1
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }} 
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }} 
+      - uses: azure/CLI@v1
         run: |
-          ls -al
+          STORAGE_ACCOUNT= ${{secrets.STORAGE_ACCOUNT}}
+          RESOURCE_GROUP=${{secrets.RESOURCE_GROUP}}
+          STORAGE_KEY=$(az storage account keys list --account-name $STORAGE_ACCOUNT --resource-group $RESOURCE_GROUP --query '[0].value' --output tsv)
+
+          # az storage blob upload \
+          #   --account-name $STORAGE_ACCOUNT \
+          #   --account-key  $STORAGE_KEY \
+          #   --file csharp-netcore.tar.gz \
+          #   --container-name files \
+          #   --name csharp-netcore.tar.gz
+
+          # az storage blob upload \
+          #   --account-name $STORAGE_ACCOUNT \
+          #   --account-key  $STORAGE_KEY \
+          #   --file java.tar.gz \
+          #   --container-name files \
+          #   --name java.tar.gz
+
+          # az storage blob upload \
+          #   --account-name $STORAGE_ACCOUNT \
+          #   --account-key  $STORAGE_KEY \
+          #   --file nodejs.tar.gz \
+          #   --container-name files \
+          #   --name nodejs.tar.gz
+
+          # az storage blob upload \
+          #   --account-name $STORAGE_ACCOUNT \
+          #   --account-key  $STORAGE_KEY \
+          #   --file python.tar.gz \
+          #   --container-name files \
+          #   --name python.tar.gz
+          # az storage blob upload \
+          #   --account-name $STORAGE_ACCOUNT \
+          #   --account-key  $STORAGE_KEY \
+          #   --file openapi.yaml \
+          #   --container-name files \
+          #   --name swagger.yaml
 
       - name: Publish Maven Artifacts
         run: |
