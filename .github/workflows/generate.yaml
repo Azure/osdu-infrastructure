@@ -45,3 +45,4 @@ jobs:
       - name: Publish Maven Artifacts
         run: |
           cd out/java
+
