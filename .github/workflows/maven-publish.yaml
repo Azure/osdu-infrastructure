@@ -8,11 +8,24 @@ jobs:
     runs-on: ubuntu-latest
     name: Publish Maven Artifacts
     steps:
-
       # Checkout your code
       - name: Checkout
         uses: actions/checkout@v2
-        
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }} 
+
+      - name: Download Java SDK
+        uses: azure/CLI@v1
+        with: 
+          inlineScript: |
+            az storage blob download \
+              --account-name ${{ secrets.STORAGE_ACCOUNT }} \
+              --auth-mode key \
+              --file java.tar.gz \
+              --container-name files \
+              --name java.tar.gz
+
       - name: Publish Maven Artifacts
         run: |
           ls -al
