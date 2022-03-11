@@ -2,7 +2,7 @@ inputSpec: swagger.yaml
 outputDir: out/java
 generatorName: java
 artifactId: org-platform-api
-groupId: org.platform
+groupId: io.github.nur858
 additionalProperties:
   apiPackage: org.platform.client.api
   invokerPackage: org.platform.client
