@@ -50,7 +50,7 @@ jobs:
       - uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }} 
-          
+
       - name: Upload OpenAPI File
         uses: azure/CLI@v1
         with: 
@@ -110,7 +110,4 @@ jobs:
         run: |
               az logout
         if: always()
-      # - name: Publish Maven Artifacts
-      #   run: |
-      #     ls -al
 
