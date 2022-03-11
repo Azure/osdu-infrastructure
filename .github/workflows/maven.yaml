@@ -12,6 +12,7 @@ jobs:
       # Checkout your code
       - name: Checkout
         uses: actions/checkout@v2
+        
       - name: Publish Maven Artifacts
         run: |
           ls -al
