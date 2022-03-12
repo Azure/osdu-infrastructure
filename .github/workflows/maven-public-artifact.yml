@@ -26,7 +26,7 @@ jobs:
               --container-name files \
               --name java.tar.gz
             tar -xzvf java.tar.gz
-            yes | cp -rf java/pom.xml java-client/pom.xml
+            # yes | cp -rf java/pom.xml java-client/pom.xml
             # cp java/settings.xml ~/.m2/settings.xml
             cd java-client 
       - name: Set up Maven Central Repository
