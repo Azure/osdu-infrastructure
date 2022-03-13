@@ -11,43 +11,43 @@ jobs:
       # Checkout your code
       - name: Checkout
         uses: actions/checkout@v2
-      # - uses: azure/login@v1
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }} 
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }} 
 
-      # - name: Download Java SDK
-      #   uses: azure/CLI@v1
-      #   with: 
-      #     inlineScript: |
-      #       az storage blob download \
-      #         --account-name ${{ secrets.STORAGE_ACCOUNT }} \
-      #         --auth-mode key \
-      #         --file java.tar.gz \
-      #         --container-name files \
-      #         --name java.tar.gz
-      #       tar -xzvf java.tar.gz
-      #       # yes | cp -rf java/pom.xml java-client/pom.xml
-      #       # cp java/settings.xml ~/.m2/settings.xml
-      #       cd java-client 
-      # - name: Set up Maven Central Repository
-      #   uses: actions/setup-java@v2
-      #   with:
-      #     java-version: '11'
-      #     distribution: 'adopt'
-      #     server-id: ossrh
-      #     server-username: MAVEN_USERNAME
-      #     server-password: MAVEN_PASSWORD
+      - name: Download Java SDK
+        uses: azure/CLI@v1
+        with: 
+          inlineScript: |
+            az storage blob download \
+              --account-name ${{ secrets.STORAGE_ACCOUNT }} \
+              --auth-mode key \
+              --file java.tar.gz \
+              --container-name files \
+              --name java.tar.gz
+            tar -xzvf java.tar.gz
+            # yes | cp -rf java/pom.xml java-client/pom.xml
+            # cp java/settings.xml ~/.m2/settings.xml
+            cd java-client 
+      - name: Set up Maven Central Repository
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          server-id: ossrh
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
       - name: Install gpg secret key
         run: |
           cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
           gpg --list-secret-keys --keyid-format LONG
-      # - name: Build with Maven
-      #   run: mvn -B package --file pom.xml
-      # - name: Publish package
-      #   run: mvn --no-transfer-progress --batch-mode -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} clean deploy
-      #   env:
-      #     MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-      #     MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+      - name: Publish package
+        run: mvn --no-transfer-progress --batch-mode -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} clean deploy
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
 
 
 
