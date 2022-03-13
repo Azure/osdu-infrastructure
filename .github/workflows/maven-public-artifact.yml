@@ -29,6 +29,7 @@ jobs:
             # yes | cp -rf java/pom.xml java-client/pom.xml
             # cp java/settings.xml ~/.m2/settings.xml
             cd java-client 
+            echo pwd
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v2
         with:
