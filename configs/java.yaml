@@ -4,7 +4,10 @@ templateDirectory: java/templates
 generatorName: java
 artifactId: org-platform-api
 groupId: io.github.nur858
+
 additionalProperties:
+  useOptional: true
+  java8: true
   apiPackage: org.platform.client.api
   invokerPackage: org.platform.client
   groupId: org.platform
