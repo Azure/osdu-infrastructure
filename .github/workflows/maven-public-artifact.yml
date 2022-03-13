@@ -42,7 +42,9 @@ jobs:
           cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
           gpg --list-secret-keys --keyid-format LONG
       - name: Build with Maven
-        run: mvn -B package --file pom.xml
+        run: |
+          ls -al
+          mvn -B package --file pom.xml
       - name: Publish package
         run: mvn --no-transfer-progress --batch-mode -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} clean deploy
         env:
