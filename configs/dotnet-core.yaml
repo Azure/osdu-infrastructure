@@ -1,4 +1,4 @@
-inputSpec: swagger.yaml
+inputSpec: openapi.yaml
 outputDir: out/csharp-netcore
 generatorName: csharp-netcore
 additionalProperties:

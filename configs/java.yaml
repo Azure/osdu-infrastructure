@@ -1,16 +1,18 @@
-inputSpec: swagger.yaml
+inputSpec: openapi.yaml
 outputDir: out/java
 templateDirectory: java/templates
 generatorName: java
 artifactId: org-platform-api
+artifactVersion:  0.0.1
 groupId: io.github.nur858
-
+apiPackage: org.platform.client.api
+invokerPackage: org.platform.client.invoker
+modelPackage: org.platform.client.model
+library: native
 additionalProperties:
   useOptional: true
+  serializableModel: false
   java8: true
-  apiPackage: org.platform.client.api
-  invokerPackage: org.platform.client
-  groupId: org.platform
   scmConnection: scm:git:git@github.com:Azure/osdu-infrastructure.git
   scmDeveloperConnection: scm:git:git@github.com:Azure/osdu-infrastructure.git
   scmUrl: https://github.com/Azure/osdu-infrastructure
