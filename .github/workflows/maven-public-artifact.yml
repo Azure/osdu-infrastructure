@@ -26,8 +26,6 @@ jobs:
               --container-name files \
               --name java.tar.gz
             tar -xzvf java.tar.gz
-            # yes | cp -rf java/pom.xml java-client/pom.xml
-            # cp java/settings.xml ~/.m2/settings.xml
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v2
         with:
@@ -40,10 +38,7 @@ jobs:
         run: |
           cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
           gpg --list-secret-keys --keyid-format LONG
-      # - name: Build with Maven
-      #   working-directory: ./java-client
-      #   run: |
-      #     mvn -B package --file pom.xml
+
       - name: Publish package
         working-directory: ./java-client
         run: mvn --no-transfer-progress --batch-mode -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} clean deploy
