@@ -29,7 +29,7 @@ jobs:
             # yes | cp -rf java/pom.xml java-client/pom.xml
             # cp java/settings.xml ~/.m2/settings.xml
             cd java-client 
-            echo pwd
+            echo $PWD
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v2
         with:
@@ -43,7 +43,9 @@ jobs:
           cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
           gpg --list-secret-keys --keyid-format LONG
       - name: Build with Maven
+        working-directory: ./java-client
         run: |
+          echo $PWD
           ls -al
           mvn -B package --file pom.xml
       - name: Publish package
