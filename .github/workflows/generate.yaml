@@ -26,6 +26,7 @@ jobs:
           generator: java
           config-file: configs/java.yaml
           openapi-file: openapi.yaml
+          template-dir: java/templates
 
       - name: Generate DotNet Core Client Library w/ the OpenAPITools Generator
         uses: openapi-generators/openapitools-generator-action@v1.3.0
