@@ -37,17 +37,20 @@ jobs:
           server-id: ossrh
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
-      - name: Install gpg secret key
-        run: |
-          cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
-          gpg --list-secret-keys --keyid-format LONG
-      # - name: Build with Maven
-      #   run: mvn -B package --file pom.xml
-      # - name: Publish package
-      #   run: mvn --no-transfer-progress --batch-mode -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} clean deploy
-      #   env:
-      #     MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-      #     MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+      # - name: Install gpg secret key
+      #   run: |
+      #     cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
+      #     gpg --list-secret-keys --keyid-format LONG
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+      - name: Publish package
+        run: mvn deploy --batch-mode -D skipTests --activate-profiles release --no-transfer-progress #mvn --no-transfer-progress --batch-mode -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} clean deploy
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
 
 
