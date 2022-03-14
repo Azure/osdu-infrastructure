@@ -2,12 +2,12 @@ inputSpec: openapi.yaml
 outputDir: out/java
 templateDirectory: java/templates
 generatorName: java
-artifactId: org-platform-api
+artifactId: com-microsoft-osdu-api
 artifactVersion:  0.0.1
 groupId: io.github.nur858
-apiPackage: org.platform.client.api
-invokerPackage: org.platform.client.invoker
-modelPackage: org.platform.client.model
+apiPackage: com.microsoft.osdu.client.api
+invokerPackage: com.microsoft.osdu.client.invoker
+modelPackage: com.microsoft.osdu.client.model
 library: native
 additionalProperties:
   useOptional: true
