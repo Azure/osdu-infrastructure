@@ -1,6 +1,7 @@
 openapi: 3.0.0
 info:
   title: Platform APIs
+  description: Platform APIs
   version: 0.11.0
   license:
     name: Apache 2.0
