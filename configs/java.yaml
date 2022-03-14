@@ -1,9 +1,29 @@
-inputSpec: swagger.yaml
+inputSpec: openapi.yaml
 outputDir: out/java
+templateDirectory: java/templates
 generatorName: java
 artifactId: org-platform-api
-groupId: org.platform
+artifactVersion:  0.0.1
+groupId: io.github.nur858
+apiPackage: org.platform.client.api
+invokerPackage: org.platform.client.invoker
+modelPackage: org.platform.client.model
+library: native
 additionalProperties:
-  apiPackage: org.platform.client.api
-  invokerPackage: org.platform.client
-  groupId: org.platform
+  useOptional: true
+  serializableModel: false
+  java8: true
+  scmConnection: scm:git:git@github.com:Azure/osdu-infrastructure.git
+  scmDeveloperConnection: scm:git:git@github.com:Azure/osdu-infrastructure.git
+  scmUrl: https://github.com/Azure/osdu-infrastructure
+  developerName: Azure
+  developerEmail: opensource@microsoft.com
+  developerOrganization: Microsoft
+  developerOrganizationUrl: https://docs.microsoft.com/en-us/azure/
+  licenseName: MIT License
+  licenseUrl: http://www.opensource.org/licenses/mit-license.php
+
+files:
+  pom.mustache:
+    templateType: API
+    destinationFilename: pom.xml
