@@ -4,13 +4,13 @@ templateDirectory: java/templates
 generatorName: java
 
 artifactId: com-microsoft-osdu-api
-artifactVersion:  0.0.2
+artifactVersion:  0.0.4
 groupId: io.github.nur858
 apiPackage: com.microsoft.osdu.client.api
 invokerPackage: com.microsoft.osdu.client.invoker
 modelPackage: com.microsoft.osdu.client.model
 
-library: native
+library: apache-httpclient
 additionalProperties:
   useOptional: true
   serializableModel: false
