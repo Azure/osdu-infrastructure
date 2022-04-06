@@ -58,12 +58,11 @@ jobs:
         with: 
           inlineScript: |
             az storage blob upload \
+              --overrwrite true \
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file openapi.yaml \
               --container-name files \
-              --overrwrite true \
-
               --name swagger.yaml
 
       - name: Upload DotNET Core SDK
@@ -71,11 +70,11 @@ jobs:
         with: 
           inlineScript: |
             az storage blob upload \
+              --overrwrite true \
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file csharp-netcore.tar.gz \
               --container-name files \
-              --overrwrite true \
               --name csharp-netcore.tar.gz
 
       - name: Upload Java SDK
@@ -83,10 +82,10 @@ jobs:
         with: 
           inlineScript: |
             az storage blob upload \
+              --overrwrite true \
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file java.tar.gz \
-              --overrwrite true \
               --container-name files \
               --name java.tar.gz
 
@@ -95,11 +94,11 @@ jobs:
         with: 
           inlineScript: |
             az storage blob upload \
+              --overrwrite true \
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file nodejs.tar.gz \
               --container-name files \
-              --overrwrite true \
               --name nodejs.tar.gz
 
       - name: Upload Python SDK
@@ -107,11 +106,11 @@ jobs:
         with: 
           inlineScript: |
             az storage blob upload \
+              --overrwrite true \
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file python.tar.gz \
               --container-name files \
-              --overrwrite true \
               --name python.tar.gz
               
       - name: Azure logout
