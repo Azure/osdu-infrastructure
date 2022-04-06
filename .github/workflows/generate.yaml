@@ -62,6 +62,7 @@ jobs:
               --auth-mode  key \
               --file openapi.yaml \
               --container-name files \
+              --overrwrite \
               --name swagger.yaml
 
       - name: Upload DotNET Core SDK
@@ -73,6 +74,7 @@ jobs:
               --auth-mode  key \
               --file csharp-netcore.tar.gz \
               --container-name files \
+              --overrwrite \
               --name csharp-netcore.tar.gz
 
       - name: Upload Java SDK
@@ -83,6 +85,7 @@ jobs:
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file java.tar.gz \
+              --overrwrite \
               --container-name files \
               --name java.tar.gz
 
@@ -95,6 +98,7 @@ jobs:
               --auth-mode  key \
               --file nodejs.tar.gz \
               --container-name files \
+              --overrwrite \
               --name nodejs.tar.gz
 
       - name: Upload Python SDK
@@ -106,6 +110,7 @@ jobs:
               --auth-mode  key \
               --file python.tar.gz \
               --container-name files \
+              --overrwrite \
               --name python.tar.gz
               
       - name: Azure logout
