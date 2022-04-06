@@ -58,7 +58,6 @@ jobs:
         with: 
           inlineScript: |
             az storage blob upload \
-              --overrwrite true \
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file openapi.yaml \
@@ -70,7 +69,6 @@ jobs:
         with: 
           inlineScript: |
             az storage blob upload \
-              --overrwrite true \
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file csharp-netcore.tar.gz \
@@ -82,7 +80,6 @@ jobs:
         with: 
           inlineScript: |
             az storage blob upload \
-              --overrwrite true \
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file java.tar.gz \
@@ -94,7 +91,6 @@ jobs:
         with: 
           inlineScript: |
             az storage blob upload \
-              --overrwrite true \
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file nodejs.tar.gz \
@@ -106,7 +102,6 @@ jobs:
         with: 
           inlineScript: |
             az storage blob upload \
-              --overrwrite true \
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file python.tar.gz \
