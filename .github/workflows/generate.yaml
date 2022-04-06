@@ -63,6 +63,7 @@ jobs:
               --file openapi.yaml \
               --container-name files \
               --overrwrite true \
+
               --name swagger.yaml
 
       - name: Upload DotNET Core SDK
