@@ -2,7 +2,10 @@ name: 'SDK Generate'
 
 on:
   workflow_dispatch:
-  
+  push:
+    paths-ignore:
+      - "archive/**"
+
 env:
   CONTAINER_NAME: assets
 
