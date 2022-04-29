@@ -2,6 +2,9 @@ name: 'SDK Generate'
 
 on:
   workflow_dispatch:
+  
+env:
+  CONTAINER_NAME: assets
 
 jobs:
   generator:
@@ -61,7 +64,7 @@ jobs:
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file openapi.yaml \
-              --container-name files \
+              --container-name ${{ env.CONTAINER_NAME }} \
               --name swagger.yaml
 
       - name: Upload DotNET Core SDK
@@ -72,7 +75,7 @@ jobs:
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file csharp-netcore.tar.gz \
-              --container-name files \
+              --container-name ${{ env.CONTAINER_NAME }} \
               --name csharp-netcore.tar.gz
 
       - name: Upload Java SDK
@@ -83,7 +86,7 @@ jobs:
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file java.tar.gz \
-              --container-name files \
+              --container-name ${{ env.CONTAINER_NAME }} \
               --name java.tar.gz
 
       - name: Upload NodeJS SDK
@@ -94,7 +97,7 @@ jobs:
               --account-name ${{ secrets.STORAGE_ACCOUNT }} \
               --auth-mode  key \
               --file nodejs.tar.gz \
-              --container-name files \
+              --container-name ${{ env.CONTAINER_NAME }} \
               --name nodejs.tar.gz
 
       - name: Upload Python SDK
