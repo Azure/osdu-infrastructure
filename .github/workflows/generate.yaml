@@ -68,7 +68,8 @@ jobs:
               --auth-mode  key \
               --file openapi.yaml \
               --container-name ${{ env.CONTAINER_NAME }} \
-              --name swagger.yaml
+              --name swagger.yaml \
+              --overwrite
 
       - name: Upload DotNET Core SDK
         uses: azure/CLI@v1
